@@ -1,0 +1,11 @@
+{
+  "name": "SGAIT - Sistema de gestão de autos de infração",
+  "description": "Sistema de Gestão de Autos de Infração de Trânsito para Superintendência de Trânsito e Transporte Pojuca - BA, com cadastro, painel de controle, relatórios e projeções.",
+  "requestFramePermissions": [
+    "camera",
+    "geolocation"
+  ],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
