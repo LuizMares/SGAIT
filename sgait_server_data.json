@@ -1,0 +1,4134 @@
+{
+  "tickets": [],
+  "authorizedEmails": [
+    {
+      "email": "sttpojucaba@gmail.com",
+      "role": "ADMIN",
+      "name": "STT Pojuca Admin"
+    },
+    {
+      "email": "luizemerson17@gmail.com",
+      "role": "ADMIN",
+      "name": "Emerson Mares"
+    }
+  ],
+  "infractions": [
+    {
+      "code": "751-01",
+      "description": "Iniciar obra perturbe/interrompa circulação/segurança veíc/pedestre s/permissão.",
+      "framing": "Art. 95. do CTB",
+      "article": "95",
+      "nature": "Leve",
+      "fineValue": 88.38,
+      "score": 0,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "751-02",
+      "description": "Iniciar evento perturbe/interrompa circulação/segurança veíc/pedestre s/permissão.",
+      "framing": "Art. 95. do CTB",
+      "article": "95",
+      "nature": "Leve",
+      "fineValue": 88.38,
+      "score": 0,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "752-81",
+      "description": "Não sinalizar a execução ou manutenção da obra.",
+      "framing": "Art. 95, §1º. do CTB",
+      "article": "95, §1º",
+      "nature": "Leve",
+      "fineValue": 88.38,
+      "score": 0,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "752-82",
+      "description": "Não sinalizar a execução ou manutenção do evento.",
+      "framing": "Art. 95, §1º. do CTB",
+      "article": "95, §1º",
+      "nature": "Leve",
+      "fineValue": 88.38,
+      "score": 0,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "501-00",
+      "description": "Dirigir veículo sem possuir CNH, PPD ou ACC.",
+      "framing": "Art. 162, I. do CTB",
+      "article": "162, I",
+      "nature": "Gravíssima",
+      "fineValue": 1467.35,
+      "score": 7,
+      "adminMeasure": "Retenção do veículo até a apresentação de condutor habilitado"
+    },
+    {
+      "code": "502-91",
+      "description": "Dirigir veículo com CNH, PPD ou ACC cassada.",
+      "framing": "Art. 162, II. do CTB",
+      "article": "162, II",
+      "nature": "Gravíssima",
+      "fineValue": 293.47,
+      "score": 7,
+      "adminMeasure": "Recolhimento do documento de habilitação e retenção do veículo"
+    },
+    {
+      "code": "502-92",
+      "description": "Dirigir veículo com CNH, PPD ou ACC com suspensão do direito de dirigir.",
+      "framing": "Art. 162, II. do CTB",
+      "article": "162, II",
+      "nature": "Gravíssima",
+      "fineValue": 293.47,
+      "score": 7,
+      "adminMeasure": "Recolhimento do documento de habilitação e retenção do veículo"
+    },
+    {
+      "code": "503-71",
+      "description": "Dirigir veículo com CNH de categoria diferente da do veículo.",
+      "framing": "Art. 162, III. do CTB",
+      "article": "162, III",
+      "nature": "Gravíssima",
+      "fineValue": 293.47,
+      "score": 7,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "503-72",
+      "description": "Dirigir veículo com PPD de categoria diferente da do veículo.",
+      "framing": "Art. 162, III. do CTB",
+      "article": "162, III",
+      "nature": "Gravíssima",
+      "fineValue": 293.47,
+      "score": 7,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "504-50",
+      "description": "Dirigir veículo com validade de CNH vencida há mais de 30 dias.",
+      "framing": "Art. 162, V. do CTB",
+      "article": "162, V",
+      "nature": "Gravíssima",
+      "fineValue": 293.47,
+      "score": 7,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "505-31",
+      "description": "Dirigir veículo sem usar lentes corretoras de visão.",
+      "framing": "Art. 162, VI. do CTB",
+      "article": "162, VI",
+      "nature": "Gravíssima",
+      "fineValue": 293.47,
+      "score": 7,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "505-32",
+      "description": "Dirigir veículo sem usar aparelho auxiliar de audição.",
+      "framing": "Art. 162, VI. do CTB",
+      "article": "162, VI",
+      "nature": "Gravíssima",
+      "fineValue": 293.47,
+      "score": 7,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "505-33",
+      "description": "Dirigir veículo sem usar aparelho auxiliar de prótese física.",
+      "framing": "Art. 162, VI. do CTB",
+      "article": "162, VI",
+      "nature": "Gravíssima",
+      "fineValue": 293.47,
+      "score": 7,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "505-34",
+      "description": "Dirigir veículo s/ adaptações impostas na concessão/renovação licença conduzir.",
+      "framing": "Art. 162, VI. do CTB",
+      "article": "162, VI",
+      "nature": "Gravíssima",
+      "fineValue": 293.47,
+      "score": 7,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "774-91",
+      "description": "Dirigir veículo sem possuir cursos especializados obrigatórios.",
+      "framing": "Art. 162, VII. do CTB",
+      "article": "162, VII",
+      "nature": "Gravíssima",
+      "fineValue": 293.47,
+      "score": 7,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "774-92",
+      "description": "Dirigir veículo sem possuir cursos específicos obrigatórios.",
+      "framing": "Art. 162, VII. do CTB",
+      "article": "162, VII",
+      "nature": "Gravíssima",
+      "fineValue": 293.47,
+      "score": 7,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "506-10",
+      "description": "Entregar veículo a pessoa sem CNH, PPD ou ACC.",
+      "framing": "Art. 163 c/c 162, I. do CTB",
+      "article": "163 c/c 162, I",
+      "nature": "Gravíssima",
+      "fineValue": 293.47,
+      "score": 7,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "507-01",
+      "description": "Entregar veículo a pessoa com CNH, PPD ou ACC Cassada.",
+      "framing": "Art. 163 c/c 162, II. do CTB",
+      "article": "163 c/c 162, II",
+      "nature": "Gravíssima",
+      "fineValue": 293.47,
+      "score": 7,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "507-02",
+      "description": "Entregar veículo a pessoa com CNH, PPD ou ACC com Suspensão do Direito de Dirigir.",
+      "framing": "Art. 163 c/c 162, II. do CTB",
+      "article": "163 c/c 162, II",
+      "nature": "Gravíssima",
+      "fineValue": 293.47,
+      "score": 7,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "508-81",
+      "description": "Entregar veículo a pessoa com CNH de categoria diferente da do veículo.",
+      "framing": "Art. 163 c/c 162, III do CTB",
+      "article": "163 c/c 162, III",
+      "nature": "Gravíssima",
+      "fineValue": 293.47,
+      "score": 7,
+      "adminMeasure": "Retenção do veículo até a apresentação de condutor habilitado"
+    },
+    {
+      "code": "508-82",
+      "description": "Entregar veículo a pessoa com PPD de categoria diferente da do veículo.",
+      "framing": "Art. 163 c/c 162, III. do CTB",
+      "article": "163 c/c 162, III",
+      "nature": "Gravíssima",
+      "fineValue": 293.47,
+      "score": 7,
+      "adminMeasure": "Retenção do veículo até a apresentação de condutor habilitado"
+    },
+    {
+      "code": "509-60",
+      "description": "Entregar veículo a pessoa com CNH vencida há mais de 30 dias.",
+      "framing": "Art. 163 c/c 162, V. do CTB",
+      "article": "163 c/c 162, V",
+      "nature": "Gravíssima",
+      "fineValue": 293.47,
+      "score": 7,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "510-01",
+      "description": "Entregar o veículo a pessoa sem usar lentes corretoras de visão.",
+      "framing": "Art. 163 c/c 162, VI. do CTB",
+      "article": "163 c/c 162, VI",
+      "nature": "Gravíssima",
+      "fineValue": 293.47,
+      "score": 7,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "510-02",
+      "description": "Entregar o veículo a pessoa sem usar aparelho auxiliar de audição.",
+      "framing": "Art. 163 c/c 162, VI. do CTB",
+      "article": "163 c/c 162, VI",
+      "nature": "Gravíssima",
+      "fineValue": 293.47,
+      "score": 7,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "510-03",
+      "description": "Entregar o veículo a pessoa sem aparelho de prótese física.",
+      "framing": "Art. 163 c/c 162, VI. do CTB",
+      "article": "163 c/c 162, VI",
+      "nature": "Gravíssima",
+      "fineValue": 293.47,
+      "score": 7,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "510-04",
+      "description": "Entregar veíc pessoa s/ adaptações impostas concessão/renovação licença conduzir.",
+      "framing": "Art. 163 c/c 162, VI. do CTB",
+      "article": "163 c/c 162, VI",
+      "nature": "Gravíssima",
+      "fineValue": 293.47,
+      "score": 7,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "777-31",
+      "description": "Entregar veículo a pessoa sem possuir cursos especializados obrigatórios.",
+      "framing": "Art. 163 c/c 162, VII. do CTB",
+      "article": "163 c/c 162, VII",
+      "nature": "Gravíssima",
+      "fineValue": 293.47,
+      "score": 7,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "777-32",
+      "description": "Entregar veículo a pessoa sem possuir cursos específicos obrigatórios.",
+      "framing": "Art. 163 c/c 162, VII. do CTB",
+      "article": "163 c/c 162, VII",
+      "nature": "Gravíssima",
+      "fineValue": 293.47,
+      "score": 7,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "511-80",
+      "description": "Permitir posse e condução do veículo a pessoa sem CNH, PPD ou ACC.",
+      "framing": "Art. 164 c/c 162, I. do CTB",
+      "article": "164 c/c 162, I",
+      "nature": "Gravíssima",
+      "fineValue": 293.47,
+      "score": 7,
+      "adminMeasure": "Retenção do veículo até a apresentação de condutor habilitado"
+    },
+    {
+      "code": "512-61",
+      "description": "Permitir posse e condução do veículo à pessoa com CNH, PPD ou ACC Cassada.",
+      "framing": "Art. 164 c/c 162, II. do CTB",
+      "article": "164 c/c 162, II",
+      "nature": "Gravíssima",
+      "fineValue": 293.47,
+      "score": 7,
+      "adminMeasure": "Recolhimento do documento de habilitação e retenção do veículo"
+    },
+    {
+      "code": "512-62",
+      "description": "Permitir posse/condução do veículo a pessoa com CNH, PPD ou ACC c/ susp. direito de dirigir.",
+      "framing": "Art. 164 c/c 162, II. do CTB",
+      "article": "164 c/c 162, II",
+      "nature": "Gravíssima",
+      "fineValue": 293.47,
+      "score": 7,
+      "adminMeasure": "Recolhimento do documento de habilitação e retenção do veículo"
+    },
+    {
+      "code": "513-41",
+      "description": "Permitir posse e condução do veículo a pessoa com CNH de categoria diferente da do veículo.",
+      "framing": "Art. 164 c/c 162, III. do CTB",
+      "article": "164 c/c 162, III",
+      "nature": "Gravíssima",
+      "fineValue": 293.47,
+      "score": 7,
+      "adminMeasure": "Retenção do veículo até a apresentação de condutor habilitado"
+    },
+    {
+      "code": "513-42",
+      "description": "Permitir posse e condução do veículo à pessoa com PPD de categoria diferente da do veículo.",
+      "framing": "Art. 164 c/c 162, III. do CTB",
+      "article": "164 c/c 162, III",
+      "nature": "Gravíssima",
+      "fineValue": 293.47,
+      "score": 7,
+      "adminMeasure": "Retenção do veículo até a apresentação de condutor habilitado"
+    },
+    {
+      "code": "514-20",
+      "description": "Permitir posse e condução do veículo à pessoa com CNH vencida há mais de 30 dias.",
+      "framing": "Art. 164 c/c 162, V. do CTB",
+      "article": "164 c/c 162, V",
+      "nature": "Gravíssima",
+      "fineValue": 293.47,
+      "score": 7,
+      "adminMeasure": "Retenção do veículo até a apresentação de condutor habilitado"
+    },
+    {
+      "code": "515-01",
+      "description": "Permitir posse e condução do veículo a pessoa sem usar lentes corretoras de visão.",
+      "framing": "Art. 164 c/c 162, VI. do CTB",
+      "article": "164 c/c 162, VI",
+      "nature": "Gravíssima",
+      "fineValue": 293.47,
+      "score": 7,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "515-02",
+      "description": "Permitir posse e condução do veículo a pessoa sem usar aparelho auxiliar de audição.",
+      "framing": "Art. 164 c/c 162, VI. do CTB",
+      "article": "164 c/c 162, VI",
+      "nature": "Gravíssima",
+      "fineValue": 293.47,
+      "score": 7,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "515-03",
+      "description": "Permitir posse/condução do veículo à pessoa sem usar aparelho de prótese física.",
+      "framing": "Art. 164 c/c 162, VI. do CTB",
+      "article": "164 c/c 162, VI",
+      "nature": "Gravíssima",
+      "fineValue": 293.47,
+      "score": 7,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "515-04",
+      "description": "Permitir posse/cond veíc. s/ adaptações impostas concessão/renovação licença cond.",
+      "framing": "Art. 164 c/c 162, VI. do CTB",
+      "article": "164 c/c 162, VI",
+      "nature": "Gravíssima",
+      "fineValue": 293.47,
+      "score": 7,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "778-11",
+      "description": "Permitir posse e condução do veículo à pessoa sem possuir cursos especializados obrigatórios.",
+      "framing": "Art. 164 c/c 162, VII. do CTB",
+      "article": "164 c/c 162, VII",
+      "nature": "Gravíssima",
+      "fineValue": 293.47,
+      "score": 7,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "778-12",
+      "description": "Permitir posse e condução do veículo à pessoa sem possuir cursos específicos obrigatórios.",
+      "framing": "Art. 164 c/c 162, VII. do CTB",
+      "article": "164 c/c 162, VII",
+      "nature": "Gravíssima",
+      "fineValue": 293.47,
+      "score": 7,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "516-91",
+      "description": "Dirigir sob a influência de álcool.",
+      "framing": "Art. 165. do CTB",
+      "article": "165",
+      "nature": "Gravíssima",
+      "fineValue": 2934.7,
+      "score": 7,
+      "adminMeasure": "Retenção do veículo, recolhimento da CNH e suspensão do direito de dirigir por 12 meses"
+    },
+    {
+      "code": "516-92",
+      "description": "Dirigir sob influência de substância psicoativa que determine dependência.",
+      "framing": "Art. 165. do CTB",
+      "article": "165",
+      "nature": "Gravíssima",
+      "fineValue": 293.47,
+      "score": 7,
+      "adminMeasure": "Retenção do veículo, recolhimento da CNH e suspensão do direito de dirigir por 12 meses"
+    },
+    {
+      "code": "757-90",
+      "description": "Rec sub test, ex clin, peric ou proc q perm cert infl álc/sub psic for art. 277.",
+      "framing": "Art. 165-A. do CTB",
+      "article": "165-A",
+      "nature": "Gravíssima",
+      "fineValue": 2934.7,
+      "score": 7,
+      "adminMeasure": "Retenção do veículo, recolhimento da CNH e suspensão do direito de dirigir por 12 meses"
+    },
+    {
+      "code": "764-10",
+      "description": "Cond veíc exig hab C, D ou E sem realizar ex toxic prev no § 2º do art 148-A, após 30 dias do venc.",
+      "framing": "Art. 165-B. do CTB",
+      "article": "165-B",
+      "nature": "Gravíssima",
+      "fineValue": 293.47,
+      "score": 7,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "765-00",
+      "description": "Exerc at rem veíc e não compr a real ex toxic per ex p § 2º do art 148-A por oc ren hab C, D ou E",
+      "framing": "Art. 165-B, parágrafo único. do CTB",
+      "article": "165-B, parágrafo único",
+      "nature": "Gravíssima",
+      "fineValue": 293.47,
+      "score": 7,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "517-70",
+      "description": "Confiar/entregar veíc pess c/estado físico/psíquico s/ condições dirigir segur.",
+      "framing": "Art. 166. do CTB",
+      "article": "166",
+      "nature": "Gravíssima",
+      "fineValue": 293.47,
+      "score": 7,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "518-51",
+      "description": "Deixar o condutor de usar o cinto de segurança.",
+      "framing": "Art. 167. do CTB",
+      "article": "167",
+      "nature": "Grave",
+      "fineValue": 195.23,
+      "score": 5,
+      "adminMeasure": "Retenção do veículo até colocação do cinto pelo infrator"
+    },
+    {
+      "code": "518-52",
+      "description": "Deixar o passageiro de usar o cinto de segurança.",
+      "framing": "Art. 167. do CTB",
+      "article": "167",
+      "nature": "Grave",
+      "fineValue": 195.23,
+      "score": 5,
+      "adminMeasure": "Retenção do veículo até colocação do cinto pelo infrator"
+    },
+    {
+      "code": "519-30",
+      "description": "Transportar criança sem observância das normas de segurança estabelecidas p/ CTB.",
+      "framing": "Art. 168. do CTB",
+      "article": "168",
+      "nature": "Gravíssima",
+      "fineValue": 293.47,
+      "score": 7,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "520-70",
+      "description": "Dirigir sem atenção ou sem os cuidados indispensáveis à segurança.",
+      "framing": "Art. 169. do CTB",
+      "article": "169",
+      "nature": "Leve",
+      "fineValue": 88.38,
+      "score": 3,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "521-51",
+      "description": "Dirigir ameaçando os pedestres que estejam atravessando a via pública.",
+      "framing": "Art. 170. do CTB",
+      "article": "170",
+      "nature": "Gravíssima",
+      "fineValue": 293.47,
+      "score": 7,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "521-52",
+      "description": "Dirigir ameaçando os demais veículos.",
+      "framing": "Art. 170. do CTB",
+      "article": "170",
+      "nature": "Gravíssima",
+      "fineValue": 293.47,
+      "score": 7,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "522-31",
+      "description": "Usar veículo para arremessar sobre os pedestres água ou detritos.",
+      "framing": "Art. 171. do CTB",
+      "article": "171",
+      "nature": "Média",
+      "fineValue": 130.16,
+      "score": 4,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "522-32",
+      "description": "Usar veículo para arremessar sobre os veículos água ou detritos.",
+      "framing": "Art. 171. do CTB",
+      "article": "171",
+      "nature": "Média",
+      "fineValue": 130.16,
+      "score": 4,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "523-11",
+      "description": "Atirar do veículo objetos ou substâncias.",
+      "framing": "Art. 172. do CTB",
+      "article": "172",
+      "nature": "Média",
+      "fineValue": 130.16,
+      "score": 4,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "523-12",
+      "description": "Abandonar na via objetos ou substâncias.",
+      "framing": "Art. 172. do CTB",
+      "article": "172",
+      "nature": "Média",
+      "fineValue": 130.16,
+      "score": 4,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "524-00",
+      "description": "Disputar corrida.",
+      "framing": "Art. 173. do CTB",
+      "article": "173",
+      "nature": "Gravíssima",
+      "fineValue": 1467.35,
+      "score": 7,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "525-81",
+      "description": "Promover na via competição sem permissão.",
+      "framing": "Art. 174. do CTB",
+      "article": "174",
+      "nature": "Gravíssima",
+      "fineValue": 1467.35,
+      "score": 7,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "525-82",
+      "description": "Promover na via eventos organizados sem permissão.",
+      "framing": "Art. 174. do CTB",
+      "article": "174",
+      "nature": "Gravíssima",
+      "fineValue": 1467.35,
+      "score": 7,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "525-83",
+      "description": "Promover na via exibição e demonstração de perícia em manobra de veículo s/perm.",
+      "framing": "Art. 174. do CTB",
+      "article": "174",
+      "nature": "Gravíssima",
+      "fineValue": 1467.35,
+      "score": 7,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "526-61",
+      "description": "Participar na via como condutor em competição sem permissão.",
+      "framing": "Art. 174. do CTB",
+      "article": "174",
+      "nature": "Gravíssima",
+      "fineValue": 1467.35,
+      "score": 7,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "526-62",
+      "description": "Participar na via como condutor em evento organizado, sem permissão.",
+      "framing": "Art. 174. do CTB",
+      "article": "174",
+      "nature": "Gravíssima",
+      "fineValue": 1467.35,
+      "score": 7,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "526-63",
+      "description": "Participar como condutor exib/demonst perícia em manobra de veic, s/ permissão.",
+      "framing": "Art. 174. do CTB",
+      "article": "174",
+      "nature": "Gravíssima",
+      "fineValue": 1467.35,
+      "score": 7,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "527-41",
+      "description": "Utiliz veíc demonst/exibir manobra perigosa mediante arrancada brusca.",
+      "framing": "Art. 175. do CTB",
+      "article": "175",
+      "nature": "Gravíssima",
+      "fineValue": 1467.35,
+      "score": 7,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "527-42",
+      "description": "Utiliz veíc dem/exibir manob perig med derrap/frenag c/ desliz/arrast pneus.",
+      "framing": "Art. 175. do CTB",
+      "article": "175",
+      "nature": "Gravíssima",
+      "fineValue": 1467.35,
+      "score": 7,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "528-20",
+      "description": "Deixar o cond envolvido em acidente, de prestar ou providenciar socorro à vítima.",
+      "framing": "Art. 176, I. do CTB",
+      "article": "176, I",
+      "nature": "Gravíssima",
+      "fineValue": 293.47,
+      "score": 7,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "529-00",
+      "description": "Deixar o cond envolvido em acid, de adotar provid p/ evitar perigo p/o trânsito.",
+      "framing": "Art. 176, II. do CTB",
+      "article": "176, II",
+      "nature": "Gravíssima",
+      "fineValue": 293.47,
+      "score": 7,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "530-40",
+      "description": "Deixar o cond envolvido em acidente de preservar local p/ trab polícia/perícia.",
+      "framing": "Art. 176, III. do CTB",
+      "article": "176, III",
+      "nature": "Gravíssima",
+      "fineValue": 293.47,
+      "score": 7,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "531-20",
+      "description": "Deixar o cond envolvido em acid, de remover o veíc local qdo determ polic/agente.",
+      "framing": "Art. 176, IV. do CTB",
+      "article": "176, IV",
+      "nature": "Gravíssima",
+      "fineValue": 293.47,
+      "score": 7,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "532-00",
+      "description": "Deixar o cond envolvido em acid, de identificar-se policial e prestar inf p/o BO.",
+      "framing": "Art. 176, V. do CTB",
+      "article": "176, V",
+      "nature": "Gravíssima",
+      "fineValue": 293.47,
+      "score": 7,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "533-90",
+      "description": "Deixar o cond de prestar socorro vítima acid de trânsito, qdo solicit p/ agente.",
+      "framing": "Art. 177. do CTB",
+      "article": "177",
+      "nature": "Grave",
+      "fineValue": 195.23,
+      "score": 5,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "534-70",
+      "description": "Deixar o condutor envolvido em acidente s/ vítima, de remover o veículo do local.",
+      "framing": "Art. 178. do CTB",
+      "article": "178",
+      "nature": "Média",
+      "fineValue": 130.16,
+      "score": 4,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "535-50",
+      "description": "Fazer ou deixar que se faça reparo em veíc, em rodovia e via de trânsito rápido.",
+      "framing": "Art. 179, I. do CTB",
+      "article": "179, I",
+      "nature": "Grave",
+      "fineValue": 195.23,
+      "score": 5,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "536-30",
+      "description": "Fazer/deixar que se faça reparo em veíc nas vias (q não rodovia/trânsito rápido)",
+      "framing": "Art. 179, II do CTB",
+      "article": "179, II",
+      "nature": "Leve",
+      "fineValue": 88.38,
+      "score": 3,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "537-10",
+      "description": "Ter seu veículo imobilizado na via por falta de combustível.",
+      "framing": "Art. 180. do CTB",
+      "article": "180",
+      "nature": "Média",
+      "fineValue": 130.16,
+      "score": 4,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "538-00",
+      "description": "Estacionar nas esquinas e a menos de 5m do alinhamento da via transversal.",
+      "framing": "Art. 181, I. do CTB",
+      "article": "181, I",
+      "nature": "Média",
+      "fineValue": 130.16,
+      "score": 4,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "539-80",
+      "description": "Estacionar afastado da guia da calçada (meio-fio) de 50cm a 1m.",
+      "framing": "Art. 181, II do CTB",
+      "article": "181, II",
+      "nature": "Leve",
+      "fineValue": 88.38,
+      "score": 3,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "540-10",
+      "description": "Estacionar afastado da guia da calçada (meio-fio) a mais de 1m.",
+      "framing": "Art. 181, III. do CTB",
+      "article": "181, III",
+      "nature": "Grave",
+      "fineValue": 195.23,
+      "score": 5,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "541-00",
+      "description": "Estacionar em desacordo com as posições estabelecidas no CTB.",
+      "framing": "Art. 181, IV. do CTB",
+      "article": "181, IV",
+      "nature": "Média",
+      "fineValue": 130.16,
+      "score": 4,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "542-81",
+      "description": "Estacionar na pista de rolamento das estradas.",
+      "framing": "Art. 181, V. do CTB",
+      "article": "181, V",
+      "nature": "Gravíssima",
+      "fineValue": 293.47,
+      "score": 7,
+      "adminMeasure": "Remoção do veículo"
+    },
+    {
+      "code": "542-82",
+      "description": "Estacionar na pista de rolamento das rodovias.",
+      "framing": "Art. 181, V. do CTB",
+      "article": "181, V",
+      "nature": "Gravíssima",
+      "fineValue": 293.47,
+      "score": 7,
+      "adminMeasure": "Remoção do veículo"
+    },
+    {
+      "code": "542-83",
+      "description": "Estacionar na pista de rolamento das vias de trânsito rápido.",
+      "framing": "Art. 181, V. do CTB",
+      "article": "181, V",
+      "nature": "Gravíssima",
+      "fineValue": 293.47,
+      "score": 7,
+      "adminMeasure": "Remoção do veículo"
+    },
+    {
+      "code": "542-84",
+      "description": "Estacionar na pista de rolamento das vias dotadas de acostamento.",
+      "framing": "Art. 181, V. do CTB",
+      "article": "181, V",
+      "nature": "Gravíssima",
+      "fineValue": 293.47,
+      "score": 7,
+      "adminMeasure": "Remoção do veículo"
+    },
+    {
+      "code": "543-60",
+      "description": "Estacionar junto/sobre hidrantes de incêndio, reg. de água/tampa de poço visit gal sub.",
+      "framing": "Art. 181, VI. do CTB",
+      "article": "181, VI",
+      "nature": "Média",
+      "fineValue": 130.16,
+      "score": 4,
+      "adminMeasure": "Remoção do veículo"
+    },
+    {
+      "code": "544-40",
+      "description": "Estacionar nos acostamentos.",
+      "framing": "Art. 181, VII. do CTB",
+      "article": "181, VII",
+      "nature": "Leve",
+      "fineValue": 88.38,
+      "score": 3,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "545-21",
+      "description": "Estacionar no passeio.",
+      "framing": "Art. 181, VIII. do CTB",
+      "article": "181, VIII",
+      "nature": "Grave",
+      "fineValue": 195.23,
+      "score": 5,
+      "adminMeasure": "Remoção do veículo"
+    },
+    {
+      "code": "545-22",
+      "description": "Estacionar sobre faixa destinada a pedestre.",
+      "framing": "Art. 181, VIII. do CTB",
+      "article": "181, VIII",
+      "nature": "Grave",
+      "fineValue": 195.23,
+      "score": 5,
+      "adminMeasure": "Remoção do veículo"
+    },
+    {
+      "code": "545-23",
+      "description": "Estacionar sobre ciclovia ou ciclofaixa.",
+      "framing": "Art. 181, VIII. do CTB",
+      "article": "181, VIII",
+      "nature": "Grave",
+      "fineValue": 195.23,
+      "score": 5,
+      "adminMeasure": "Remoção do veículo"
+    },
+    {
+      "code": "545-24",
+      "description": "Estacionar nas ilhas ou refúgios.",
+      "framing": "Art. 181, VIII. do CTB",
+      "article": "181, VIII",
+      "nature": "Grave",
+      "fineValue": 195.23,
+      "score": 5,
+      "adminMeasure": "Remoção do veículo"
+    },
+    {
+      "code": "545-25",
+      "description": "Estacionar ao lado ou sobre canteiro central/divisores de pista de rolamento.",
+      "framing": "Art. 181, VIII. do CTB",
+      "article": "181, VIII",
+      "nature": "Grave",
+      "fineValue": 195.23,
+      "score": 5,
+      "adminMeasure": "Remoção do veículo"
+    },
+    {
+      "code": "545-26",
+      "description": "Estacionar ao lado ou sobre marcas de canalização.",
+      "framing": "Art. 181, VIII. do CTB",
+      "article": "181, VIII",
+      "nature": "Grave",
+      "fineValue": 195.23,
+      "score": 5,
+      "adminMeasure": "Remoção do veículo"
+    },
+    {
+      "code": "545-27",
+      "description": "Estacionar ao lado ou sobre gramado ou jardim público.",
+      "framing": "Art. 181, VIII. do CTB",
+      "article": "181, VIII",
+      "nature": "Grave",
+      "fineValue": 195.23,
+      "score": 5,
+      "adminMeasure": "Remoção do veículo"
+    },
+    {
+      "code": "546-00",
+      "description": "Estacionar em guia de calçada rebaixada destinada à entrada/saída de veículos.",
+      "framing": "Art. 181, IX. do CTB",
+      "article": "181, IX",
+      "nature": "Média",
+      "fineValue": 130.16,
+      "score": 4,
+      "adminMeasure": "Remoção do veículo"
+    },
+    {
+      "code": "547-90",
+      "description": "Estacionar impedindo a movimentação de outro veículo.",
+      "framing": "Art. 181, X. do CTB",
+      "article": "181, X",
+      "nature": "Média",
+      "fineValue": 130.16,
+      "score": 4,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "548-70",
+      "description": "Estacionar ao lado de outro veículo em fila dupla.",
+      "framing": "Art. 181, XI. do CTB",
+      "article": "181, XI",
+      "nature": "Grave",
+      "fineValue": 195.23,
+      "score": 5,
+      "adminMeasure": "Remoção do veículo"
+    },
+    {
+      "code": "549-50",
+      "description": "Estacionar na área de cruzamento de vias.",
+      "framing": "Art. 181, XII. do CTB",
+      "article": "181, XII",
+      "nature": "Grave",
+      "fineValue": 195.23,
+      "score": 5,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "550-90",
+      "description": "Estacionar no ponto de embarque/desembarque de passageiros de transporte coletivo.",
+      "framing": "Art. 181, XIII. do CTB",
+      "article": "181, XIII",
+      "nature": "Média",
+      "fineValue": 130.16,
+      "score": 4,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "551-72",
+      "description": "Estacionar nas pontes.",
+      "framing": "Art. 181, XIV. do CTB",
+      "article": "181, XIV",
+      "nature": "Grave",
+      "fineValue": 195.23,
+      "score": 5,
+      "adminMeasure": "Remoção do veículo"
+    },
+    {
+      "code": "551-73",
+      "description": "Estacionar nos túneis.",
+      "framing": "Art. 181, XIV. do CTB",
+      "article": "181, XIV",
+      "nature": "Grave",
+      "fineValue": 195.23,
+      "score": 5,
+      "adminMeasure": "Remoção do veículo"
+    },
+    {
+      "code": "552-50",
+      "description": "Estacionar na contramão de direção.",
+      "framing": "Art. 181, XV. do CTB",
+      "article": "181, XV",
+      "nature": "Média",
+      "fineValue": 130.16,
+      "score": 4,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "553-30",
+      "description": "Estacionar aclive/declive ñ freado e sem calço segurança, PBT superior a 3500 kg.",
+      "framing": "Art. 181, XVI. do CTB",
+      "article": "181, XVI",
+      "nature": "Grave",
+      "fineValue": 195.23,
+      "score": 5,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "554-11",
+      "description": "Estacionar em desacordo com a regulamentação especificada pela sinalização.",
+      "framing": "Art. 181, XVII. do CTB",
+      "article": "181, XVII",
+      "nature": "Grave",
+      "fineValue": 195.23,
+      "score": 5,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "554-12",
+      "description": "Estacionar em desacordo com a regulamentação - estacionamento rotativo.",
+      "framing": "Art. 181, XVII. do CTB",
+      "article": "181, XVII",
+      "nature": "Grave",
+      "fineValue": 195.23,
+      "score": 5,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "554-13",
+      "description": "Estacionar em desacordo com a regulamentação - ponto ou vaga de táxi.",
+      "framing": "Art. 181, XVII. do CTB",
+      "article": "181, XVII",
+      "nature": "Grave",
+      "fineValue": 195.23,
+      "score": 5,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "554-14",
+      "description": "Estacionar em desacordo com a regulamentação - vaga de carga/descarga.",
+      "framing": "Art. 181, XVII. do CTB",
+      "article": "181, XVII",
+      "nature": "Grave",
+      "fineValue": 195.23,
+      "score": 5,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "554-17",
+      "description": "Estacionar em desacordo com a regulamentação - vaga de curta duração.",
+      "framing": "Art. 181, XVII. do CTB",
+      "article": "181, XVII",
+      "nature": "Grave",
+      "fineValue": 195.23,
+      "score": 5,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "555-00",
+      "description": "Estacionar em local/horário proibido especificamente pela sinalização.",
+      "framing": "Art. 181, XVIII. do CTB",
+      "article": "181, XVIII",
+      "nature": "Média",
+      "fineValue": 130.16,
+      "score": 4,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "556-80",
+      "description": "Estacionar local/horário de estacionamento e parada proibidos pela sinalização.",
+      "framing": "Art. 181, XIX. do CTB",
+      "article": "181, XIX",
+      "nature": "Grave",
+      "fineValue": 195.23,
+      "score": 5,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "762-51",
+      "description": "Estacionar nas vagas reserv às pess c/ deficiência, s/ credencial.",
+      "framing": "Art. 181, XX. do CTB",
+      "article": "181, XX",
+      "nature": "Gravíssima",
+      "fineValue": 293.47,
+      "score": 7,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "762-52",
+      "description": "Estacionar nas vagas reserv a idosos, s/ credencial.",
+      "framing": "Art. 181, XX. do CTB",
+      "article": "181, XX",
+      "nature": "Gravíssima",
+      "fineValue": 293.47,
+      "score": 7,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "557-60",
+      "description": "Parar nas esquinas e a menos de 5m do bordo do alinhamento da via transversal.",
+      "framing": "Art. 182, I. do CTB",
+      "article": "182, I",
+      "nature": "Média",
+      "fineValue": 130.16,
+      "score": 4,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "558-40",
+      "description": "Parar afastado da guia da calçada (meio-fio) de 50cm a 1m.",
+      "framing": "Art. 182, II. do CTB",
+      "article": "182, II",
+      "nature": "Leve",
+      "fineValue": 88.38,
+      "score": 3,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "559-20",
+      "description": "Parar afastado da guia da calçada (meio-fio) a mais de 1m.",
+      "framing": "Art. 182, III. do CTB",
+      "article": "182, III",
+      "nature": "Média",
+      "fineValue": 130.16,
+      "score": 4,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "560-60",
+      "description": "Parar em desacordo com as posições estabelecidas no CTB.",
+      "framing": "Art. 182, IV. do CTB",
+      "article": "182, IV",
+      "nature": "Leve",
+      "fineValue": 88.38,
+      "score": 3,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "561-41",
+      "description": "Parar na pista de rolamento das estradas.",
+      "framing": "Art. 182, V. do CTB",
+      "article": "182, V",
+      "nature": "Grave",
+      "fineValue": 195.23,
+      "score": 5,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "561-42",
+      "description": "Parar na pista de rolamento das rodovias.",
+      "framing": "Art. 182, V. do CTB",
+      "article": "182, V",
+      "nature": "Grave",
+      "fineValue": 195.23,
+      "score": 5,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "561-43",
+      "description": "Parar na pista de rolamento das vias de trânsito rápido.",
+      "framing": "Art. 182, V. do CTB",
+      "article": "182, V",
+      "nature": "Grave",
+      "fineValue": 195.23,
+      "score": 5,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "561-44",
+      "description": "Parar na pista de rolamento das demais vias dotadas de acostamento.",
+      "framing": "Art. 182, V. do CTB",
+      "article": "182, V",
+      "nature": "Grave",
+      "fineValue": 195.23,
+      "score": 5,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "562-21",
+      "description": "Parar no passeio.",
+      "framing": "Art. 182, VI. do CTB",
+      "article": "182, VI",
+      "nature": "Leve",
+      "fineValue": 88.38,
+      "score": 3,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "562-22",
+      "description": "Parar sobre faixa destinada a pedestres.",
+      "framing": "Art. 182, VI. do CTB",
+      "article": "182, VI",
+      "nature": "Leve",
+      "fineValue": 88.38,
+      "score": 3,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "562-23",
+      "description": "Parar nas ilhas ou refúgios.",
+      "framing": "Art. 182, VI. do CTB",
+      "article": "182, VI",
+      "nature": "Leve",
+      "fineValue": 88.38,
+      "score": 3,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "562-24",
+      "description": "Parar nos canteiros centrais/divisores de pista de rolamento.",
+      "framing": "Art. 182, VI. do CTB",
+      "article": "182, VI",
+      "nature": "Leve",
+      "fineValue": 88.38,
+      "score": 3,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "562-25",
+      "description": "Parar nas marcas de canalização.",
+      "framing": "Art. 182, VI. do CTB",
+      "article": "182, VI",
+      "nature": "Leve",
+      "fineValue": 88.38,
+      "score": 3,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "563-00",
+      "description": "Parar na área de cruzamento de vias.",
+      "framing": "Art. 182, VII. do CTB",
+      "article": "182, VII",
+      "nature": "Média",
+      "fineValue": 130.16,
+      "score": 4,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "564-91",
+      "description": "Parar nos viadutos.",
+      "framing": "Art. 182, VIII. do CTB",
+      "article": "182, VIII",
+      "nature": "Média",
+      "fineValue": 130.16,
+      "score": 4,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "564-92",
+      "description": "Parar nas pontes.",
+      "framing": "Art. 182, VIII. do CTB",
+      "article": "182, VIII",
+      "nature": "Média",
+      "fineValue": 130.16,
+      "score": 4,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "564-93",
+      "description": "Parar nos túneis.",
+      "framing": "Art. 182, VIII. do CTB",
+      "article": "182, VIII",
+      "nature": "Média",
+      "fineValue": 130.16,
+      "score": 4,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "565-70",
+      "description": "Parar na contramão de direção.",
+      "framing": "Art. 182, IX. do CTB",
+      "article": "182, IX",
+      "nature": "Média",
+      "fineValue": 130.16,
+      "score": 4,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "566-50",
+      "description": "Parar em local/horário proibidos especificamente pela sinalização.",
+      "framing": "Art. 182, X. do CTB",
+      "article": "182, X",
+      "nature": "Média",
+      "fineValue": 130.16,
+      "score": 4,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "767-00",
+      "description": "Parar o veículo sobre ciclovia ou ciclofaixa.",
+      "framing": "Art. 182, XI. do CTB",
+      "article": "182, XI",
+      "nature": "Grave",
+      "fineValue": 195.23,
+      "score": 5,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "567-31",
+      "description": "Parar sobre faixa de pedestres na mudança de sinal luminoso.",
+      "framing": "Art. 183. do CTB",
+      "article": "183",
+      "nature": "Média",
+      "fineValue": 130.16,
+      "score": 4,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "568-10",
+      "description": "Transitar na faixa/pista da direita regul circulação exclusiva determ veículo.",
+      "framing": "Art. 184, I. do CTB",
+      "article": "184, I",
+      "nature": "Leve",
+      "fineValue": 88.38,
+      "score": 3,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "569-00",
+      "description": "Transitar na faixa/pista da esquerda regul circulação exclusiva determ veículo.",
+      "framing": "Art. 184, II. do CTB",
+      "article": "184, II",
+      "nature": "Grave",
+      "fineValue": 195.23,
+      "score": 5,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "758-70",
+      "description": "Transitar na faixa ou via exclusiva regulam. p/transp. públ. coletivo passageiro.",
+      "framing": "Art. 184, III. do CTB",
+      "article": "184, III",
+      "nature": "Gravíssima",
+      "fineValue": 293.47,
+      "score": 7,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "570-30",
+      "description": "Deixar de conservar o veículo na faixa a ele destinada pela sinalização de regul.",
+      "framing": "Art. 185, I. do CTB",
+      "article": "185, I",
+      "nature": "Média",
+      "fineValue": 130.16,
+      "score": 4,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "571-10",
+      "description": "Deixar de conservar nas faixas da direita o veículo lento e de maior porte.",
+      "framing": "Art. 185, II. do CTB",
+      "article": "185, II",
+      "nature": "Média",
+      "fineValue": 130.16,
+      "score": 4,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "572-00",
+      "description": "Transitar pela contramão de direção em via com duplo sentido de circulação.",
+      "framing": "Art. 186, I. do CTB",
+      "article": "186, I",
+      "nature": "Grave",
+      "fineValue": 195.23,
+      "score": 5,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "573-80",
+      "description": "Transitar pela contramão de direção em via c/ sinalização de regul sentido único.",
+      "framing": "Art. 186, II. do CTB",
+      "article": "186, II",
+      "nature": "Gravíssima",
+      "fineValue": 293.47,
+      "score": 7,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "574-61",
+      "description": "Transitar em local/horário não permitido pela regul estabelecida p/autoridade.",
+      "framing": "Art. 187, I. do CTB",
+      "article": "187, I",
+      "nature": "Média",
+      "fineValue": 130.16,
+      "score": 4,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "574-62",
+      "description": "Transitar em local/horário não permitido pela regulamentação - Rodízio.",
+      "framing": "Art. 187, I. do CTB",
+      "article": "187, I",
+      "nature": "Média",
+      "fineValue": 130.16,
+      "score": 4,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "574-63",
+      "description": "Transitar em local/horário não permitido pela regulamentação - Caminhão.",
+      "framing": "Art. 187, I. do CTB",
+      "article": "187, I",
+      "nature": "Média",
+      "fineValue": 130.16,
+      "score": 4,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "576-20",
+      "description": "Transitar ao lado de outro veículo, interrompendo ou perturbando o trânsito.",
+      "framing": "Art. 188. do CTB",
+      "article": "188",
+      "nature": "Média",
+      "fineValue": 130.16,
+      "score": 4,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "577-01",
+      "description": "Deixar de dar passagem a veíc precedido de batedores devidamente identificados.",
+      "framing": "Art. 189. do CTB",
+      "article": "189",
+      "nature": "Gravíssima",
+      "fineValue": 293.47,
+      "score": 7,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "577-02",
+      "description": "Deixar de dar passagem a veíc socorro incêndio/salv serv urgência devid identif.",
+      "framing": "Art. 189. do CTB",
+      "article": "189",
+      "nature": "Gravíssima",
+      "fineValue": 293.47,
+      "score": 7,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "577-03",
+      "description": "Deixar de dar passagem a veíc de polícia em serviço de urgência devid identif.",
+      "framing": "Art. 189. do CTB",
+      "article": "189",
+      "nature": "Gravíssima",
+      "fineValue": 293.47,
+      "score": 7,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "577-04",
+      "description": "Deixar de dar passagem a veíc de operação e fiscalização de trânsito devid ident.",
+      "framing": "Art. 189. do CTB",
+      "article": "189",
+      "nature": "Gravíssima",
+      "fineValue": 293.47,
+      "score": 7,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "577-05",
+      "description": "Deixar de dar passagem a ambulância em serviço de urgência devid identificada.",
+      "framing": "Art. 189. do CTB",
+      "article": "189",
+      "nature": "Gravíssima",
+      "fineValue": 293.47,
+      "score": 7,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "578-90",
+      "description": "Seguir veículo em serv urgência devid identific p/ alarme sonoro/ilum.",
+      "framing": "Art. 190. do CTB",
+      "article": "190",
+      "nature": "Grave",
+      "fineValue": 195.23,
+      "score": 5,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "579-70",
+      "description": "Forçar passagem entre veícs trans sent opostos na iminência realiz ultrapassagem.",
+      "framing": "Art. 191. do CTB",
+      "article": "191",
+      "nature": "Gravíssima",
+      "fineValue": 1467.35,
+      "score": 7,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "580-00",
+      "description": "Deixar guardar dist segurança lat/front entre seu veíc e demais e ao bordo pista.",
+      "framing": "Art. 192. do CTB",
+      "article": "192",
+      "nature": "Grave",
+      "fineValue": 195.23,
+      "score": 5,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "581-91",
+      "description": "Transitar com o veículo em calçadas, passeios.",
+      "framing": "Art. 193. do CTB",
+      "article": "193",
+      "nature": "Gravíssima",
+      "fineValue": 293.47,
+      "score": 7,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "581-92",
+      "description": "Transitar com o veículo em ciclovias, ciclofaixas.",
+      "framing": "Art. 193. do CTB",
+      "article": "193",
+      "nature": "Gravíssima",
+      "fineValue": 293.47,
+      "score": 7,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "581-93",
+      "description": "Transitar com o veículo em ajardinamentos, gramados e jardins públicos.",
+      "framing": "Art. 193. do CTB",
+      "article": "193",
+      "nature": "Gravíssima",
+      "fineValue": 293.47,
+      "score": 7,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "581-94",
+      "description": "Transitar com o veículo em canteiros centrais/divisores de pista de rolamento.",
+      "framing": "Art. 193. do CTB",
+      "article": "193",
+      "nature": "Gravíssima",
+      "fineValue": 293.47,
+      "score": 7,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "581-95",
+      "description": "Transitar com o veículo em ilhas, refúgios.",
+      "framing": "Art. 193. do CTB",
+      "article": "193",
+      "nature": "Gravíssima",
+      "fineValue": 293.47,
+      "score": 7,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "581-96",
+      "description": "Transitar com o veículo em marcas de canalização.",
+      "framing": "Art. 193. do CTB",
+      "article": "193",
+      "nature": "Gravíssima",
+      "fineValue": 293.47,
+      "score": 7,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "581-97",
+      "description": "Transitar com o veículo em acostamentos.",
+      "framing": "Art. 193. do CTB",
+      "article": "193",
+      "nature": "Gravíssima",
+      "fineValue": 293.47,
+      "score": 7,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "581-98",
+      "description": "Transitar com o veículo em passarelas.",
+      "framing": "Art. 193. do CTB",
+      "article": "193",
+      "nature": "Gravíssima",
+      "fineValue": 293.47,
+      "score": 7,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "582-70",
+      "description": "Transitar em marcha ré, salvo na distância necessária a pequenas manobras.",
+      "framing": "Art. 194. do CTB",
+      "article": "194",
+      "nature": "Grave",
+      "fineValue": 195.23,
+      "score": 5,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "583-50",
+      "description": "Desobedecer às ordens emanadas da autorid compet de trânsito ou de seus agentes.",
+      "framing": "Art. 195. do CTB",
+      "article": "195",
+      "nature": "Grave",
+      "fineValue": 195.23,
+      "score": 5,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "584-31",
+      "description": "Deixar de indicar c/antec, med gesto de braço/luz indicadora, início da marcha.",
+      "framing": "Art. 196. do CTB",
+      "article": "196",
+      "nature": "Grave",
+      "fineValue": 195.23,
+      "score": 5,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "584-32",
+      "description": "Deixar de indicar c/antec, med gesto de braço/luz indicadora, manobra de parar.",
+      "framing": "Art. 196. do CTB",
+      "article": "196",
+      "nature": "Grave",
+      "fineValue": 195.23,
+      "score": 5,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "584-33",
+      "description": "Deixar de indicar c/antec, med gesto de braço/luz indicadora, mudança direção.",
+      "framing": "Art. 196. do CTB",
+      "article": "196",
+      "nature": "Grave",
+      "fineValue": 195.23,
+      "score": 5,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "584-34",
+      "description": "Deixar de indicar c/antec, med gesto de braço/luz indicadora, mudança de faixa.",
+      "framing": "Art. 196. do CTB",
+      "article": "196",
+      "nature": "Grave",
+      "fineValue": 195.23,
+      "score": 5,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "585-11",
+      "description": "Deixar de deslocar c/antecedência veíc p/faixa mais à esquerda qdo for manobrar.",
+      "framing": "Art. 197. do CTB",
+      "article": "197",
+      "nature": "Média",
+      "fineValue": 130.16,
+      "score": 4,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "585-12",
+      "description": "Deixar de deslocar c/antecedência veíc p/faixa mais à direita qdo for manobrar.",
+      "framing": "Art. 197. do CTB",
+      "article": "197",
+      "nature": "Média",
+      "fineValue": 130.16,
+      "score": 4,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "586-00",
+      "description": "Deixar de dar passagem pela esquerda, quando solicitado.",
+      "framing": "Art. 198. do CTB",
+      "article": "198",
+      "nature": "Média",
+      "fineValue": 130.16,
+      "score": 4,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "587-80",
+      "description": "Ultrapassar pela direita, salvo quando o veículo da frente sinalizar que vai entrar à esquerda.",
+      "framing": "Art. 199. do CTB",
+      "article": "199",
+      "nature": "Média",
+      "fineValue": 130.16,
+      "score": 4,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "588-60",
+      "description": "Ultrap pela direita veíc transp colet/escolar parado para emb/desemb passageiros.",
+      "framing": "Art. 200. do CTB",
+      "article": "200",
+      "nature": "Gravíssima",
+      "fineValue": 293.47,
+      "score": 7,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "589-40",
+      "description": "Deixar de guardar a distância lateral de 1,50 m ao passar/ultrapassar bicicleta.",
+      "framing": "Art. 201. do CTB",
+      "article": "201",
+      "nature": "Média",
+      "fineValue": 130.16,
+      "score": 4,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "590-80",
+      "description": "Ultrapassar pelo acostamento.",
+      "framing": "Art. 202, I. do CTB",
+      "article": "202, I",
+      "nature": "Gravíssima",
+      "fineValue": 293.47,
+      "score": 7,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "591-61",
+      "description": "Ultrapassar em interseções.",
+      "framing": "Art. 202, II. do CTB",
+      "article": "202, II",
+      "nature": "Gravíssima",
+      "fineValue": 293.47,
+      "score": 7,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "591-62",
+      "description": "Ultrapassar em passagem de nível.",
+      "framing": "Art. 202, II. do CTB",
+      "article": "202, II",
+      "nature": "Gravíssima",
+      "fineValue": 293.47,
+      "score": 7,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "592-41",
+      "description": "Ultrapassar pela contramão nas curvas sem visibilidade suficiente.",
+      "framing": "Art. 203, I. do CTB",
+      "article": "203, I",
+      "nature": "Gravíssima",
+      "fineValue": 293.47,
+      "score": 7,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "592-42",
+      "description": "Ultrapassar pela contramão nos aclives ou declives, sem visibilidade suficiente.",
+      "framing": "Art. 203, I. do CTB",
+      "article": "203, I",
+      "nature": "Gravíssima",
+      "fineValue": 293.47,
+      "score": 7,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "593-20",
+      "description": "Ultrapassar pela contramão nas faixas de pedestre.",
+      "framing": "Art. 203, II. do CTB",
+      "article": "203, II",
+      "nature": "Gravíssima",
+      "fineValue": 293.47,
+      "score": 7,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "594-01",
+      "description": "Ultrapassar pela contramão nas pontes.",
+      "framing": "Art. 203, III. do CTB",
+      "article": "203, III",
+      "nature": "Gravíssima",
+      "fineValue": 293.47,
+      "score": 7,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "594-02",
+      "description": "Ultrapassar pela contramão nos viadutos.",
+      "framing": "Art. 203, III. do CTB",
+      "article": "203, III",
+      "nature": "Gravíssima",
+      "fineValue": 293.47,
+      "score": 7,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "594-03",
+      "description": "Ultrapassar pela contramão nos túneis.",
+      "framing": "Art. 203, III. do CTB",
+      "article": "203, III",
+      "nature": "Gravíssima",
+      "fineValue": 293.47,
+      "score": 7,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "595-91",
+      "description": "Ultrapassar pela contramão veículo parado em fila junto sinal luminoso.",
+      "framing": "Art. 203, IV. do CTB",
+      "article": "203, IV",
+      "nature": "Gravíssima",
+      "fineValue": 293.47,
+      "score": 7,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "595-92",
+      "description": "Ultrapassar pela contramão veículo parado em fila junto a cancela/porteira.",
+      "framing": "Art. 203, IV. do CTB",
+      "article": "203, IV",
+      "nature": "Gravíssima",
+      "fineValue": 293.47,
+      "score": 7,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "595-93",
+      "description": "Ultrapassar pela contramão veículo parado em fila junto a cruzamento.",
+      "framing": "Art. 203, IV. do CTB",
+      "article": "203, IV",
+      "nature": "Gravíssima",
+      "fineValue": 293.47,
+      "score": 7,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "595-94",
+      "description": "Ultrapassar pela contramão veíc parado em fila junto qq impedimento à circulação.",
+      "framing": "Art. 203, IV. do CTB",
+      "article": "203, IV",
+      "nature": "Gravíssima",
+      "fineValue": 293.47,
+      "score": 7,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "596-70",
+      "description": "Ultrapassar pela contramão linha de division de fluxos opostos, contínua amarela.",
+      "framing": "Art. 203, V. do CTB",
+      "article": "203, V",
+      "nature": "Gravíssima",
+      "fineValue": 293.47,
+      "score": 7,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "597-50",
+      "description": "Deixar de parar no acostamento à direita, p/ cruzar pista ou entrar à esquerda.",
+      "framing": "Art. 204. do CTB",
+      "article": "204",
+      "nature": "Grave",
+      "fineValue": 195.23,
+      "score": 5,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "598-30",
+      "description": "Ultrapassar veículo em movimento que integre cortejo/desfile/formação militar.",
+      "framing": "Art. 205. do CTB",
+      "article": "205",
+      "nature": "Leve",
+      "fineValue": 88.38,
+      "score": 3,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "599-10",
+      "description": "Executar operação de retorno em locais proibidos pela sinalização.",
+      "framing": "Art. 206, I. do CTB",
+      "article": "206, I",
+      "nature": "Gravíssima",
+      "fineValue": 293.47,
+      "score": 7,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "600-91",
+      "description": "Executar operação de retorno nas curvas.",
+      "framing": "Art. 206, II. do CTB",
+      "article": "206, II",
+      "nature": "Gravíssima",
+      "fineValue": 293.47,
+      "score": 7,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "600-92",
+      "description": "Executar operação de retorno nos aclives ou declives.",
+      "framing": "Art. 206, II. do CTB",
+      "article": "206, II",
+      "nature": "Gravíssima",
+      "fineValue": 293.47,
+      "score": 7,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "600-93",
+      "description": "Executar operação de retorno nas pontes.",
+      "framing": "Art. 206, II. do CTB",
+      "article": "206, II",
+      "nature": "Gravíssima",
+      "fineValue": 293.47,
+      "score": 7,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "600-94",
+      "description": "Executar operação de retorno nos viadutos.",
+      "framing": "Art. 206, II. do CTB",
+      "article": "206, II",
+      "nature": "Gravíssima",
+      "fineValue": 293.47,
+      "score": 7,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "600-95",
+      "description": "Executar operação de retorno nos túneis.",
+      "framing": "Art. 206, II. do CTB",
+      "article": "206, II",
+      "nature": "Gravíssima",
+      "fineValue": 293.47,
+      "score": 7,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "601-71",
+      "description": "Executar operação de retorno passando por cima de calçada, passeio.",
+      "framing": "Art. 206, III. do CTB",
+      "article": "206, III",
+      "nature": "Gravíssima",
+      "fineValue": 293.47,
+      "score": 7,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "601-72",
+      "description": "Executar operação de retorno passando por cima de ilha, refúgio.",
+      "framing": "Art. 206, III. do CTB",
+      "article": "206, III",
+      "nature": "Gravíssima",
+      "fineValue": 293.47,
+      "score": 7,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "601-73",
+      "description": "Executar operação de retorno passando por cima de ajardinamento.",
+      "framing": "Art. 206, III. do CTB",
+      "article": "206, III",
+      "nature": "Gravíssima",
+      "fineValue": 293.47,
+      "score": 7,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "601-74",
+      "description": "Executar operação de retorno passando por cima de canteiro de divisor de pista.",
+      "framing": "Art. 206, III. do CTB",
+      "article": "206, III",
+      "nature": "Gravíssima",
+      "fineValue": 293.47,
+      "score": 7,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "601-75",
+      "description": "Executar operação de retorno passando por cima de faixa de pedestres.",
+      "framing": "Art. 206, III. do CTB",
+      "article": "206, III",
+      "nature": "Gravíssima",
+      "fineValue": 293.47,
+      "score": 7,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "601-76",
+      "description": "Executar operação de retorno passando por cima de faixa de veíc não motorizados.",
+      "framing": "Art. 206, III. do CTB",
+      "article": "206, III",
+      "nature": "Gravíssima",
+      "fineValue": 293.47,
+      "score": 7,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "602-50",
+      "description": "Executar retorno nas interseções, entrando na contramão da via transversal.",
+      "framing": "Art. 206, IV. do CTB",
+      "article": "206, IV",
+      "nature": "Gravíssima",
+      "fineValue": 293.47,
+      "score": 7,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "603-30",
+      "description": "Executar retorno c/prejuízo da circulação/segurança ainda que em local permitido.",
+      "framing": "Art. 206, V. do CTB",
+      "article": "206, V",
+      "nature": "Gravíssima",
+      "fineValue": 293.47,
+      "score": 7,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "604-11",
+      "description": "Executar operação de conversão à direita em local proibido pela sinalização.",
+      "framing": "Art. 207. do CTB",
+      "article": "207",
+      "nature": "Grave",
+      "fineValue": 195.23,
+      "score": 5,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "604-12",
+      "description": "Executar operação de conversão à esquerda em local proibido pela sinalização.",
+      "framing": "Art. 207. do CTB",
+      "article": "207",
+      "nature": "Grave",
+      "fineValue": 195.23,
+      "score": 5,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "605-01",
+      "description": "Avançar o sinal vermelho do semáforo, exc onde houver sinaliz que perm livre conv à direita.",
+      "framing": "Art. 208. do CTB",
+      "article": "208",
+      "nature": "Gravíssima",
+      "fineValue": 293.47,
+      "score": 7,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "605-02",
+      "description": "Avançar o sinal de parada obrigatória.",
+      "framing": "Art. 208. do CTB",
+      "article": "208",
+      "nature": "Gravíssima",
+      "fineValue": 293.47,
+      "score": 7,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "606-81",
+      "description": "Transpor bloqueio viário com ou sem sinalização ou dispositivos auxiliares.",
+      "framing": "Art. 209. do CTB",
+      "article": "209",
+      "nature": "Grave",
+      "fineValue": 195.23,
+      "score": 5,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "606-82",
+      "description": "Deixar de adentrar as áreas destinadas à pesagem de veículos.",
+      "framing": "Art. 209. do CTB",
+      "article": "209",
+      "nature": "Grave",
+      "fineValue": 195.23,
+      "score": 5,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "606-85",
+      "description": "Circular com eixos indevidamente suspensos os veículos de transporte de carga.",
+      "framing": "Art. 209. do CTB",
+      "article": "209",
+      "nature": "Grave",
+      "fineValue": 195.23,
+      "score": 5,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "773-01",
+      "description": "Evadir-se da cobrança pelo uso de rodovias e vias urbanas para não efetuar seu pagamento.",
+      "framing": "Art. 209-A. do CTB",
+      "article": "209-A",
+      "nature": "Grave",
+      "fineValue": 195.23,
+      "score": 5,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "773-02",
+      "description": "Deixar de efetuar pagamento, pelo uso de rodovias e vias urbanas, na forma estabelecida.",
+      "framing": "Art. 209-A. do CTB",
+      "article": "209-A",
+      "nature": "Grave",
+      "fineValue": 195.23,
+      "score": 5,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "607-60",
+      "description": "Transpor bloqueio viário policial.",
+      "framing": "Art. 210. do CTB",
+      "article": "210",
+      "nature": "Gravíssima",
+      "fineValue": 293.47,
+      "score": 7,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "608-41",
+      "description": "Ultrapassar veículos motorizados em fila, parados em razão de sinal luminoso.",
+      "framing": "Art. 211. do CTB",
+      "article": "211",
+      "nature": "Grave",
+      "fineValue": 195.23,
+      "score": 5,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "608-42",
+      "description": "Ultrapassar veículos motorizados em fila, parados em razão de cancela.",
+      "framing": "Art. 211. do CTB",
+      "article": "211",
+      "nature": "Grave",
+      "fineValue": 195.23,
+      "score": 5,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "608-43",
+      "description": "Ultrapassar veículos motorizados em fila parado em razão de bloqueio viário parcial.",
+      "framing": "Art. 211. do CTB",
+      "article": "211",
+      "nature": "Grave",
+      "fineValue": 195.23,
+      "score": 5,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "608-44",
+      "description": "Ultrapassar veículos motorizados em fila parado em razão de qualquer obstáculo.",
+      "framing": "Art. 211. do CTB",
+      "article": "211",
+      "nature": "Grave",
+      "fineValue": 195.23,
+      "score": 5,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "609-20",
+      "description": "Deixar de parar o veículo antes de transpor linha férrea.",
+      "framing": "Art. 212. do CTB",
+      "article": "212",
+      "nature": "Gravíssima",
+      "fineValue": 293.47,
+      "score": 7,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "610-60",
+      "description": "Deixar de parar o veículo sempre que a marcha for interceptada por agrupamento de pessoas.",
+      "framing": "Art. 213, I. do CTB",
+      "article": "213, I",
+      "nature": "Gravíssima",
+      "fineValue": 293.47,
+      "score": 7,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "611-40",
+      "description": "Deixar de parar o veículo sempre que a marcha for interceptada por agrupamento de veículos.",
+      "framing": "Art. 213, II. do CTB",
+      "article": "213, II",
+      "nature": "Grave",
+      "fineValue": 195.23,
+      "score": 5,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "612-20",
+      "description": "Deixar de dar preferência a pedestre/veic ñ motorizado na faixa a ele destinada.",
+      "framing": "Art. 214, I. do CTB",
+      "article": "214, I",
+      "nature": "Gravíssima",
+      "fineValue": 293.47,
+      "score": 7,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "613-00",
+      "description": "Deixar de dar preferência a pedestre/veic ñ mot que ñ haja concluído a travessia.",
+      "framing": "Art. 214, II. do CTB",
+      "article": "214, II",
+      "nature": "Gravíssima",
+      "fineValue": 293.47,
+      "score": 7,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "614-90",
+      "description": "Deixar de dar preferência a pedestre port deficiência fís/criança/idoso/gestante.",
+      "framing": "Art. 214, III. do CTB",
+      "article": "214, III",
+      "nature": "Gravíssima",
+      "fineValue": 293.47,
+      "score": 7,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "615-70",
+      "description": "Deixar de dar preferência a pedestre/veic ñ mot qdo iniciada travessia s/sinaliz.",
+      "framing": "Art. 214, IV. do CTB",
+      "article": "214, IV",
+      "nature": "Grave",
+      "fineValue": 195.23,
+      "score": 5,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "616-50",
+      "description": "Deixar de dar preferência a pedestre/veic não mot atravessando a via transversal.",
+      "framing": "Art. 214, V. do CTB",
+      "article": "214, V",
+      "nature": "Grave",
+      "fineValue": 195.23,
+      "score": 5,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "617-31",
+      "description": "Deixar de dar preferência em interseção ñ sinaliz, a veíc circulando por rodovia.",
+      "framing": "Art. 215, I, a. do CTB",
+      "article": "215, I, a",
+      "nature": "Grave",
+      "fineValue": 195.23,
+      "score": 5,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "617-32",
+      "description": "Deixar de dar preferência em interseção ñ sinaliz, a veíc circulando por rotatória.",
+      "framing": "Art. 215, I, a. do CTB",
+      "article": "215, I, a",
+      "nature": "Grave",
+      "fineValue": 195.23,
+      "score": 5,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "617-33",
+      "description": "Deixar de dar prefer em interseção não sinalizada, a veículo que vier da direita.",
+      "framing": "Art. 215, I, b. do CTB",
+      "article": "215, I, b",
+      "nature": "Grave",
+      "fineValue": 195.23,
+      "score": 5,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "618-10",
+      "description": "Deixar de dar preferência nas interseções de Dê a Preferência.",
+      "framing": "Art. 215, II. do CTB",
+      "article": "215, II",
+      "nature": "Grave",
+      "fineValue": 195.23,
+      "score": 5,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "619-00",
+      "description": "Entrar/sair área lindeira sem precaução com a segurança de pedestres e veículos.",
+      "framing": "Art. 216. do CTB",
+      "article": "216",
+      "nature": "Média",
+      "fineValue": 130.16,
+      "score": 4,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "620-30",
+      "description": "Entrar/sair de fila de veículos estacionados sem dar pref a pedestres/veículos.",
+      "framing": "Art. 217. do CTB",
+      "article": "217",
+      "nature": "Média",
+      "fineValue": 130.16,
+      "score": 4,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "745-50",
+      "description": "Transitar em velocidade superior à máxima permitida em até 20%",
+      "framing": "Art. 218, I do CTB",
+      "article": "218, I",
+      "nature": "Média",
+      "fineValue": 130.16,
+      "score": 4,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "746-30",
+      "description": "Transitar em velocidade superior à máxima permitida em mais de 20% até 50%",
+      "framing": "Art. 218, II. do CTB",
+      "article": "218, II",
+      "nature": "Grave",
+      "fineValue": 195.23,
+      "score": 5,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "747-10",
+      "description": "Transitar em velocidade superior à máxima permitida em mais de 50%.",
+      "framing": "Art. 218, III. do CTB",
+      "article": "218, III",
+      "nature": "Gravíssima",
+      "fineValue": 293.47,
+      "score": 7,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "625-40",
+      "description": "Transitar em velocidade inferior à metade da máxima da via, salvo faixa direita.",
+      "framing": "Art. 219. do CTB",
+      "article": "219",
+      "nature": "Média",
+      "fineValue": 130.16,
+      "score": 4,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "626-20",
+      "description": "Deixar de reduzir a veloc qdo se aproximar de passeata/aglomeração/desfile/etc.",
+      "framing": "Art. 220, I. do CTB",
+      "article": "220, I",
+      "nature": "Gravíssima",
+      "fineValue": 293.47,
+      "score": 7,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "627-00",
+      "description": "Deixar de reduzir a veloc onde o trânsito esteja sendo controlado pelo agente.",
+      "framing": "Art. 220, II. do CTB",
+      "article": "220, II",
+      "nature": "Grave",
+      "fineValue": 195.23,
+      "score": 5,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "628-91",
+      "description": "Deixar de reduzir a velocidade do veículo ao aproximar-se da guia da calçada.",
+      "framing": "Art. 220, III. do CTB",
+      "article": "220, III",
+      "nature": "Grave",
+      "fineValue": 195.23,
+      "score": 5,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "628-92",
+      "description": "Deixar de reduzir a velocidade do veículo ao aproximar-se do acostamento.",
+      "framing": "Art. 220, III. do CTB",
+      "article": "220, III",
+      "nature": "Grave",
+      "fineValue": 195.23,
+      "score": 5,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "629-70",
+      "description": "Deixar de reduzir velocidade do veículo ao aproximar-se interseção ñ sinalizada.",
+      "framing": "Art. 220, IV. do CTB",
+      "article": "220, IV",
+      "nature": "Grave",
+      "fineValue": 195.23,
+      "score": 5,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "630-00",
+      "description": "Deixar reduzir velocidade nas vias rurais cuja faixa de domínio não esteja cercada.",
+      "framing": "Art. 220, V. do CTB",
+      "article": "220, V",
+      "nature": "Grave",
+      "fineValue": 195.23,
+      "score": 5,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "631-90",
+      "description": "Deixar de reduzir a velocidade nos trechos em curva de pequeno raio.",
+      "framing": "Art. 220, VI. do CTB",
+      "article": "220, VI",
+      "nature": "Grave",
+      "fineValue": 195.23,
+      "score": 5,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "632-70",
+      "description": "Deixar de reduzir veloc ao aproximar local sinaliz advert de obras/trabalhadores.",
+      "framing": "Art. 220, VII. do CTB",
+      "article": "220, VII",
+      "nature": "Grave",
+      "fineValue": 195.23,
+      "score": 5,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "633-50",
+      "description": "Deixar de reduzir a velocidade sob chuva/neblina/cerração/ventos fortes.",
+      "framing": "Art. 220, VIII. do CTB",
+      "article": "220, VIII",
+      "nature": "Grave",
+      "fineValue": 195.23,
+      "score": 5,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "634-30",
+      "description": "Deixar de reduzir a velocidade quando houver má visibilidade.",
+      "framing": "Art. 220, IX. do CTB",
+      "article": "220, IX",
+      "nature": "Grave",
+      "fineValue": 195.23,
+      "score": 5,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "635-10",
+      "description": "Deixar de reduzir veloc qdo pavimento se apresentar escorreg/defeituoso/avariado.",
+      "framing": "Art. 220, X. do CTB",
+      "article": "220, X",
+      "nature": "Grave",
+      "fineValue": 195.23,
+      "score": 5,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "636-00",
+      "description": "Deixar de reduzir a velocidade à aproximação de animais na pista.",
+      "framing": "Art. 220, XI. do CTB",
+      "article": "220, XI",
+      "nature": "Grave",
+      "fineValue": 195.23,
+      "score": 5,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "637-80",
+      "description": "Deixar de reduzir a velocidade de forma compatível com a segurança em declive.",
+      "framing": "Art. 220, XII. do CTB",
+      "article": "220, XII",
+      "nature": "Grave",
+      "fineValue": 195.23,
+      "score": 5,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "638-60",
+      "description": "Deixar de reduzir veloc de forma compatível c/ segurança ao ultrapassar ciclista.",
+      "framing": "Art. 220, XIII. do CTB",
+      "article": "220, XIII",
+      "nature": "Gravíssima",
+      "fineValue": 293.47,
+      "score": 7,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "639-41",
+      "description": "Deixar de reduzir a velocidade nas proximidades de escolas.",
+      "framing": "Art. 220, XIV. do CTB",
+      "article": "220, XIV",
+      "nature": "Gravíssima",
+      "fineValue": 293.47,
+      "score": 7,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "639-42",
+      "description": "Deixar de reduzir a velocidade nas proximidades de hospitais.",
+      "framing": "Art. 220, XIV. do CTB",
+      "article": "220, XIV",
+      "nature": "Gravíssima",
+      "fineValue": 293.47,
+      "score": 7,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "639-43",
+      "description": "Deixar de reduzir veloc na proxim estação embarque/desembarque passageiros.",
+      "framing": "Art. 220, XIV. do CTB",
+      "article": "220, XIV",
+      "nature": "Gravíssima",
+      "fineValue": 293.47,
+      "score": 7,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "639-44",
+      "description": "Deixar de reduzir veloc onde haja intensa movimentação de pedestres.",
+      "framing": "Art. 220, XIV. do CTB",
+      "article": "220, XIV",
+      "nature": "Gravíssima",
+      "fineValue": 293.47,
+      "score": 7,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "640-80",
+      "description": "Portar no veículo placas de identificação em desacordo c/ especif/modelo Contran.",
+      "framing": "Art. 221. do CTB",
+      "article": "221",
+      "nature": "Média",
+      "fineValue": 130.16,
+      "score": 4,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "641-60",
+      "description": "Confec/distribuir/colocar veíc próprio/terceiro placa identif desacordo Contran.",
+      "framing": "Art. 221, Parágrafo único. do CTB",
+      "article": "221, Parágrafo único",
+      "nature": "Média",
+      "fineValue": 130.16,
+      "score": 4,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "642-40",
+      "description": "Deixar de manter ligado em emerg sist ilum intermitente ainda q parado.",
+      "framing": "Art. 222. do CTB",
+      "article": "222",
+      "nature": "Média",
+      "fineValue": 130.16,
+      "score": 4,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "643-21",
+      "description": "Transitar com farol desregulado perturbando visão outro condutor.",
+      "framing": "Art. 223. do CTB",
+      "article": "223",
+      "nature": "Grave",
+      "fineValue": 195.23,
+      "score": 5,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "643-22",
+      "description": "Transitar com o facho de luz alta perturbando visão outro condutor.",
+      "framing": "Art. 223. do CTB",
+      "article": "223",
+      "nature": "Grave",
+      "fineValue": 195.23,
+      "score": 5,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "644-00",
+      "description": "Fazer uso do facho de luz alta dos faróis em vias providas de iluminação pública.",
+      "framing": "Art. 224. do CTB",
+      "article": "224",
+      "nature": "Leve",
+      "fineValue": 88.38,
+      "score": 3,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "645-91",
+      "description": "Deixar de sinalizar via p/ tornar visível local qdo tiver remover veíc da pista.",
+      "framing": "Art. 225, I. do CTB",
+      "article": "225, I",
+      "nature": "Grave",
+      "fineValue": 195.23,
+      "score": 5,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "645-92",
+      "description": "Deixar de sinalizar a via p/ tornar visível o local qdo permanecer acostamento.",
+      "framing": "Art. 225, I. do CTB",
+      "article": "225, I",
+      "nature": "Grave",
+      "fineValue": 195.23,
+      "score": 5,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "646-70",
+      "description": "Deixar de sinalizar a via p/ tornar visível o local qdo a carga for derramada.",
+      "framing": "Art. 225, II. do CTB",
+      "article": "225, II",
+      "nature": "Grave",
+      "fineValue": 195.23,
+      "score": 5,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "647-50",
+      "description": "Deixar de retirar qualquer objeto utilizado para sinalização temporária da via.",
+      "framing": "Art. 226. do CTB",
+      "article": "226",
+      "nature": "Média",
+      "fineValue": 130.16,
+      "score": 4,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "648-30",
+      "description": "Usar buzina que não a de toque breve como advertência a pedestre ou condutores.",
+      "framing": "Art. 227, I. do CTB",
+      "article": "227, I",
+      "nature": "Leve",
+      "fineValue": 88.38,
+      "score": 3,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "649-10",
+      "description": "Usar buzina prolongada e sucessivamente a qualquer pretexto.",
+      "framing": "Art. 227, II. do CTB",
+      "article": "227, II",
+      "nature": "Leve",
+      "fineValue": 88.38,
+      "score": 3,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "650-50",
+      "description": "Usar buzina entre as vinte e duas e às seis horas.",
+      "framing": "Art. 227, III. do CTB",
+      "article": "227, III",
+      "nature": "Leve",
+      "fineValue": 88.38,
+      "score": 3,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "651-30",
+      "description": "Usar buzina em locais e horários proibidos pela sinalização.",
+      "framing": "Art. 227, IV. do CTB",
+      "article": "227, IV",
+      "nature": "Leve",
+      "fineValue": 88.38,
+      "score": 3,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "652-10",
+      "description": "Usar buzina em desacordo c/ os padrões e frequências estabelecidas pelo Contran.",
+      "framing": "Art. 227, V. do CTB",
+      "article": "227, V",
+      "nature": "Leve",
+      "fineValue": 88.38,
+      "score": 3,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "653-00",
+      "description": "Usar no veículo equip c/ som em volume/frequência não autorizados pelo Contran.",
+      "framing": "Art. 228. do CTB",
+      "article": "228",
+      "nature": "Grave",
+      "fineValue": 195.23,
+      "score": 5,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "654-80",
+      "description": "Usar no veíc alarme/aparelho produz som perturbe sossego pós desac norma Contran.",
+      "framing": "Art. 229. do CTB",
+      "article": "229",
+      "nature": "Média",
+      "fineValue": 130.16,
+      "score": 4,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "655-61",
+      "description": "Conduzir o veículo com o lacre de identificação violado/falsificado.",
+      "framing": "Art. 230, I. do CTB",
+      "article": "230, I",
+      "nature": "Gravíssima",
+      "fineValue": 293.47,
+      "score": 7,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "655-62",
+      "description": "Conduzir o veículo com a inscrição do chassi violada/falsificada.",
+      "framing": "Art. 230, I. do CTB",
+      "article": "230, I",
+      "nature": "Gravíssima",
+      "fineValue": 293.47,
+      "score": 7,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "655-63",
+      "description": "Conduzir o veículo como selo violado/falsificado.",
+      "framing": "Art. 230, I. do CTB",
+      "article": "230, I",
+      "nature": "Gravíssima",
+      "fineValue": 293.47,
+      "score": 7,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "655-64",
+      "description": "Conduzir o veículo com a placa violada/falsificada.",
+      "framing": "Art. 230, I. do CTB",
+      "article": "230, I",
+      "nature": "Gravíssima",
+      "fineValue": 293.47,
+      "score": 7,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "655-65",
+      "description": "Conduzir o veículo com qualquer outro elem de identificação violado/falsificado.",
+      "framing": "Art. 230, I. do CTB",
+      "article": "230, I",
+      "nature": "Gravíssima",
+      "fineValue": 293.47,
+      "score": 7,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "656-40",
+      "description": "Conduzir o veículo transportando passageiros em compartimento de carga.",
+      "framing": "Art. 230, II. do CTB",
+      "article": "230, II",
+      "nature": "Gravíssima",
+      "fineValue": 293.47,
+      "score": 7,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "657-20",
+      "description": "Conduzir o veículo com dispositivo antirradar.",
+      "framing": "Art. 230, III. do CTB",
+      "article": "230, III",
+      "nature": "Gravíssima",
+      "fineValue": 293.47,
+      "score": 7,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "658-00",
+      "description": "Conduzir o veículo sem qualquer uma das placas de identificação.",
+      "framing": "Art. 230, IV. do CTB",
+      "article": "230, IV",
+      "nature": "Gravíssima",
+      "fineValue": 293.47,
+      "score": 7,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "659-91",
+      "description": "Conduzir o veículo que não esteja registrado.",
+      "framing": "Art. 230, V. do CTB",
+      "article": "230, V",
+      "nature": "Gravíssima",
+      "fineValue": 293.47,
+      "score": 7,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "659-92",
+      "description": "Conduzir o veículo registrado que não esteja devidamente licenciado.",
+      "framing": "Art. 230, V. do CTB",
+      "article": "230, V",
+      "nature": "Gravíssima",
+      "fineValue": 293.47,
+      "score": 7,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "660-20",
+      "description": "Conduzir o veículo com qualquer uma das placas sem legibilidade e visibilidade.",
+      "framing": "Art. 230, VI. do CTB",
+      "article": "230, VI",
+      "nature": "Gravíssima",
+      "fineValue": 293.47,
+      "score": 7,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "661-01",
+      "description": "Conduzir o veículo com cor alterada.",
+      "framing": "Art. 230, VII. do CTB",
+      "article": "230, VII",
+      "nature": "Grave",
+      "fineValue": 195.23,
+      "score": 5,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "661-02",
+      "description": "Conduzir o veículo com característica alterada.",
+      "framing": "Art. 230, VII. do CTB",
+      "article": "230, VII",
+      "nature": "Grave",
+      "fineValue": 195.23,
+      "score": 5,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "662-90",
+      "description": "Conduzir veículo s/ ter sido submetido à inspeção seg veicular, qdo obrigatória.",
+      "framing": "Art. 230, VIII. do CTB",
+      "article": "230, VIII",
+      "nature": "Grave",
+      "fineValue": 195.23,
+      "score": 5,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "663-71",
+      "description": "Conduzir o veículo sem equipamento obrigatório.",
+      "framing": "Art. 230, IX. do CTB",
+      "article": "230, IX",
+      "nature": "Grave",
+      "fineValue": 195.23,
+      "score": 5,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "663-72",
+      "description": "Conduzir o veículo com equipamento obrigatório ineficiente/inoperante.",
+      "framing": "Art. 230, IX. do CTB",
+      "article": "230, IX",
+      "nature": "Grave",
+      "fineValue": 195.23,
+      "score": 5,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "664-50",
+      "description": "Conduzir o veículo com equip obrigatório em desacordo com o estab pelo Contran.",
+      "framing": "Art. 230, X. do CTB",
+      "article": "230, X",
+      "nature": "Grave",
+      "fineValue": 195.23,
+      "score": 5,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "665-31",
+      "description": "Conduzir o veículo com descarga livre.",
+      "framing": "Art. 230, XI. do CTB",
+      "article": "230, XI",
+      "nature": "Grave",
+      "fineValue": 195.23,
+      "score": 5,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "665-32",
+      "description": "Conduzir o veículo com silenciador de motor de explosão defeituoso, deficiente ou inoperante.",
+      "framing": "Art. 230, XI. do CTB",
+      "article": "230, XI",
+      "nature": "Grave",
+      "fineValue": 195.23,
+      "score": 5,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "666-10",
+      "description": "Conduzir o veículo com equipamento ou acessório proibido.",
+      "framing": "Art. 230, XII. do CTB",
+      "article": "230, XII",
+      "nature": "Grave",
+      "fineValue": 195.23,
+      "score": 5,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "667-00",
+      "description": "Conduzir o veíc c/ equip do sistema de iluminação e de sinalização alterados.",
+      "framing": "Art. 230, XIII. do CTB",
+      "article": "230, XIII",
+      "nature": "Grave",
+      "fineValue": 195.23,
+      "score": 5,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "668-80",
+      "description": "Conduzir veíc c/ registrador instan inalt de velocidade/tempo viciado/defeituoso.",
+      "framing": "Art. 230, XIV. do CTB",
+      "article": "230, XIV",
+      "nature": "Grave",
+      "fineValue": 195.23,
+      "score": 5,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "669-61",
+      "description": "Conduzir c/ inscr/adesivo/legenda/símbolo afixado para-brisa e extensão traseira.",
+      "framing": "Art. 230, XV. do CTB",
+      "article": "230, XV",
+      "nature": "Grave",
+      "fineValue": 195.23,
+      "score": 5,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "669-62",
+      "description": "Conduzir c/ inscr/adesivo/legenda/símbolo pintado para-brisa e extensão traseira.",
+      "framing": "Art. 230, XV. do CTB",
+      "article": "230, XV",
+      "nature": "Grave",
+      "fineValue": 195.23,
+      "score": 5,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "670-00",
+      "description": "Conduzir o veíc com vidros total/parcialmente cobertos por película, painéis/pintura.",
+      "framing": "Art. 230, XVI. do CTB",
+      "article": "230, XVI",
+      "nature": "Grave",
+      "fineValue": 195.23,
+      "score": 5,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "671-80",
+      "description": "Conduzir o veículo com cortinas ou persianas fechadas.",
+      "framing": "Art. 230, XVII. do CTB",
+      "article": "230, XVII",
+      "nature": "Grave",
+      "fineValue": 195.23,
+      "score": 5,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "672-61",
+      "description": "Conduzir o veículo em mau estado de conservação, comprometendo a segurança.",
+      "framing": "Art. 230, XVIII. do CTB",
+      "article": "230, XVIII",
+      "nature": "Grave",
+      "fineValue": 195.23,
+      "score": 5,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "672-62",
+      "description": "Conduzir o veículo reprovado na avaliação de inspeção de segurança.",
+      "framing": "Art. 230, XVIII. do CTB",
+      "article": "230, XVIII",
+      "nature": "Grave",
+      "fineValue": 195.23,
+      "score": 5,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "672-63",
+      "description": "Conduzir o veículo reprovado na avaliação de emissão de poluentes e ruído.",
+      "framing": "Art. 230, XVIII. do CTB",
+      "article": "230, XVIII",
+      "nature": "Grave",
+      "fineValue": 195.23,
+      "score": 5,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "673-40",
+      "description": "Conduzir o veículo sem acionar o limpador de para-brisa sob chuva.",
+      "framing": "Art. 230, XIX. do CTB",
+      "article": "230, XIX",
+      "nature": "Grave",
+      "fineValue": 195.23,
+      "score": 5,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "674-20",
+      "description": "Conduzir o veículo sem portar a autorização para condução de escolares.",
+      "framing": "Art. 230, XX. do CTB",
+      "article": "230, XX",
+      "nature": "Gravíssima",
+      "fineValue": 293.47,
+      "score": 7,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "675-00",
+      "description": "Conduzir o veíc de carga c/ falta inscrição da tara e demais previstas no CTB.",
+      "framing": "Art. 230, XXI. do CTB",
+      "article": "230, XXI",
+      "nature": "Média",
+      "fineValue": 130.16,
+      "score": 4,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "676-90",
+      "description": "Conduzir veíc c/ defeito no sist de iluminação, sinaliz ou lâmpadas queimadas.",
+      "framing": "Art. 230, XXII. do CTB",
+      "article": "230, XXII",
+      "nature": "Média",
+      "fineValue": 130.16,
+      "score": 4,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "756-00",
+      "description": "Conduzir veíc de transp passag ou carga em desacordo c/ as cond do art 67-C CTB.",
+      "framing": "Art. 230, XXIII. do CTB",
+      "article": "230, XXIII",
+      "nature": "Média",
+      "fineValue": 130.16,
+      "score": 4,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "677-70",
+      "description": "Transitar com o veículo danificando a via, suas instalações e equipamentos.",
+      "framing": "Art. 231, I. do CTB",
+      "article": "231, I",
+      "nature": "Gravíssima",
+      "fineValue": 293.47,
+      "score": 7,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "678-51",
+      "description": "Transitar com o veículo derramando a carga que esteja transportando.",
+      "framing": "Art. 231, II, a. do CTB",
+      "article": "231, II, a",
+      "nature": "Gravíssima",
+      "fineValue": 293.47,
+      "score": 7,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "678-52",
+      "description": "Transitar com veículo lançando a carga que esteja transportando.",
+      "framing": "Art. 231, II, a. do CTB",
+      "article": "231, II, a",
+      "nature": "Gravíssima",
+      "fineValue": 293.47,
+      "score": 7,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "678-53",
+      "description": "Transitar com veículo arrastando a carga que esteja transportando.",
+      "framing": "Art. 231, II, a. do CTB",
+      "article": "231, II, a",
+      "nature": "Gravíssima",
+      "fineValue": 293.47,
+      "score": 7,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "679-30",
+      "description": "Transitar com veíc derramando/lançando combustível/lubrif que esteja utilizando.",
+      "framing": "Art. 231, II, b. do CTB",
+      "article": "231, II, b",
+      "nature": "Gravíssima",
+      "fineValue": 293.47,
+      "score": 7,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "680-70",
+      "description": "Transitar c/ veíc derramando/lançando/arrastando qq objeto com risco de acidente.",
+      "framing": "Art. 231, II, c. do CTB",
+      "article": "231, II, c",
+      "nature": "Gravíssima",
+      "fineValue": 293.47,
+      "score": 7,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "681-50",
+      "description": "Transitar com veículo produzindo fumaça, gases ou partículas em desac c/ Contran.",
+      "framing": "Art. 231, III. do CTB",
+      "article": "231, III",
+      "nature": "Grave",
+      "fineValue": 195.23,
+      "score": 5,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "682-31",
+      "description": "Transitar c/ veíc e/ou carga c/ dimensões superiores limite legal s/autorização.",
+      "framing": "Art. 231, IV. do CTB",
+      "article": "231, IV",
+      "nature": "Grave",
+      "fineValue": 195.23,
+      "score": 5,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "682-32",
+      "description": "Transitar c/ veíc e/ou carga c/dimensões superiores est p/sinalização s/autoriz.",
+      "framing": "Art. 231, IV. do CTB",
+      "article": "231, IV",
+      "nature": "Grave",
+      "fineValue": 195.23,
+      "score": 5,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "683-11",
+      "description": "Transitar com o veículo com excesso de peso PBT/PBTC.",
+      "framing": "Art. 231, V. do CTB",
+      "article": "231, V",
+      "nature": "Média",
+      "fineValue": 130.16,
+      "score": 4,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "683-12",
+      "description": "Transitar com veículo com excesso de peso - por eixo.",
+      "framing": "Art. 231, V. do CTB",
+      "article": "231, V",
+      "nature": "Média",
+      "fineValue": 130.16,
+      "score": 4,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "683-13",
+      "description": "Transitar com o veículo com excesso de peso – PBT/PBTC e Por Eixo.",
+      "framing": "Art. 231, V. do CTB",
+      "article": "231, V",
+      "nature": "Média",
+      "fineValue": 130.16,
+      "score": 4,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "684-01",
+      "description": "Transitar em desacordo c/ autorização expedida p/veículo c/ dimensões excedentes.",
+      "framing": "Art. 231, VI. do CTB",
+      "article": "231, VI",
+      "nature": "Grave",
+      "fineValue": 195.23,
+      "score": 5,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "684-02",
+      "description": "Transitar com autorização vencida, expedida para veículo com dimensões excedentes.",
+      "framing": "Art. 231, VI. do CTB",
+      "article": "231, VI",
+      "nature": "Grave",
+      "fineValue": 195.23,
+      "score": 5,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "685-80",
+      "description": "Transitar com o veículo com lotação excedente.",
+      "framing": "Art. 231, VII. do CTB",
+      "article": "231, VII",
+      "nature": "Gravíssima",
+      "fineValue": 293.47,
+      "score": 7,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "686-61",
+      "description": "Transitar efetuando transporte remunerado de pessoas qdo ñ licenciado p/esse fim.",
+      "framing": "Art. 231, VIII. do CTB",
+      "article": "231, VIII",
+      "nature": "Gravíssima",
+      "fineValue": 293.47,
+      "score": 7,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "686-62",
+      "description": "Transitar efetuando transporte remunerado de bens qdo não licenciado p/ esse fim.",
+      "framing": "Art. 231, VIII. do CTB",
+      "article": "231, VIII",
+      "nature": "Gravíssima",
+      "fineValue": 293.47,
+      "score": 7,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "687-41",
+      "description": "Transitar com veículo desligado em declive.",
+      "framing": "Art. 231, IX. do CTB",
+      "article": "231, IX",
+      "nature": "Média",
+      "fineValue": 130.16,
+      "score": 4,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "687-42",
+      "description": "Transitar com veículo desengrenado em declive.",
+      "framing": "Art. 231, IX. do CTB",
+      "article": "231, IX",
+      "nature": "Média",
+      "fineValue": 130.16,
+      "score": 4,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "688-20",
+      "description": "Transitar com o veículo excedendo a CMT em até 600kg.",
+      "framing": "Art. 231, X do CTB",
+      "article": "231, X",
+      "nature": "Média",
+      "fineValue": 130.16,
+      "score": 4,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "689-00",
+      "description": "Transitar com o veículo excedendo a CMT entre 601kg e 1000kg.",
+      "framing": "Art. 231, X. do CTB",
+      "article": "231, X",
+      "nature": "Grave",
+      "fineValue": 195.23,
+      "score": 5,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "690-40",
+      "description": "Transitar com o veículo excedendo a CMT acima de 1000kg.",
+      "framing": "Art. 231, X. do CTB",
+      "article": "231, X",
+      "nature": "Gravíssima",
+      "fineValue": 293.47,
+      "score": 7,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "691-20",
+      "description": "Conduzir veículo sem os documentos de porte obrigatório referidos no CTB.",
+      "framing": "Art. 232. do CTB",
+      "article": "232",
+      "nature": "Leve",
+      "fineValue": 88.38,
+      "score": 3,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "692-01",
+      "description": "Deixar de efetuar registro do veículo em 30 dias, qdo for transf a propriedade.",
+      "framing": "Art. 233 c/c 123, I. do CTB",
+      "article": "233 c/c 123, I",
+      "nature": "Média",
+      "fineValue": 130.16,
+      "score": 4,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "692-02",
+      "description": "Deixar de efetuar reg do veíc em 30 dias, qdo mudar o munic de domicílio/resid.",
+      "framing": "Art. 233 c/c 123, II. do CTB",
+      "article": "233 c/c 123, II",
+      "nature": "Média",
+      "fineValue": 130.16,
+      "score": 4,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "692-03",
+      "description": "Deixar de efetuar reg de veíc em 30 dias, qdo for alterada qquer caract do veíc.",
+      "framing": "Art. 233 c/c 123, III. do CTB",
+      "article": "233 c/c 123, III",
+      "nature": "Média",
+      "fineValue": 130.16,
+      "score": 4,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "692-04",
+      "description": "Deixar de efetuar registro de veic em 30 dias, qdo houver mudança de categoria.",
+      "framing": "Art. 233 c/c 123, IV. do CTB",
+      "article": "233 c/c 123, IV",
+      "nature": "Média",
+      "fineValue": 130.16,
+      "score": 4,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "693-91",
+      "description": "Falsificar documento de habilitação.",
+      "framing": "Art. 234. do CTB",
+      "article": "234",
+      "nature": "Gravíssima",
+      "fineValue": 293.47,
+      "score": 7,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "693-92",
+      "description": "Falsificar ou adulterar documento de identificação do veículo.",
+      "framing": "Art. 234. do CTB",
+      "article": "234",
+      "nature": "Gravíssima",
+      "fineValue": 293.47,
+      "score": 7,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "694-71",
+      "description": "Conduzir pessoas nas partes externas do veículo.",
+      "framing": "Art. 235. do CTB",
+      "article": "235",
+      "nature": "Grave",
+      "fineValue": 195.23,
+      "score": 5,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "694-72",
+      "description": "Conduzir animais nas partes externas do veículo.",
+      "framing": "Art. 235. do CTB",
+      "article": "235",
+      "nature": "Grave",
+      "fineValue": 195.23,
+      "score": 5,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "694-73",
+      "description": "Conduzir carga nas partes externas do veículo.",
+      "framing": "Art. 235. do CTB",
+      "article": "235",
+      "nature": "Grave",
+      "fineValue": 195.23,
+      "score": 5,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "695-50",
+      "description": "Rebocar outro veículo com cabo flexível ou corda.",
+      "framing": "Art. 236. do CTB",
+      "article": "236",
+      "nature": "Média",
+      "fineValue": 130.16,
+      "score": 4,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "696-30",
+      "description": "Trans c/veíc desac c/especificação/falta de inscr/simbologia necessária identif.",
+      "framing": "Art. 237. do CTB",
+      "article": "237",
+      "nature": "Grave",
+      "fineValue": 195.23,
+      "score": 5,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "697-10",
+      "description": "Recusar-se a entregar CNH/CRV/CRLV/Outros documentos.",
+      "framing": "Art. 238. do CTB",
+      "article": "238",
+      "nature": "Gravíssima",
+      "fineValue": 293.47,
+      "score": 7,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "698-00",
+      "description": "Retirar do local veículo legalmente retido para regularização, sem permissão.",
+      "framing": "Art. 239. do CTB",
+      "article": "239",
+      "nature": "Gravíssima",
+      "fineValue": 293.47,
+      "score": 7,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "699-80",
+      "description": "Deixar responsável de promover baixa registro de veíc. irrecuperável/desmontado.",
+      "framing": "Art. 240. do CTB",
+      "article": "240",
+      "nature": "Grave",
+      "fineValue": 195.23,
+      "score": 5,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "700-51",
+      "description": "Deixar de atualizar o cadastro de registro do veículo.",
+      "framing": "Art. 241. do CTB",
+      "article": "241",
+      "nature": "Leve",
+      "fineValue": 88.38,
+      "score": 3,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "700-52",
+      "description": "Deixar de atualizar o cadastro de habilitação do condutor.",
+      "framing": "Art. 241. do CTB",
+      "article": "241",
+      "nature": "Leve",
+      "fineValue": 88.38,
+      "score": 3,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "701-31",
+      "description": "Fazer falsa declaração de domicílio para fins de registro/licenciamento.",
+      "framing": "Art. 242. do CTB",
+      "article": "242",
+      "nature": "Gravíssima",
+      "fineValue": 293.47,
+      "score": 7,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "701-32",
+      "description": "Fazer falsa declaração de domicílio para fins de habilitação.",
+      "framing": "Art. 242. do CTB",
+      "article": "242",
+      "nature": "Gravíssima",
+      "fineValue": 293.47,
+      "score": 7,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "702-10",
+      "description": "Deixar seguradora de comunicar ocorrência perda total veíc e devolver placas/doc.",
+      "framing": "Art. 243. do CTB",
+      "article": "243",
+      "nature": "Grave",
+      "fineValue": 195.23,
+      "score": 5,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "712-92",
+      "description": "Conduzir ciclomotor em via de trânsito rápido.",
+      "framing": "Art. 244, § 2º. do CTB",
+      "article": "244, § 2º",
+      "nature": "Média",
+      "fineValue": 130.16,
+      "score": 4,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "712-93",
+      "description": "Conduzir ciclomotor em rodovia salvo se houver acostamento ou faixa própria.",
+      "framing": "Art. 244, § 2º. do CTB",
+      "article": "244, § 2º",
+      "nature": "Média",
+      "fineValue": 130.16,
+      "score": 4,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "703-01",
+      "description": "Conduzir motocicleta, motoneta e ciclomotor sem capacete de segurança.",
+      "framing": "Art. 244, I. do CTB",
+      "article": "244, I",
+      "nature": "Gravíssima",
+      "fineValue": 293.47,
+      "score": 7,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "703-03",
+      "description": "Conduzir motocicleta, motoneta e ciclomotor sem vestuário aprovado pelo Contran.",
+      "framing": "Art. 244, I. do CTB",
+      "article": "244, I",
+      "nature": "Gravíssima",
+      "fineValue": 293.47,
+      "score": 7,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "704-81",
+      "description": "Conduzir motocicleta, motoneta e ciclomotor transportando passageiro sem capacete.",
+      "framing": "Art. 244, II. do CTB",
+      "article": "244, II",
+      "nature": "Gravíssima",
+      "fineValue": 293.47,
+      "score": 7,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "704-83",
+      "description": "Conduzir motocicleta, motoneta ou ciclomotor transportando passageiro fora do assento.",
+      "framing": "Art. 244, II. do CTB",
+      "article": "244, II",
+      "nature": "Gravíssima",
+      "fineValue": 293.47,
+      "score": 7,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "705-61",
+      "description": "Conduzir motocicleta, motoneta ou ciclomotor fazendo malabarismo ou equilibrando-se em uma roda.",
+      "framing": "Art. 244, III. do CTB",
+      "article": "244, III",
+      "nature": "Gravíssima",
+      "fineValue": 293.47,
+      "score": 7,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "707-21",
+      "description": "Conduzir motocicleta/motoneta/ciclomotor transportando criança menor de 10 anos de idade.",
+      "framing": "Art. 244, V. do CTB",
+      "article": "244, V",
+      "nature": "Gravíssima",
+      "fineValue": 293.47,
+      "score": 7,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "707-22",
+      "description": "Conduzir motoc/moton/ciclom transp criança s/ condição cuidar própria segurança.",
+      "framing": "Art. 244, V. do CTB",
+      "article": "244, V",
+      "nature": "Gravíssima",
+      "fineValue": 293.47,
+      "score": 7,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "708-00",
+      "description": "Conduzir motocicleta, motoneta ou ciclomotor rebocando outro veículo.",
+      "framing": "Art. 244, VI. do CTB",
+      "article": "244, VI",
+      "nature": "Grave",
+      "fineValue": 195.23,
+      "score": 5,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "709-91",
+      "description": "Conduzir motocicleta/motoneta/ciclomotor sem segurar o guidom com ambas as mãos.",
+      "framing": "Art. 244, VII. do CTB",
+      "article": "244, VII",
+      "nature": "Grave",
+      "fineValue": 195.23,
+      "score": 5,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "710-21",
+      "description": "Conduzir motocicleta, motoneta e ciclomotor transportando carga incompatível.",
+      "framing": "Art. 244, VIII. do CTB",
+      "article": "244, VIII",
+      "nature": "Grave",
+      "fineValue": 195.23,
+      "score": 5,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "710-23",
+      "description": "Conduzir motoc/moton/ transportando carga em desacordo c/ § 2º do Art 139-A CTB.",
+      "framing": "Art. 244, VIII. do CTB",
+      "article": "244, VIII",
+      "nature": "Grave",
+      "fineValue": 195.23,
+      "score": 5,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "755-21",
+      "description": "Conduzir motoc/moton/ efetuando transp remun mercadoria desac c/ art 139-A CTB.",
+      "framing": "Art. 244, IX. do CTB",
+      "article": "244, IX",
+      "nature": "Grave",
+      "fineValue": 195.23,
+      "score": 5,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "755-22",
+      "description": "Conduzir motoc/moton/ efet transp remun desac normas ativid profic mototaxistas.",
+      "framing": "Art. 244, IX. do CTB",
+      "article": "244, IX",
+      "nature": "Grave",
+      "fineValue": 195.23,
+      "score": 5,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "768-41",
+      "description": "Conduzir motoc/ moton/ ciclom c/ utilização de capacete de segurança s/ viseira/óculos de proteção.",
+      "framing": "Art. 244, X. do CTB",
+      "article": "244, X",
+      "nature": "Média",
+      "fineValue": 130.16,
+      "score": 4,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "768-42",
+      "description": "Conduzir motoc/ moton/ ciclom c/ útil capacete de seg c/ viseira/óculos prot em des c/ regul Contran.",
+      "framing": "Art. 244, X. do CTB",
+      "article": "244, X",
+      "nature": "Média",
+      "fineValue": 130.16,
+      "score": 4,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "771-41",
+      "description": "Conduzir motoc/ moton/ ciclom transp pass c/ capacete de segurança s/ viseira/óculos de proteção.",
+      "framing": "Art. 244, XI. do CTB",
+      "article": "244, XI",
+      "nature": "Média",
+      "fineValue": 130.16,
+      "score": 4,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "771-42",
+      "description": "Conduzir motoc/ moton/ ciclom transp pass c/ cap seg c/ viseira/óculos prot em des c/ regul Contran.",
+      "framing": "Art. 244, XI. do CTB",
+      "article": "244, XI",
+      "nature": "Média",
+      "fineValue": 130.16,
+      "score": 4,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "714-50",
+      "description": "Utilizar a via para depósito de mercadorias, materiais ou equipamentos.",
+      "framing": "Art. 245. do CTB",
+      "article": "245",
+      "nature": "Grave",
+      "fineValue": 195.23,
+      "score": 5,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "715-31",
+      "description": "Deixar de sinalizar obstáculo à circulação/segurança calçada/pista-s/agravamento",
+      "framing": "Art. 246. do CTB",
+      "article": "246",
+      "nature": "Gravíssima",
+      "fineValue": 293.47,
+      "score": 7,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "715-32",
+      "description": "Obstaculizar a via indevidamente-s/agravamento.",
+      "framing": "Art. 246. do CTB",
+      "article": "246",
+      "nature": "Gravíssima",
+      "fineValue": 293.47,
+      "score": 7,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "716-11",
+      "description": "Deixar de sinalizar obstáculo circulação/segurança calçada/pista-agravamento 2X.",
+      "framing": "Art. 246. do CTB",
+      "article": "246",
+      "nature": "Gravíssima",
+      "fineValue": 293.47,
+      "score": 7,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "716-12",
+      "description": "Obstaculizar a via indevidamente-agravamento 2X.",
+      "framing": "Art. 246. do CTB",
+      "article": "246",
+      "nature": "Gravíssima",
+      "fineValue": 293.47,
+      "score": 7,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "717-01",
+      "description": "Deixar de sinalizar obstáculo circulação/segurança calçada/pista-agravamento 3X.",
+      "framing": "Art. 246. do CTB",
+      "article": "246",
+      "nature": "Gravíssima",
+      "fineValue": 293.47,
+      "score": 7,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "717-02",
+      "description": "Obstaculizar a via indevidamente-agravamento 3X.",
+      "framing": "Art. 246. do CTB",
+      "article": "246",
+      "nature": "Gravíssima",
+      "fineValue": 293.47,
+      "score": 7,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "718-81",
+      "description": "Deixar de sinalizar obstáculo circulação/segurança calçada/pista-agravamento 4X.",
+      "framing": "Art. 246. do CTB",
+      "article": "246",
+      "nature": "Gravíssima",
+      "fineValue": 293.47,
+      "score": 7,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "718-82",
+      "description": "Obstaculizar a via indevidamente-agravamento 4X.",
+      "framing": "Art. 246. do CTB",
+      "article": "246",
+      "nature": "Gravíssima",
+      "fineValue": 293.47,
+      "score": 7,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "719-61",
+      "description": "Deixar de sinalizar obstáculo circulação/segurança calçada/pista-agravamento 5X.",
+      "framing": "Art. 246. do CTB",
+      "article": "246",
+      "nature": "Gravíssima",
+      "fineValue": 293.47,
+      "score": 7,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "719-62",
+      "description": "Obstaculizar a via indevidamente-agravamento 5X.",
+      "framing": "Art. 246. do CTB",
+      "article": "246",
+      "nature": "Gravíssima",
+      "fineValue": 293.47,
+      "score": 7,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "720-01",
+      "description": "Deixar de conduzir pelo bordo pista em fila única veíc tração/propulsão humana.",
+      "framing": "Art. 247. do CTB",
+      "article": "247",
+      "nature": "Média",
+      "fineValue": 130.16,
+      "score": 4,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "720-02",
+      "description": "Deixar de conduzir pelo bordo da pista em fila única veículo de tração animal.",
+      "framing": "Art. 247. do CTB",
+      "article": "247",
+      "nature": "Média",
+      "fineValue": 130.16,
+      "score": 4,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "721-80",
+      "description": "Transportar em veíc destinado transp passageiros carga excedente desac art.109.",
+      "framing": "Art. 248. do CTB",
+      "article": "248",
+      "nature": "Grave",
+      "fineValue": 195.23,
+      "score": 5,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "722-61",
+      "description": "Deixar de manter acesas à noite as luzes posição quando o veículo estiver parado.",
+      "framing": "Art. 249. do CTB",
+      "article": "249",
+      "nature": "Média",
+      "fineValue": 130.16,
+      "score": 4,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "722-62",
+      "description": "Deixar de manter acesas à noite as luzes de posição veic fazendo carga/descarga .",
+      "framing": "Art. 249. do CTB",
+      "article": "249",
+      "nature": "Média",
+      "fineValue": 130.16,
+      "score": 4,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "723-40",
+      "description": "Em movimento, deixar de manter acesa a luz baixa durante a noite.",
+      "framing": "Art. 250, I, a. do CTB",
+      "article": "250, I, a",
+      "nature": "Média",
+      "fineValue": 130.16,
+      "score": 4,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "724-21",
+      "description": "Em movimento de dia, deixar de manter acesa luz baixa em túneis.",
+      "framing": "Art. 250, I, b. do CTB",
+      "article": "250, I, b",
+      "nature": "Média",
+      "fineValue": 130.16,
+      "score": 4,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "724-22",
+      "description": "Em movimento de dia, deixar de manter acesa luz baixa sob chuva, neblina ou cerração.",
+      "framing": "Art. 250, I, b. do CTB",
+      "article": "250, I, b",
+      "nature": "Média",
+      "fineValue": 130.16,
+      "score": 4,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "725-00",
+      "description": "Em mov de dia, deixar de manter acesa luz baixa veíc transp coletivo faixas/pistas destinadas.",
+      "framing": "Art. 250, I, c. do CTB",
+      "article": "250, I, c",
+      "nature": "Média",
+      "fineValue": 130.16,
+      "score": 4,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "726-90",
+      "description": "Em movimento de dia, deixar de manter acesa luz baixa de motocicletas/motonetas/ ciclomotores.",
+      "framing": "Art. 250, I, d. do CTB",
+      "article": "250, I, d",
+      "nature": "Média",
+      "fineValue": 130.16,
+      "score": 4,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "772-20",
+      "description": "Em mov deix de man aces luz baixa de dia, em rod pis simp sit fora per urb, veíc desp luz rod diur",
+      "framing": "Art. 250, I, e. do CTB",
+      "article": "250, I, e",
+      "nature": "Média",
+      "fineValue": 130.16,
+      "score": 4,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "728-50",
+      "description": "Em movimento, deixar de manter a placa traseira iluminada à noite.",
+      "framing": "Art. 250, III. do CTB",
+      "article": "250, III",
+      "nature": "Média",
+      "fineValue": 130.16,
+      "score": 4,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "775-71",
+      "description": "Em movimento, deixar o veículo de transporte púb. coletivo passageiros de manter a porta fechada.",
+      "framing": "Art. 250, IV. do CTB",
+      "article": "250, IV",
+      "nature": "Gravíssima",
+      "fineValue": 293.47,
+      "score": 7,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "775-72",
+      "description": "Em movimento, deixar o veículo de escolares de manter a porta fechada.",
+      "framing": "Art. 250, IV. do CTB",
+      "article": "250, IV",
+      "nature": "Gravíssima",
+      "fineValue": 293.47,
+      "score": 7,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "729-30",
+      "description": "Utilizar o pisca-alerta, exceto em imobilizações ou situações de emergência.",
+      "framing": "Art. 251, I. do CTB",
+      "article": "251, I",
+      "nature": "Média",
+      "fineValue": 130.16,
+      "score": 4,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "730-70",
+      "description": "Utilizar luz alta e baixa intermitente, exceto quando permitido pelo CTB.",
+      "framing": "Art. 251, II. do CTB",
+      "article": "251, II",
+      "nature": "Média",
+      "fineValue": 130.16,
+      "score": 4,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "763-31",
+      "description": "Dirigir veículo segurando telefone celular.",
+      "framing": "Art. 252, parágrafo único. do CTB",
+      "article": "252, parágrafo único",
+      "nature": "Gravíssima",
+      "fineValue": 293.47,
+      "score": 7,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "763-32",
+      "description": "Dirigir veículo manuseando telefone celular.",
+      "framing": "Art. 252, parágrafo único. do CTB",
+      "article": "252, parágrafo único",
+      "nature": "Gravíssima",
+      "fineValue": 293.47,
+      "score": 7,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "731-50",
+      "description": "Dirigir o veículo com o braço do lado de fora.",
+      "framing": "Art. 252, I. do CTB",
+      "article": "252, I",
+      "nature": "Média",
+      "fineValue": 130.16,
+      "score": 4,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "732-31",
+      "description": "Dirigir o veículo transport pessoas à sua esquerda ou entre os braços e pernas.",
+      "framing": "Art. 252, II. do CTB",
+      "article": "252, II",
+      "nature": "Média",
+      "fineValue": 130.16,
+      "score": 4,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "732-32",
+      "description": "Dirigir o veículo transport animais à sua esquerda ou entre os braços e pernas.",
+      "framing": "Art. 252, II. do CTB",
+      "article": "252, II",
+      "nature": "Média",
+      "fineValue": 130.16,
+      "score": 4,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "732-33",
+      "description": "Dirigir o veículo transport volume à sua esquerda ou entre os braços e pernas.",
+      "framing": "Art. 252, II. do CTB",
+      "article": "252, II",
+      "nature": "Média",
+      "fineValue": 130.16,
+      "score": 4,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "733-10",
+      "description": "Dirigir o veículo com incapacidade física ou mental temporária.",
+      "framing": "Art. 252, III. do CTB",
+      "article": "252, III",
+      "nature": "Média",
+      "fineValue": 130.16,
+      "score": 4,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "734-00",
+      "description": "Dirigir o veíc usando calçado que ñ se firme nos pés/comprometa utiliz pedais.",
+      "framing": "Art. 252, IV. do CTB",
+      "article": "252, IV",
+      "nature": "Média",
+      "fineValue": 130.16,
+      "score": 4,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "735-80",
+      "description": "Dirigir o veículo com apenas uma das mãos, exceto quando permitido pelo CTB.",
+      "framing": "Art. 252, V. do CTB",
+      "article": "252, V",
+      "nature": "Média",
+      "fineValue": 130.16,
+      "score": 4,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "736-61",
+      "description": "Dirigir o veículo utilizando-se de fones nos ouvidos conec a aparelhagem sonora.",
+      "framing": "Art. 252, VI. do CTB",
+      "article": "252, VI",
+      "nature": "Média",
+      "fineValue": 130.16,
+      "score": 4,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "736-62",
+      "description": "Dirigir veículo utilizando-se de telefone celular.",
+      "framing": "Art. 252, VI. do CTB",
+      "article": "252, VI",
+      "nature": "Média",
+      "fineValue": 130.16,
+      "score": 4,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "759-50",
+      "description": "Dirigir veículo realizando cobrança de tarifa com veículo em movimento.",
+      "framing": "Art. 252, VII. do CTB",
+      "article": "252, VII",
+      "nature": "Média",
+      "fineValue": 130.16,
+      "score": 4,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "737-40",
+      "description": "Bloquear a via com veículo.",
+      "framing": "Art. 253. do CTB",
+      "article": "253",
+      "nature": "Gravíssima",
+      "fineValue": 293.47,
+      "score": 7,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "761-71",
+      "description": "Usar veículo para, deliberadamente, interromper a circulação na via.",
+      "framing": "Art. 253-A. do CTB",
+      "article": "253-A",
+      "nature": "Gravíssima",
+      "fineValue": 2934.7,
+      "score": 7,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "761-72",
+      "description": "Usar veículo para, deliberadamente, restringir a circulação na via.",
+      "framing": "Art. 253-A. do CTB",
+      "article": "253-A",
+      "nature": "Gravíssima",
+      "fineValue": 2934.7,
+      "score": 7,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "761-73",
+      "description": "Usar veículo para, deliberadamente, perturbar a circulação na via.",
+      "framing": "Art. 253-A. do CTB",
+      "article": "253-A",
+      "nature": "Gravíssima",
+      "fineValue": 2934.7,
+      "score": 7,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "760-90",
+      "description": "Organizar as condutas previstas no caput do art. 253-A.",
+      "framing": "Art. 253-A, §1º. do CTB",
+      "article": "253-A, §1º",
+      "nature": "Gravíssima",
+      "fineValue": 2934.7,
+      "score": 7,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "776-50",
+      "description": "Fugir do condutor à ação policial.",
+      "framing": "Art. 278, § único. do CTB",
+      "article": "278, § único",
+      "nature": "Gravíssima",
+      "fineValue": 293.47,
+      "score": 7,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "754-41",
+      "description": "Falta de escrituração livro registro entrada/saída e de uso placa de experiência.",
+      "framing": "Art. 330, § 5º. do CTB",
+      "article": "330, § 5º",
+      "nature": "Gravíssima",
+      "fineValue": 293.47,
+      "score": 7,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "754-42",
+      "description": "Atraso escrituração livro registro entrada/saída e de uso placa de experiência.",
+      "framing": "Art. 330, § 5º. do CTB",
+      "article": "330, § 5º",
+      "nature": "Gravíssima",
+      "fineValue": 293.47,
+      "score": 7,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "754-43",
+      "description": "Fraude escrituração livro registro entrada/saída e de uso placa de experiência.",
+      "framing": "Art. 330, § 5º. do CTB",
+      "article": "330, § 5º",
+      "nature": "Gravíssima",
+      "fineValue": 293.47,
+      "score": 7,
+      "adminMeasure": "Nenhuma"
+    },
+    {
+      "code": "754-44",
+      "description": "Recusa da exibição do livro registro entrada/saída e de uso placa de experiência.",
+      "framing": "Art. 330, § 5º. do CTB",
+      "article": "330, § 5º",
+      "nature": "Gravíssima",
+      "fineValue": 293.47,
+      "score": 7,
+      "adminMeasure": "Nenhuma"
+    }
+  ],
+  "deletedTicketKeys": [
+    "AIT202600101",
+    "AIT202600102",
+    "AIT202600103",
+    "AIT202600104",
+    "AIT202600105"
+  ]
+}
