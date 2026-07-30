@@ -54,7 +54,23 @@ git push -u origin main
 
 ---
 
-## ⚙️ Implantação na Hostinger (VPS / Node.js)
+## 🚂 Implantação Rápida e Padrão no Railway (Recomendado)
+
+O SGAIT está 100% configurado para o padrão do **Railway** com `railway.json`, detecção automática de Node.js/Nixpacks, porta dinâmica `$PORT` e build Express/Vite.
+
+### Passos no Railway:
+1. Faça o `git push` do seu projeto para o GitHub.
+2. Acesse [railway.app](https://railway.app) e clique em **New Project** → **Deploy from GitHub repo**.
+3. Selecione o repositório do **SGAIT**.
+4. Em **Variables** (Variáveis de Ambiente), adicione:
+   - `VITE_SUPABASE_URL` = `https://seu-projeto.supabase.co`
+   - `VITE_SUPABASE_ANON_KEY` = `sua-chave-anon-do-supabase`
+   - `GEMINI_API_KEY` = `sua-chave-gemini` (opcional)
+5. O Railway vai detectar o `railway.json`, executar `npm run build` e iniciar o servidor na porta dinâmica com `npm start`.
+
+---
+
+## ⚙️ Implantação Alternativa na Hostinger (VPS / Node.js)
 
 O SGAIT é uma aplicação Full-Stack (Backend Express + Frontend React com Vite).
 
