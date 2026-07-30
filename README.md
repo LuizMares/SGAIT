@@ -54,90 +54,19 @@ git push -u origin main
 
 ---
 
-## 🚂 Implantação Rápida e Padrão no Railway (Recomendado)
+## 🚂 Implantação 100% no Railway
 
-O SGAIT está 100% configurado para o padrão do **Railway** com `railway.json`, detecção automática de Node.js/Nixpacks, porta dinâmica `$PORT` e build Express/Vite.
+O SGAIT está completamente otimizado para o **Railway** com o arquivo `railway.json`, detecção automática de Node.js via Nixpacks, suporte à porta dinâmica (`$PORT`) e build integrado Express + React (Vite).
 
-### Passos no Railway:
-1. Faça o `git push` do seu projeto para o GitHub.
+### Passos de Implantação no Railway:
+1. Faça o `git push` do projeto para o seu repositório no GitHub.
 2. Acesse [railway.app](https://railway.app) e clique em **New Project** → **Deploy from GitHub repo**.
 3. Selecione o repositório do **SGAIT**.
 4. Em **Variables** (Variáveis de Ambiente), adicione:
    - `VITE_SUPABASE_URL` = `https://seu-projeto.supabase.co`
    - `VITE_SUPABASE_ANON_KEY` = `sua-chave-anon-do-supabase`
-   - `GEMINI_API_KEY` = `sua-chave-gemini` (opcional)
-5. O Railway vai detectar o `railway.json`, executar `npm run build` e iniciar o servidor na porta dinâmica com `npm start`.
-
----
-
-## ⚙️ Implantação Alternativa na Hostinger (VPS / Node.js)
-
-O SGAIT é uma aplicação Full-Stack (Backend Express + Frontend React com Vite).
-
-### Opção 1: Hostinger VPS (Recomendado com PM2)
-
-1. **Acessar a VPS via SSH:**
-   ```bash
-   ssh root@ip_da_sua_vps
-   ```
-
-2. **Instalar Node.js (v18+) e PM2:**
-   ```bash
-   curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
-   apt-get install -y nodejs
-   npm install -g pm2
-   ```
-
-3. **Clonar o Repositório do GitHub:**
-   ```bash
-   git clone https://github.com/SEU_USUARIO/SEU_REPOSITORIO.git /var/www/sgait
-   cd /var/www/sgait
-   ```
-
-4. **Configurar o Arquivo `.env`:**
-   ```bash
-   cp .env.example .env
-   nano .env
-   ```
-   Preencha com suas variáveis:
-   ```env
-   PORT=3000
-   VITE_SUPABASE_URL=https://seu-projeto.supabase.co
-   VITE_SUPABASE_ANON_KEY=sua-chave-anon-do-supabase
-   GEMINI_API_KEY=sua-chave-gemini (opcional)
-   ```
-
-5. **Instalar Dependências e Fazer o Build:**
-   ```bash
-   npm install
-   npm run build
-   ```
-
-6. **Iniciar a Aplicação com PM2:**
-   ```bash
-   pm2 start npm --name "sgait-app" -- start
-   pm2 save
-   pm2 startup
-   ```
-
-7. **Configurar o Nginx como Reverse Proxy:**
-   Edite o arquivo do Nginx `/etc/nginx/sites-available/default`:
-   ```nginx
-   server {
-       listen 80;
-       server_name seu-dominio.com.br;
-
-       location / {
-           proxy_pass http://localhost:3000;
-           proxy_http_version 1.1;
-           proxy_set_header Upgrade $http_upgrade;
-           proxy_set_header Connection 'upgrade';
-           proxy_set_header Host $host;
-           proxy_cache_bypass $http_upgrade;
-       }
-   }
-   ```
-   Reinicie o Nginx: `systemctl restart nginx`
+   - `GEMINI_API_KEY` = `sua-chave-gemini` *(opcional)*
+5. O Railway lerá o `railway.json`, executará `npm run build` e subirá a aplicação em segundos com `npm start`.
 
 ---
 
