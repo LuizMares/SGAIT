@@ -444,7 +444,53 @@ export const dbService = {
    * Otherwise, provides a fallback simulation.
    */
   async signInWithGoogle(simulatedEmail?: string): Promise<{ user: UserProfile | null; error: string | null }> {
-    const emailToUse = (simulatedEmail || 'luizemerson17@gmail.com').trim().toLowerCase();
+    // 1. If real Supabase OAuth is available and no explicit email was passed, trigger Google OAuth with prompt: 'select_account'
+    if (!simulatedEmail && isSupabaseActive()) {
+      try {
+        const cleanRedirectUrl = typeof window !== 'undefined' 
+          ? window.location.href.split('?')[0].split('#')[0] 
+          : undefined;
+
+        const { data, error } = await supabaseClient.auth.signInWithOAuth({
+          provider: 'google',
+          options: {
+            redirectTo: cleanRedirectUrl,
+            queryParams: {
+              prompt: 'select_account'
+            }
+          }
+        });
+
+        if (!error && data?.url) {
+          if (typeof window !== 'undefined') {
+            window.location.href = data.url;
+            return { user: null, error: null };
+          }
+        }
+        if (error) {
+          console.warn('Supabase Google OAuth error:', error);
+        }
+      } catch (err: any) {
+        console.warn('Supabase Google OAuth exception:', err);
+      }
+    }
+
+    // 2. Fallback simulation mode: determine email to use
+    let targetEmail = (simulatedEmail || '').trim().toLowerCase();
+
+    if (!targetEmail && typeof window !== 'undefined') {
+      const userSelectedEmail = window.prompt(
+        'Selecione ou digite o e-mail da sua conta Google para entrar:',
+        'luizemerson17@gmail.com'
+      );
+      if (userSelectedEmail === null) {
+        // User pressed cancel in prompt
+        return { user: null, error: null };
+      }
+      targetEmail = userSelectedEmail.trim().toLowerCase();
+    }
+
+    const emailToUse = targetEmail || 'luizemerson17@gmail.com';
     const role = await determineUserRole(emailToUse);
 
     const authorizedEmails: AuthorizedEmail[] = JSON.parse(safeStorage.getItem(STORAGE_KEYS.AUTHORIZED) || '[]');
