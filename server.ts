@@ -24,7 +24,7 @@ interface ServerStore {
 let rawUrl = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL || '';
 let rawKey = process.env.VITE_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY || '';
 
-const DEFAULT_SUPABASE_URL = 'https://rsxxddutkfctmyrsutsr.supabase.co';
+const DEFAULT_SUPABASE_URL = 'https://yanvopffwhhfadlxcbkg.supabase.co';
 const DEFAULT_SUPABASE_ANON_KEY = 'sb_publishable_4_fnl9gzrpte3y5cfuywla_kygmnkdp';
 
 let supabase: any = null;
@@ -34,7 +34,7 @@ function initSupabaseClient(url?: string, key?: string) {
   let targetUrl = url || (store && store.supabaseUrl) || rawUrl;
   let targetKey = key || (store && store.supabaseKey) || rawKey;
 
-  if (!targetUrl || !targetUrl.includes('.') || targetUrl.startsWith('sb_publishable_') || targetUrl.startsWith('eyJ')) {
+  if (!targetUrl || !targetUrl.includes('.') || targetUrl.includes('your-supabase-project')) {
     targetUrl = DEFAULT_SUPABASE_URL;
   } else if (!targetUrl.startsWith('http://') && !targetUrl.startsWith('https://')) {
     targetUrl = 'https://' + targetUrl.trim();
@@ -44,7 +44,6 @@ function initSupabaseClient(url?: string, key?: string) {
     targetKey = DEFAULT_SUPABASE_ANON_KEY;
   }
 
-  // If defaulting to DEFAULT_SUPABASE_URL and key wasn't explicitly provided in store, pair with DEFAULT_SUPABASE_ANON_KEY
   if (targetUrl === DEFAULT_SUPABASE_URL && (!store || !store.supabaseKey)) {
     targetKey = DEFAULT_SUPABASE_ANON_KEY;
   }
@@ -341,7 +340,22 @@ async function pushTicketToSupabase(ticket: any) {
       detection_type: ticket.detectionType || 'In Loco'
     };
 
-    let { data, error } = await supabase.from('sgait_autos').upsert(payload, { onConflict: 'ait_number' });
+    let res: any;
+    try {
+      res = await supabase.from('sgait_autos').upsert(payload, { onConflict: 'ait_number' });
+    } catch (upsertErr: any) {
+      const msg = String(upsertErr?.message || upsertErr);
+      if (msg.includes('fetch failed') || msg.includes('ENOTFOUND') || msg.includes('ECONNREFUSED')) {
+        return { success: false, error: 'Supabase offline/indisponível' };
+      }
+      res = { error: { message: msg } };
+    }
+
+    let { data, error } = res || {};
+
+    if (error && String(error.message || error).includes('fetch failed')) {
+      return { success: false, error: 'Supabase offline/indisponível' };
+    }
 
     if (error && (error.code === '42P01' || (error.message && error.message.toLowerCase().includes('does not exist')))) {
       console.warn('Server: Tabela sgait_autos ainda não foi criada no Supabase.');
@@ -353,39 +367,53 @@ async function pushTicketToSupabase(ticket: any) {
       delete payload.additional_infractions;
       delete payload.infractions;
       delete payload.detection_type;
-      const retryCol = await supabase.from('sgait_autos').upsert(payload, { onConflict: 'ait_number' });
-      error = retryCol.error;
-      data = retryCol.data;
+      try {
+        const retryCol = await supabase.from('sgait_autos').upsert(payload, { onConflict: 'ait_number' });
+        error = retryCol.error;
+        data = retryCol.data;
+      } catch (colErr: any) {
+        error = { message: String(colErr?.message || colErr) };
+      }
     }
 
     // Retry 2: If foreign key constraint is violated
     if (error && (error.code === '23503' || (error.message && error.message.toLowerCase().includes('foreign key')))) {
       payload.infraction_code = null;
-      const retryFk = await supabase.from('sgait_autos').upsert(payload, { onConflict: 'ait_number' });
-      error = retryFk.error;
-      data = retryFk.data;
+      try {
+        const retryFk = await supabase.from('sgait_autos').upsert(payload, { onConflict: 'ait_number' });
+        error = retryFk.error;
+        data = retryFk.data;
+      } catch (fkRetryErr: any) {
+        error = { message: String(fkRetryErr?.message || fkRetryErr) };
+      }
     }
 
     // Retry 3: If ON CONFLICT constraint matching ait_number is missing
     if (error && (error.code === '42P10' || (error.message && error.message.toLowerCase().includes('conflict')))) {
-      const { data: existingRow } = await supabase
-        .from('sgait_autos')
-        .select('id')
-        .eq('ait_number', payload.ait_number)
-        .maybeSingle();
+      try {
+        const { data: existingRow } = await supabase
+          .from('sgait_autos')
+          .select('id')
+          .eq('ait_number', payload.ait_number)
+          .maybeSingle();
 
-      if (existingRow && existingRow.id) {
-        const updateRes = await supabase.from('sgait_autos').update(payload).eq('ait_number', payload.ait_number);
-        error = updateRes.error;
-      } else {
-        const insertRes = await supabase.from('sgait_autos').insert(payload);
-        error = insertRes.error;
+        if (existingRow && existingRow.id) {
+          const updateRes = await supabase.from('sgait_autos').update(payload).eq('ait_number', payload.ait_number);
+          error = updateRes.error;
+        } else {
+          const insertRes = await supabase.from('sgait_autos').insert(payload);
+          error = insertRes.error;
+        }
+      } catch (conflictErr: any) {
+        error = { message: String(conflictErr?.message || conflictErr) };
       }
     }
 
     if (error) {
-      console.warn('Server: Supabase upsert error for AIT', ticket.aitNumber, ':', error.message);
-      return { success: false, error: error.message };
+      if (!String(error.message || error).includes('fetch failed')) {
+        console.warn('Server: Supabase upsert error for AIT', ticket.aitNumber, ':', error.message || error);
+      }
+      return { success: false, error: error.message || String(error) };
     }
 
     return { success: true, data };

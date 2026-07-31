@@ -69,7 +69,7 @@ const sanitizeUrl = (urlStr: any): string => {
   return '';
 };
 
-const DEFAULT_SUPABASE_URL = 'https://rsxxddutkfctmyrsutsr.supabase.co';
+const DEFAULT_SUPABASE_URL = 'https://yanvopffwhhfadlxcbkg.supabase.co';
 const DEFAULT_SUPABASE_ANON_KEY = 'sb_publishable_4_fnl9gzrpte3y5cfuywla_kygmnkdp';
 
 // Read environmental variables with local storage dynamic configuration fallback
@@ -119,7 +119,8 @@ export function markSupabaseKeyInvalid(err?: any) {
 export const isSupabaseConfigured = () => Boolean(
   supabaseUrl && 
   supabaseAnonKey && 
-  supabaseUrl.includes('.')
+  supabaseUrl.includes('.') &&
+  !supabaseUrl.includes('your-supabase-project')
 );
 
 export const isSupabaseActive = () => isSupabaseConfigured() && supabaseClient !== null;

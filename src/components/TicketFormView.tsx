@@ -21,10 +21,12 @@ import {
   Eye,
   Loader2,
   Layers,
-  Plus
+  Plus,
+  Save,
+  RotateCcw
 } from 'lucide-react';
 import { TrafficTicket, InfractionType, UserProfile } from '../types';
-import { dbService } from '../lib/supabase';
+import { dbService, safeStorage } from '../lib/supabase';
 
 interface TicketFormViewProps {
   user: UserProfile;
@@ -86,16 +88,18 @@ export default function TicketFormView({ user, infractions, onSuccessSubmit }: T
     );
   }, [searchQuery, infractions]);
 
-  // Generate unique sequential-looking AIT Number on mount
-  useEffect(() => {
-    const generateAitNumber = () => {
-      const year = new Date().getFullYear();
-      const random = Math.floor(100000 + Math.random() * 900000); // 6 random digits
-      return `AIT${year}${random}`;
-    };
-    setAitNumber(generateAitNumber());
+  // Draft persistence states
+  const [isDraftRestored, setIsDraftRestored] = useState(false);
+  const [draftSavedAt, setDraftSavedAt] = useState<string | null>(null);
 
-    // Prefill date and time with current local values
+  const draftKey = useMemo(() => `sgait_ait_draft_${user?.id || 'default'}`, [user?.id]);
+
+  // Function to initialize clean default form values
+  const initFreshForm = () => {
+    const year = new Date().getFullYear();
+    const random = Math.floor(100000 + Math.random() * 900000);
+    setAitNumber(`AIT${year}${random}`);
+
     const now = new Date();
     const localYear = now.getFullYear();
     const localMonth = String(now.getMonth() + 1).padStart(2, '0');
@@ -103,10 +107,114 @@ export default function TicketFormView({ user, infractions, onSuccessSubmit }: T
     const localDate = `${localYear}-${localMonth}-${localDay}`;
     const hours = String(now.getHours()).padStart(2, '0');
     const minutes = String(now.getMinutes()).padStart(2, '0');
-    
+
+    setDetectionType('In Loco');
     setInfractionDate(localDate);
     setInfractionTime(`${hours}:${minutes}`);
-  }, []);
+    setLocation('');
+    setPlate('');
+    setVehicleType('Automóvel');
+    setSelectedInfractions([]);
+    setObservations('');
+    setPhotoUrls([]);
+    setIsDraftRestored(false);
+    setDraftSavedAt(null);
+  };
+
+  // Check for saved draft on mount & restore automatically if present
+  useEffect(() => {
+    const savedDraft = safeStorage.getItem(draftKey);
+    if (savedDraft) {
+      try {
+        const parsed = JSON.parse(savedDraft);
+        if (parsed && typeof parsed === 'object') {
+          let hasMeaningfulContent = false;
+          if (parsed.aitNumber) setAitNumber(parsed.aitNumber);
+          if (parsed.detectionType) setDetectionType(parsed.detectionType);
+          if (parsed.infractionDate) setInfractionDate(parsed.infractionDate);
+          if (parsed.infractionTime) setInfractionTime(parsed.infractionTime);
+          if (parsed.location !== undefined) setLocation(parsed.location);
+          if (parsed.plate !== undefined) setPlate(parsed.plate);
+          if (parsed.vehicleType) setVehicleType(parsed.vehicleType);
+          if (Array.isArray(parsed.selectedInfractions)) setSelectedInfractions(parsed.selectedInfractions);
+          if (parsed.observations !== undefined) setObservations(parsed.observations);
+          if (Array.isArray(parsed.photoUrls)) setPhotoUrls(parsed.photoUrls);
+
+          if (parsed.updatedAt) {
+            const dateObj = new Date(parsed.updatedAt);
+            if (!isNaN(dateObj.getTime())) {
+              setDraftSavedAt(dateObj.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }));
+            }
+          }
+
+          if (parsed.plate || parsed.location || (parsed.selectedInfractions && parsed.selectedInfractions.length > 0) || parsed.observations || (parsed.photoUrls && parsed.photoUrls.length > 0)) {
+            hasMeaningfulContent = true;
+          }
+
+          if (hasMeaningfulContent) {
+            setIsDraftRestored(true);
+            return;
+          }
+        }
+      } catch (e) {
+        console.warn('Erro ao restaurar rascunho de Auto de Infração:', e);
+      }
+    }
+
+    // Default initialization when no draft is present
+    initFreshForm();
+  }, [draftKey]);
+
+  // Auto-save draft whenever form state changes
+  useEffect(() => {
+    const hasContent = 
+      plate.trim().length > 0 || 
+      location.trim().length > 0 || 
+      selectedInfractions.length > 0 || 
+      observations.trim().length > 0 || 
+      photoUrls.length > 0;
+
+    if (hasContent && aitNumber) {
+      const draftData = {
+        aitNumber,
+        detectionType,
+        infractionDate,
+        infractionTime,
+        location,
+        plate,
+        vehicleType,
+        selectedInfractions,
+        observations,
+        photoUrls,
+        updatedAt: new Date().toISOString()
+      };
+      safeStorage.setItem(draftKey, JSON.stringify(draftData));
+      const nowTime = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+      setDraftSavedAt(nowTime);
+    }
+  }, [
+    aitNumber,
+    detectionType,
+    infractionDate,
+    infractionTime,
+    location,
+    plate,
+    vehicleType,
+    selectedInfractions,
+    observations,
+    photoUrls,
+    draftKey
+  ]);
+
+  // Handler to discard current draft and reset form
+  const handleDiscardDraft = () => {
+    if (window.confirm('Deseja realmente descartar o rascunho salvo e limpar todos os campos do formulário?')) {
+      safeStorage.removeItem(draftKey);
+      initFreshForm();
+      setSuccessMsg('Rascunho descartado com sucesso. Novo Auto de Infração em branco iniciado.');
+      setTimeout(() => setSuccessMsg(null), 3500);
+    }
+  };
 
   // Multi-infraction handlers
   const handleAddInfraction = (inf: InfractionType) => {
@@ -305,17 +413,13 @@ export default function TicketFormView({ user, infractions, onSuccessSubmit }: T
         throw new Error(error);
       }
 
+      // Clear persistent draft on successful submission
+      safeStorage.removeItem(draftKey);
+
       setSuccessMsg(`Auto de Infração ${aitNumber} registrado com sucesso com ${selectedInfractions.length} infração(ões)!`);
       
-      // Reset form variables
-      const year = new Date().getFullYear();
-      const random = Math.floor(100000 + Math.random() * 900000);
-      setAitNumber(`AIT${year}${random}`);
-      setLocation('');
-      setPlate('');
-      setObservations('');
-      setPhotoUrls([]);
-      setSelectedInfractions([]);
+      // Reset form variables to fresh state
+      initFreshForm();
       setSearchQuery('');
 
       // Auto scroll to top
@@ -340,6 +444,31 @@ export default function TicketFormView({ user, infractions, onSuccessSubmit }: T
         <h1 className="text-2xl font-bold text-slate-800 tracking-tight">Lavratura de Auto de Infração (AIT)</h1>
         <p className="text-sm text-slate-500">Insira as informações registradas em campo pelo Agente Autuador para lavrar o auto de infração.</p>
       </div>
+
+      {/* Banner de Rascunho Restaurado */}
+      {isDraftRestored && (
+        <div className="bg-amber-50 text-amber-950 border-2 border-amber-300/80 p-4 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs animate-fade-in">
+          <div className="flex items-start gap-3">
+            <div className="p-2 bg-amber-500/20 text-amber-800 rounded-xl shrink-0 mt-0.5">
+              <Save size={18} />
+            </div>
+            <div>
+              <h4 className="font-bold text-xs uppercase tracking-wider text-amber-900">Rascunho do Auto de Infração Recuperado</h4>
+              <p className="text-xs text-amber-800 mt-0.5">
+                Os dados preenchidos anteriormente foram recuperados automaticamente para você continuar a lavratura sem perder informações.
+              </p>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={handleDiscardDraft}
+            className="inline-flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-bold text-rose-700 bg-rose-100 hover:bg-rose-200/90 rounded-xl transition-colors border border-rose-200 shrink-0 cursor-pointer"
+          >
+            <Trash2 size={14} />
+            Descartar Rascunho
+          </button>
+        </div>
+      )}
 
       {/* Banner de status */}
       {successMsg && (
@@ -367,11 +496,18 @@ export default function TicketFormView({ user, infractions, onSuccessSubmit }: T
         
         {/* SECTION 1: HEADER & AUTO-FILLS */}
         <div className="space-y-4">
-          <div className="flex items-center justify-between border-b border-slate-100 pb-2">
+          <div className="flex flex-wrap items-center justify-between border-b border-slate-100 pb-2 gap-2">
             <h3 className="text-sm font-semibold text-slate-800">1. Identificação Geral do Auto</h3>
-            <span className="text-xs font-mono font-bold text-slate-500 bg-slate-100 px-2.5 py-1 rounded-md">
-              AIT: <strong className="text-amber-600">{aitNumber}</strong>
-            </span>
+            <div className="flex items-center gap-2">
+              {draftSavedAt && (
+                <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200/80 px-2.5 py-0.5 rounded-full">
+                  <Save size={12} /> Salvo {draftSavedAt}
+                </span>
+              )}
+              <span className="text-xs font-mono font-bold text-slate-500 bg-slate-100 px-2.5 py-1 rounded-md">
+                AIT: <strong className="text-amber-600">{aitNumber}</strong>
+              </span>
+            </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -803,18 +939,21 @@ export default function TicketFormView({ user, infractions, onSuccessSubmit }: T
         {/* Form Actions - Desktop standard & Mobile Sticky Bottom Bar */}
         <div className="pt-6 border-t-2 border-slate-100">
           <div className="hidden md:flex items-center justify-end gap-3">
+            {(draftSavedAt || isDraftRestored) && (
+              <button 
+                type="button"
+                onClick={handleDiscardDraft}
+                className="px-4 py-3 rounded-xl border border-rose-200 text-rose-700 bg-rose-50 hover:bg-rose-100 text-xs uppercase font-bold transition-colors cursor-pointer flex items-center gap-1.5 mr-auto"
+              >
+                <Trash2 size={14} />
+                Limpar Rascunho
+              </button>
+            )}
+
             <button 
               id="btn-cancel-ticket"
               type="button"
-              onClick={() => {
-                setLocation('');
-                setPlate('');
-                setObservations('');
-                setPhotoUrls([]);
-                setSelectedInfractions([]);
-                setSearchQuery('');
-                onSuccessSubmit();
-              }}
+              onClick={() => onSuccessSubmit()}
               className="px-5 py-3 rounded-xl border-2 border-slate-200 text-slate-600 text-xs uppercase tracking-wider hover:bg-slate-50 font-bold transition-colors cursor-pointer"
             >
               Voltar para Consulta
@@ -841,12 +980,23 @@ export default function TicketFormView({ user, infractions, onSuccessSubmit }: T
           </div>
 
           {/* MOBILE STICKY BOTTOM ACTION BAR */}
-          <div className="md:hidden fixed bottom-14 left-0 right-0 p-3 bg-slate-950/95 border-t border-slate-800 backdrop-blur-md z-30 flex items-center justify-between gap-3 shadow-2xl">
+          <div className="md:hidden fixed bottom-14 left-0 right-0 p-3 bg-slate-950/95 border-t border-slate-800 backdrop-blur-md z-30 flex items-center justify-between gap-2 shadow-2xl">
+            {(draftSavedAt || isDraftRestored) && (
+              <button 
+                type="button"
+                onClick={handleDiscardDraft}
+                className="p-3 rounded-xl bg-rose-950/80 border border-rose-800/80 text-rose-300 text-xs font-bold cursor-pointer shrink-0"
+                title="Descartar Rascunho"
+              >
+                <Trash2 size={16} />
+              </button>
+            )}
+
             <button 
               id="btn-cancel-ticket-mob"
               type="button"
               onClick={() => onSuccessSubmit()}
-              className="px-4 py-3 rounded-xl bg-slate-900 border border-slate-800 text-slate-300 text-xs uppercase font-extrabold cursor-pointer"
+              className="px-3 py-3 rounded-xl bg-slate-900 border border-slate-800 text-slate-300 text-xs uppercase font-extrabold cursor-pointer"
             >
               Voltar
             </button>
@@ -865,7 +1015,7 @@ export default function TicketFormView({ user, infractions, onSuccessSubmit }: T
               ) : (
                 <>
                   <FilePlus size={16} className="stroke-[2.5]" />
-                  Lavrar Auto de Infração ({selectedInfractions.length})
+                  Lavrar Auto ({selectedInfractions.length})
                 </>
               )}
             </button>
