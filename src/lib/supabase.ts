@@ -56,6 +56,9 @@ export function safeJsonParse<T>(raw: string | null | undefined, fallback: T): T
   }
 }
 
+const DEFAULT_SUPABASE_URL = 'https://yanvopffwhhfadlxcbkg.supabase.co';
+const DEFAULT_SUPABASE_ANON_KEY = 'sb_publishable_4_fnl9gzrpte3y5cfuywla_kygmnkdp';
+
 const sanitizeUrl = (urlStr: any): string => {
   if (!urlStr || typeof urlStr !== 'string') return '';
   let trimmed = urlStr.trim();
@@ -63,9 +66,6 @@ const sanitizeUrl = (urlStr: any): string => {
     trimmed === '' || 
     trimmed === 'undefined' || 
     trimmed === 'null' || 
-    trimmed.startsWith('sb_publishable_') ||
-    trimmed.startsWith('eyJ') ||
-    !trimmed.includes('.') ||
     trimmed === 'your-supabase-project.supabase.co' || 
     trimmed === 'https://your-supabase-project.supabase.co'
   ) {
@@ -84,9 +84,6 @@ const sanitizeUrl = (urlStr: any): string => {
   }
   return '';
 };
-
-const DEFAULT_SUPABASE_URL = 'https://yanvopffwhhfadlxcbkg.supabase.co';
-const DEFAULT_SUPABASE_ANON_KEY = 'sb_publishable_4_fnl9gzrpte3y5cfuywla_kygmnkdp';
 
 // Read environmental variables with local storage dynamic configuration fallback
 const getSupabaseConfig = () => {
