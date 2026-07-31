@@ -114,21 +114,30 @@ export default function App() {
     if (isSupabaseConfigured() && supabaseClient) {
       const { data } = supabaseClient.auth.onAuthStateChange(async (event, session) => {
         if (session?.user) {
-          console.log('Supabase Auth Event:', event);
+          console.log('Supabase Auth Event:', event, session.user.email);
         }
-        if (event === 'SIGNED_IN' && session?.user) {
+        if (session?.user && (event === 'SIGNED_IN' || event === 'INITIAL_SESSION' || event === 'TOKEN_REFRESHED' || event === 'USER_UPDATED')) {
           setLoadingApp(true);
           try {
-            const userProfile = await dbService.getCurrentUser();
+            const userProfile = await dbService.getCurrentUser(session.user);
             if (userProfile) {
               setCurrentUser(userProfile);
-              await loadData();
+              await loadData(userProfile);
+              
+              // Limpa os parâmetros de token da barra de endereço após login com sucesso
+              if (typeof window !== 'undefined' && (window.location.hash.includes('access_token') || window.location.search.includes('code='))) {
+                window.history.replaceState(null, '', window.location.pathname);
+              }
             }
           } catch (e) {
             console.error('Erro ao processar login por onAuthStateChange:', e);
           } finally {
             setLoadingApp(false);
           }
+        } else if (event === 'SIGNED_OUT') {
+          setCurrentUser(null);
+          safeStorage.removeItem(STORAGE_KEYS.CURRENT_USER);
+          setLoadingApp(false);
         }
       });
       authSubscription = data.subscription;

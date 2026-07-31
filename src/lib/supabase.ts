@@ -644,11 +644,20 @@ export const dbService = {
     }
   },
 
-  async getCurrentUser(): Promise<UserProfile | null> {
+  async getCurrentUser(passedUser?: any): Promise<UserProfile | null> {
     try {
       if (isSupabaseConfigured() && supabaseClient) {
         try {
-          const { data: { user } } = await supabaseClient.auth.getUser();
+          let user = passedUser;
+          if (!user) {
+            const { data: { session } } = await supabaseClient.auth.getSession();
+            user = session?.user;
+          }
+          if (!user) {
+            const { data: { user: fetchedUser } } = await supabaseClient.auth.getUser();
+            user = fetchedUser;
+          }
+
           if (!user) {
             // Clean hash error if returning from failed OAuth redirect
             if (typeof window !== 'undefined' && (window.location.hash.includes('error=') || window.location.search.includes('error='))) {
@@ -659,6 +668,9 @@ export const dbService = {
           }
 
           const cleanEmail = (user.email || '').trim().toLowerCase();
+          if (!cleanEmail) {
+            return safeJsonParse<UserProfile | null>(safeStorage.getItem(STORAGE_KEYS.CURRENT_USER), null);
+          }
 
           // Check if user has an authorized profile in Supabase
           let authorizedUser = null;
@@ -667,7 +679,7 @@ export const dbService = {
               .from('sgait_authorized_emails')
               .select('*')
               .eq('email', cleanEmail)
-              .single();
+              .maybeSingle();
             
             if (!authError && data) {
               authorizedUser = data;
@@ -681,13 +693,17 @@ export const dbService = {
                 };
               } else {
                 // Any other user is automatically classified as Agente
-                authorizedUser = { email: cleanEmail, name: user.user_metadata?.full_name || cleanEmail.split('@')[0], role: UserRole.AGENTE };
+                authorizedUser = { 
+                  email: cleanEmail, 
+                  name: user.user_metadata?.full_name || user.user_metadata?.name || cleanEmail.split('@')[0], 
+                  role: UserRole.AGENTE 
+                };
               }
             }
           } catch (e) {
             console.warn('Failed to query sgait_authorized_emails:', e);
             const role = await determineUserRole(cleanEmail);
-            authorizedUser = { email: cleanEmail, name: user.user_metadata?.full_name || cleanEmail.split('@')[0], role };
+            authorizedUser = { email: cleanEmail, name: user.user_metadata?.full_name || user.user_metadata?.name || cleanEmail.split('@')[0], role };
           }
 
           // Fetch or create profile
@@ -696,29 +712,29 @@ export const dbService = {
             const { data, error: profileError } = await supabaseClient
               .from('sgait_profiles')
               .select('*')
-              .eq('email', user.email)
-              .single();
+              .eq('email', cleanEmail)
+              .maybeSingle();
             profile = data;
           } catch (e) {
             console.warn('Failed to query sgait_profiles:', e);
           }
 
-          const userRole = (authorizedUser?.role) || await determineUserRole(user.email!);
+          const userRole = (authorizedUser?.role) || await determineUserRole(cleanEmail);
 
           const profileData: UserProfile = profile ? {
-            id: profile.id,
-            email: profile.email,
-            name: profile.name,
-            avatarUrl: profile.avatar_url,
-            role: profile.role,
-            googleId: profile.google_id,
-            firstAccessAt: profile.created_at,
+            id: profile.id || user.id,
+            email: profile.email || cleanEmail,
+            name: profile.name || user.user_metadata?.full_name || user.user_metadata?.name || cleanEmail.split('@')[0],
+            avatarUrl: profile.avatar_url || user.user_metadata?.avatar_url || `https://api.dicebear.com/7.x/adventurer/svg?seed=${encodeURIComponent(cleanEmail)}`,
+            role: profile.role || userRole,
+            googleId: profile.google_id || user.id,
+            firstAccessAt: profile.created_at || new Date().toISOString(),
             lastLoginAt: new Date().toISOString()
           } : {
             id: user.id,
-            email: user.email!,
-            name: user.user_metadata?.full_name || user.email!.split('@')[0],
-            avatarUrl: user.user_metadata?.avatar_url || `https://api.dicebear.com/7.x/adventurer/svg?seed=${encodeURIComponent(user.email!)}`,
+            email: cleanEmail,
+            name: user.user_metadata?.full_name || user.user_metadata?.name || cleanEmail.split('@')[0],
+            avatarUrl: user.user_metadata?.avatar_url || `https://api.dicebear.com/7.x/adventurer/svg?seed=${encodeURIComponent(cleanEmail)}`,
             role: userRole,
             googleId: user.id,
             firstAccessAt: new Date().toISOString(),
@@ -742,7 +758,9 @@ export const dbService = {
               });
             } else {
               await supabaseClient.from('sgait_profiles').update({
-                last_login_at: profileData.lastLoginAt
+                last_login_at: profileData.lastLoginAt,
+                name: profileData.name,
+                role: profileData.role
               }).eq('id', profile.id);
             }
           } catch (e) {
