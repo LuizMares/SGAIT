@@ -96,11 +96,6 @@ export default function App() {
     let isMounted = true;
 
     const initApp = async () => {
-      // If returning from Google OAuth redirect (URL contains token or code),
-      // wait for onAuthStateChange to process the session so we don't prematurely render LoginView
-      const isOAuthRedirect = typeof window !== 'undefined' && 
-        (window.location.hash.includes('access_token') || window.location.search.includes('code='));
-
       try {
         const user = await dbService.getCurrentUser();
         if (isMounted && user) {
@@ -110,13 +105,25 @@ export default function App() {
       } catch (err) {
         console.error('Falha ao inicializar sessões do SGAIT:', err);
       } finally {
-        if (isMounted && !isOAuthRedirect) {
+        if (isMounted) {
           setLoadingApp(false);
         }
       }
     };
 
     initApp();
+
+    // Safety timeout: Ensure app never stays stuck on loading screen if OAuth redirect hash is present
+    const isOAuthRedirect = typeof window !== 'undefined' && 
+      (window.location.hash.includes('access_token') || window.location.search.includes('code='));
+
+    if (isOAuthRedirect) {
+      setTimeout(() => {
+        if (isMounted) {
+          setLoadingApp(false);
+        }
+      }, 2000);
+    }
 
     // Listener de mudanças de estado de autenticação (Crucial para capturar o retorno do Google OAuth)
     let authSubscription: { unsubscribe: () => void } | null = null;
@@ -152,7 +159,13 @@ export default function App() {
             setLoadingApp(false);
           }
         } else if (event === 'INITIAL_SESSION' && !session) {
-          if (isMounted) setLoadingApp(false);
+          if (isMounted) {
+            // Clean URL hash if returning from a failed/expired OAuth redirect to prevent loop
+            if (typeof window !== 'undefined' && (window.location.hash.includes('access_token') || window.location.search.includes('code=') || window.location.hash.includes('error='))) {
+              window.history.replaceState(null, '', window.location.pathname);
+            }
+            setLoadingApp(false);
+          }
         }
       });
       authSubscription = data.subscription;

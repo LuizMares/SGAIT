@@ -43,6 +43,23 @@ export default function LoginView({ onLoginSuccess }: LoginViewProps) {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
+  // Check URL on mount for OAuth errors or messages
+  React.useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const fullUrl = window.location.href;
+      if (fullUrl.includes('error=')) {
+        try {
+          const urlObj = new URL(fullUrl.replace('#', '?'));
+          const errDesc = urlObj.searchParams.get('error_description') || urlObj.searchParams.get('error') || 'Ocorreu uma falha na autenticação via Google OAuth.';
+          setErrorMessage(`Aviso de Autenticação: ${decodeURIComponent(errDesc)}.`);
+          window.history.replaceState(null, '', window.location.pathname);
+        } catch (e) {
+          setErrorMessage('Falha na autenticação via Google OAuth.');
+        }
+      }
+    }
+  }, []);
+
   // Handle Google OAuth Redirect via Supabase
   const handleGoogleOAuthLogin = async () => {
     setIsLoading(true);
@@ -73,38 +90,37 @@ export default function LoginView({ onLoginSuccess }: LoginViewProps) {
   return (
     <div 
       id="login-page"
-      className="min-h-screen w-full flex items-center justify-center bg-slate-100 p-4 md:p-8"
+      className="min-h-screen w-full flex items-center justify-center bg-slate-900 p-4 md:p-8"
       style={{
-        backgroundImage: 'radial-gradient(circle at 10% 20%, rgba(30, 41, 59, 0.03) 0%, rgba(30, 41, 59, 0.03) 90%, transparent 90%)',
+        backgroundImage: 'radial-gradient(circle at 10% 20%, rgba(245, 158, 11, 0.05) 0%, rgba(15, 23, 42, 0.8) 90%, transparent 90%)',
         backgroundSize: '20px 20px'
       }}
     >
-      <div className="max-w-md w-full bg-white rounded-3xl border border-slate-200/80 shadow-xl overflow-hidden flex flex-col justify-between relative min-h-[460px]">
+      <div className="max-w-md w-full bg-white rounded-3xl border border-slate-200/80 shadow-2xl overflow-hidden flex flex-col justify-between relative">
         
-        {/* Institutional Navy Header Banner with Traffic Yellow Accent */}
-        <div className="bg-slate-950 text-slate-100 px-6 py-10 text-center relative shrink-0 border-b-4 border-amber-500">
-          <div className="absolute top-4 left-4 flex items-center gap-1.5 opacity-75 text-xxs font-mono tracking-wider text-amber-400 font-bold">
-            <span>SISTEMA OFICIAL</span>
+        {/* Institutional Header Banner with Traffic Yellow Accent */}
+        <div className="bg-slate-950 text-slate-100 px-6 py-8 text-center relative shrink-0 border-b-4 border-amber-500">
+          <div className="absolute top-3 left-4 flex items-center gap-1.5 opacity-80 text-xxs font-mono tracking-wider text-amber-400 font-bold">
+            <span>AUTENTICAÇÃO SEGURO SGAIT</span>
             <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
-            <span>SGAIT v2.0</span>
           </div>
 
           <motion.div 
             initial={{ scale: 0.9, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             transition={{ duration: 0.3 }}
-            className="w-14 h-14 bg-amber-500 rounded-2xl mx-auto flex items-center justify-center border-2 border-slate-900 shadow-md text-slate-950 font-black text-xl tracking-tighter mb-3"
+            className="w-12 h-12 bg-amber-500 rounded-2xl mx-auto flex items-center justify-center border-2 border-slate-900 shadow-md text-slate-950 font-black text-xl tracking-tighter mb-2"
           >
             SGAIT
           </motion.div>
           <h2 className="text-xl font-black tracking-tight text-slate-50">SGAIT</h2>
-          <p className="text-[10px] text-amber-400 font-mono tracking-widest uppercase mt-1 font-bold">Sistema de Gestão de Autos de Infração</p>
+          <p className="text-[10px] text-amber-400 font-mono tracking-widest uppercase mt-0.5 font-bold">Sistema de Gestão de Autos de Infração</p>
           <p className="text-[9px] text-slate-400 font-sans tracking-wide uppercase mt-0.5">Superintendência de Trânsito e Transporte Pojuca - BA</p>
         </div>
 
         {/* Form Body Container */}
         <div className="p-6 space-y-5 flex-1 text-slate-700 flex flex-col justify-between bg-slate-50/50">
-          
+
           {/* Header Subtitle */}
           <div className="text-center space-y-1">
             <h3 className="font-extrabold text-xs text-slate-800 uppercase tracking-wider">Acesso Único Google Auth</h3>
@@ -118,7 +134,7 @@ export default function LoginView({ onLoginSuccess }: LoginViewProps) {
             <div className="bg-rose-50 text-rose-800 border border-rose-200 p-4 rounded-2xl text-xs flex items-start gap-3 animate-fade-in shadow-xs">
               <AlertOctagon className="text-rose-500 shrink-0 mt-0.5" size={18} />
               <div>
-                <h4 className="font-bold">Falha no Acesso</h4>
+                <h4 className="font-bold">Aviso de Autenticação</h4>
                 <p className="text-xxs mt-0.5 leading-normal">{errorMessage}</p>
               </div>
             </div>
@@ -135,7 +151,7 @@ export default function LoginView({ onLoginSuccess }: LoginViewProps) {
           )}
 
           {/* GOOGLE AUTH BUTTON */}
-          <div className="py-2">
+          <div className="py-2 space-y-3">
             <button
               type="button"
               onClick={handleGoogleOAuthLogin}
@@ -158,16 +174,16 @@ export default function LoginView({ onLoginSuccess }: LoginViewProps) {
           <div className="flex items-center justify-center gap-1.5 text-xxs font-mono text-slate-400 pt-2 border-t border-slate-100">
             <Database size={12} className="text-emerald-500 animate-pulse" />
             <span>
-              Autenticação: <b>Google OAuth via Supabase</b>
+              Autenticação: <b>Google Auth via Supabase</b>
             </span>
           </div>
 
         </div>
 
         {/* Footer Legal Terms Block */}
-        <div className="bg-slate-50 border-t border-slate-100 p-3.5 text-center shrink-0">
-          <p className="text-[10px] text-slate-400 font-sans leading-relaxed">
-            Ao autenticar-se, o operador declara ciência e conformidade com as regras de sigilo e responsabilidade de fiscalização de trânsito.
+        <div className="bg-slate-100/80 border-t border-slate-200 p-3 text-center shrink-0">
+          <p className="text-[10px] text-slate-500 font-sans leading-relaxed">
+            Ao autenticar-se, o operador declara ciência e conformidade com as regras de sigilo e responsabilidade de fiscalização de trânsito STT Pojuca.
           </p>
         </div>
 
@@ -175,6 +191,7 @@ export default function LoginView({ onLoginSuccess }: LoginViewProps) {
     </div>
   );
 }
+
 
 
 
