@@ -337,7 +337,8 @@ async function pushTicketToSupabase(ticket: any) {
       agent_name: ticket.agentName || 'Agente',
       additional_infractions: addInfList,
       infractions: addInfList,
-      detection_type: ticket.detectionType || 'In Loco'
+      detection_type: ticket.detectionType || 'In Loco',
+      educational_action_number: ticket.educationalActionNumber || null
     };
 
     let res: any;

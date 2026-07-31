@@ -431,6 +431,7 @@ export function mapRowToTicket(row: any): TrafficTicket {
     additionalInfractions: row.additional_infractions || row.additionalInfractions || [],
     infractions: row.infractions || row.additional_infractions || row.additionalInfractions || [],
     detectionType: row.detection_type || row.detectionType || 'In Loco',
+    educationalActionNumber: row.educational_action_number || row.educationalActionNumber || undefined,
     observations: row.observations || '',
     photos: row.photos || [],
     agentId: row.agent_id || row.agentId || '',
@@ -950,7 +951,8 @@ export const dbService = {
           agent_name: newTicket.agentName || 'Agente',
           additional_infractions: addInfList,
           infractions: addInfList,
-          detection_type: newTicket.detectionType || 'In Loco'
+          detection_type: newTicket.detectionType || 'In Loco',
+          educational_action_number: newTicket.educationalActionNumber || null
         };
 
         let { error } = await supabaseClient
@@ -1880,6 +1882,7 @@ CREATE TABLE IF NOT EXISTS sgait_autos (
 ALTER TABLE sgait_autos ADD COLUMN IF NOT EXISTS additional_infractions JSONB DEFAULT '[]'::jsonb;
 ALTER TABLE sgait_autos ADD COLUMN IF NOT EXISTS infractions JSONB DEFAULT '[]'::jsonb;
 ALTER TABLE sgait_autos ADD COLUMN IF NOT EXISTS detection_type TEXT DEFAULT 'In Loco';
+ALTER TABLE sgait_autos ADD COLUMN IF NOT EXISTS educational_action_number TEXT;
 
 -- Criar Índices para otimizar pesquisas frequentes se não existirem
 CREATE INDEX IF NOT EXISTS idx_sgait_autos_plate ON sgait_autos(plate);

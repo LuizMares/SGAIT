@@ -709,7 +709,14 @@ export default function TicketListView({ user, tickets, infractions, onReloadNee
                 </div>
                 <div>
                   <span className="text-xxs font-bold text-slate-400 uppercase tracking-wider block">Constatação</span>
-                  <span className="font-bold text-amber-700 block mt-0.5">{selectedTicket.detectionType || 'In Loco'}</span>
+                  <span className="font-bold text-amber-700 block mt-0.5">
+                    {selectedTicket.detectionType || 'In Loco'}
+                    {selectedTicket.educationalActionNumber && (
+                      <span className="text-slate-600 block text-xs font-medium">
+                        Ação nº {selectedTicket.educationalActionNumber}
+                      </span>
+                    )}
+                  </span>
                 </div>
               </div>
 

@@ -48,7 +48,8 @@ export interface TrafficTicket {
   adminMeasure: string;
   additionalInfractions?: InfractionType[];
   infractions?: InfractionType[];
-  detectionType?: 'In Loco' | 'Videomonitoramento' | string;
+  detectionType?: 'In Loco' | 'Videomonitoramento' | 'Educativa' | string;
+  educationalActionNumber?: string;
   observations?: string;
   photos: string[]; // Base64 or Supabase Storage URL
   agentId: string;

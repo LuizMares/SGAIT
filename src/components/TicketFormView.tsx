@@ -23,7 +23,8 @@ import {
   Layers,
   Plus,
   Save,
-  RotateCcw
+  RotateCcw,
+  GraduationCap
 } from 'lucide-react';
 import { TrafficTicket, InfractionType, UserProfile } from '../types';
 import { dbService, safeStorage } from '../lib/supabase';
@@ -39,7 +40,8 @@ export default function TicketFormView({ user, infractions, onSuccessSubmit }: T
   const [aitNumber, setAitNumber] = useState('');
   
   // 2. Form state fields
-  const [detectionType, setDetectionType] = useState<'In Loco' | 'Videomonitoramento'>('In Loco');
+  const [detectionType, setDetectionType] = useState<'In Loco' | 'Videomonitoramento' | 'Educativa'>('In Loco');
+  const [educationalActionNumber, setEducationalActionNumber] = useState('');
   const [infractionDate, setInfractionDate] = useState('');
   const [infractionTime, setInfractionTime] = useState('');
   const [location, setLocation] = useState('');
@@ -109,6 +111,7 @@ export default function TicketFormView({ user, infractions, onSuccessSubmit }: T
     const minutes = String(now.getMinutes()).padStart(2, '0');
 
     setDetectionType('In Loco');
+    setEducationalActionNumber('');
     setInfractionDate(localDate);
     setInfractionTime(`${hours}:${minutes}`);
     setLocation('');
@@ -131,6 +134,7 @@ export default function TicketFormView({ user, infractions, onSuccessSubmit }: T
           let hasMeaningfulContent = false;
           if (parsed.aitNumber) setAitNumber(parsed.aitNumber);
           if (parsed.detectionType) setDetectionType(parsed.detectionType);
+          if (parsed.educationalActionNumber !== undefined) setEducationalActionNumber(parsed.educationalActionNumber);
           if (parsed.infractionDate) setInfractionDate(parsed.infractionDate);
           if (parsed.infractionTime) setInfractionTime(parsed.infractionTime);
           if (parsed.location !== undefined) setLocation(parsed.location);
@@ -178,6 +182,7 @@ export default function TicketFormView({ user, infractions, onSuccessSubmit }: T
       const draftData = {
         aitNumber,
         detectionType,
+        educationalActionNumber,
         infractionDate,
         infractionTime,
         location,
@@ -195,6 +200,7 @@ export default function TicketFormView({ user, infractions, onSuccessSubmit }: T
   }, [
     aitNumber,
     detectionType,
+    educationalActionNumber,
     infractionDate,
     infractionTime,
     location,
@@ -371,6 +377,9 @@ export default function TicketFormView({ user, infractions, onSuccessSubmit }: T
 
     // Form Validations
     if (!aitNumber) return setErrorMsg('Número do AIT ausente.');
+    if (detectionType === 'Educativa' && !educationalActionNumber.trim()) {
+      return setErrorMsg('Por favor, informe o número da Ação Educativa.');
+    }
     if (!infractionDate) return setErrorMsg('Selecione a data da infração.');
     if (!infractionTime) return setErrorMsg('Selecione o horário da infração.');
     if (!location.trim()) return setErrorMsg('Informe o local da infração.');
@@ -402,6 +411,7 @@ export default function TicketFormView({ user, infractions, onSuccessSubmit }: T
         additionalInfractions: additional,
         infractions: selectedInfractions,
         detectionType,
+        educationalActionNumber: detectionType === 'Educativa' ? educationalActionNumber.trim() : undefined,
         observations: observations.trim() || undefined,
         photos: photoUrls,
         agentId: user.id,
@@ -514,7 +524,7 @@ export default function TicketFormView({ user, infractions, onSuccessSubmit }: T
             {/* Detection Type */}
             <div className="space-y-1 md:col-span-2">
               <label className="text-xs font-bold text-slate-700 block uppercase tracking-wide">Forma de Constatação / Detecção</label>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <button
                   type="button"
                   onClick={() => setDetectionType('In Loco')}
@@ -525,7 +535,7 @@ export default function TicketFormView({ user, infractions, onSuccessSubmit }: T
                   }`}
                 >
                   <Navigation size={16} />
-                  In Loco (Presencial)
+                  <span>In Loco (Presencial)</span>
                 </button>
                 <button
                   type="button"
@@ -537,9 +547,42 @@ export default function TicketFormView({ user, infractions, onSuccessSubmit }: T
                   }`}
                 >
                   <Video size={16} />
-                  Videomonitoramento
+                  <span>Videomonitoramento</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setDetectionType('Educativa')}
+                  className={`py-3 px-4 rounded-xl border-2 text-xs font-bold flex items-center justify-center gap-2 transition-all cursor-pointer ${
+                    detectionType === 'Educativa'
+                      ? 'bg-amber-500 border-amber-500 text-slate-950 shadow-sm'
+                      : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
+                  }`}
+                >
+                  <GraduationCap size={16} />
+                  <span>Educativa</span>
                 </button>
               </div>
+
+              {detectionType === 'Educativa' && (
+                <div className="mt-3 p-4 bg-amber-50/80 border-2 border-amber-300 rounded-xl space-y-1.5 animate-fade-in">
+                  <label htmlFor="field-educational-number" className="text-xs font-bold text-amber-950 block uppercase tracking-wide flex items-center gap-1.5">
+                    <GraduationCap size={16} className="text-amber-600 shrink-0" />
+                    Número da Ação Educativa *
+                  </label>
+                  <input
+                    id="field-educational-number"
+                    type="text"
+                    value={educationalActionNumber}
+                    onChange={(e) => setEducationalActionNumber(e.target.value)}
+                    placeholder="Digite o número da Ação Educativa (Ex: AE-2026/042)"
+                    className="w-full px-4 py-3 bg-white border-2 border-amber-300 rounded-xl text-sm font-semibold text-slate-900 focus:outline-none focus:ring-4 focus:ring-amber-500/20 focus:border-amber-500 shadow-xs"
+                    required
+                  />
+                  <p className="text-[11px] text-amber-800 font-medium">
+                    Preenchimento obrigatório para registro de abordagem/campanha educativa.
+                  </p>
+                </div>
+              )}
             </div>
 
             {/* Date */}
