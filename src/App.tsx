@@ -152,7 +152,7 @@ export default function App() {
   const [isSyncingData, setIsSyncingData] = useState(false);
 
   // Centralized data loader from DB/Local storage
-  const loadData = async () => {
+  const loadData = async (userOverride?: UserProfile) => {
     try {
       const [loadedTickets, loadedInfractions, loadedEmails] = await Promise.all([
         dbService.getTickets(),
@@ -164,12 +164,13 @@ export default function App() {
       setInfractions(loadedInfractions);
       setAuthorizedEmails(loadedEmails);
 
-      if (currentUser) {
-        const myAuth = loadedEmails.find(e => e.email.toLowerCase() === currentUser.email.toLowerCase());
+      const activeUser = userOverride || currentUser;
+      if (activeUser) {
+        const myAuth = loadedEmails.find(e => e.email.toLowerCase() === activeUser.email.toLowerCase());
         if (myAuth) {
-          if (myAuth.role !== currentUser.role || myAuth.name !== currentUser.name) {
+          if (myAuth.role !== activeUser.role || myAuth.name !== activeUser.name) {
             const updatedUser: UserProfile = {
-              ...currentUser,
+              ...activeUser,
               role: myAuth.role,
               name: myAuth.name,
               avatarUrl: `https://api.dicebear.com/7.x/adventurer/svg?seed=${encodeURIComponent(myAuth.name)}`
@@ -201,16 +202,16 @@ export default function App() {
     if (!currentUser) return;
 
     // Fetch fresh data immediately on mount
-    loadData();
+    loadData(currentUser);
 
     // Re-sync when tab becomes visible or receives window focus (e.g. mobile unlock or returning to notebook tab)
     const handleVisibilityChange = () => {
       if (document.visibilityState === 'visible') {
-        loadData();
+        loadData(currentUser);
       }
     };
     const handleFocus = () => {
-      loadData();
+      loadData(currentUser);
     };
 
     window.addEventListener('visibilitychange', handleVisibilityChange);
@@ -218,7 +219,7 @@ export default function App() {
 
     // Polling interval every 3.5 seconds to guarantee multi-device updates appear automatically
     const interval = setInterval(() => {
-      loadData();
+      loadData(currentUser);
     }, 3500);
 
     // Subscribe to multi-table updates (Supabase Realtime + SSE + CustomEvents)
@@ -252,13 +253,13 @@ export default function App() {
           addNotification(`Auto de Infração removido.`);
         }
       } else if (message.table === 'authorized_emails') {
-        loadData();
+        loadData(currentUser);
       } else if (message.table === 'infractions') {
         if (message.type === 'DELETE' && message.data?.code) {
           const codeToDelete = String(message.data.code).trim().toLowerCase();
           setInfractions(prev => prev.filter(i => i.code.trim().toLowerCase() !== codeToDelete));
         } else {
-          loadData();
+          loadData(currentUser);
         }
       }
     });
@@ -273,12 +274,12 @@ export default function App() {
 
   // Handle successful login
   const handleLoginSuccess = async (user: UserProfile) => {
+    safeStorage.setItem(STORAGE_KEYS.CURRENT_USER, JSON.stringify(user));
     setCurrentUser(user);
-    setLoadingApp(true);
     try {
-      await loadData();
-    } finally {
-      setLoadingApp(false);
+      await loadData(user);
+    } catch (e) {
+      console.warn('Erro ao carregar dados pós-login:', e);
     }
   };
 

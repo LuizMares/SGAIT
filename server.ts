@@ -410,7 +410,13 @@ async function pushTicketToSupabase(ticket: any) {
     }
 
     if (error) {
-      if (!String(error.message || error).includes('fetch failed')) {
+      const errMsg = String(error.message || error);
+      if (errMsg.toLowerCase().includes('invalid api key') || error.code === '401') {
+        console.warn('Server: Supabase API Key é inválida ou expirou. Sincronização remota desativada.');
+        supabase = null;
+        return { success: false, error: 'Chave do Supabase inválida.' };
+      }
+      if (!errMsg.includes('fetch failed')) {
         console.warn('Server: Supabase upsert error for AIT', ticket.aitNumber, ':', error.message || error);
       }
       return { success: false, error: error.message || String(error) };
@@ -483,6 +489,15 @@ async function syncFromSupabase() {
       .from('sgait_autos')
       .select('*')
       .order('created_at', { ascending: false });
+
+    if (error) {
+      const errMsg = String(error.message || error);
+      if (errMsg.toLowerCase().includes('invalid api key') || error.code === '401') {
+        console.warn('Server: Supabase API Key é inválida ou expirou. Desativando cliente Supabase.');
+        supabase = null;
+        return;
+      }
+    }
 
     if (!error && remoteTickets && remoteTickets.length > 0) {
       const mapped = remoteTickets.map((row: any) => ({

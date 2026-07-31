@@ -3,15 +3,18 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState } from 'react';
-import { motion } from 'motion/react';
+import React, { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
 import { 
   Database, 
   AlertOctagon, 
-  CheckCircle2
+  CheckCircle2,
+  ChevronRight,
+  X,
+  PlusCircle
 } from 'lucide-react';
 import { dbService } from '../lib/supabase';
-import { UserProfile } from '../types';
+import { UserProfile, AuthorizedEmail, UserRole } from '../types';
 
 interface LoginViewProps {
   onLoginSuccess: (user: UserProfile) => void;
@@ -43,18 +46,57 @@ export default function LoginView({ onLoginSuccess }: LoginViewProps) {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
-  const handleGoogleLogin = async () => {
+  // Account Picker state
+  const [isAccountModalOpen, setIsAccountModalOpen] = useState(false);
+  const [authorizedAccounts, setAuthorizedAccounts] = useState<AuthorizedEmail[]>([]);
+  const [customEmailInput, setCustomEmailInput] = useState('');
+  const [showCustomInput, setShowCustomInput] = useState(false);
+
+  // Load known authorized emails on mount
+  useEffect(() => {
+    let isMounted = true;
+    dbService.getAuthorizedEmails().then(emails => {
+      if (!isMounted) return;
+      const defaultList: AuthorizedEmail[] = [
+        {
+          email: 'luizemerson17@gmail.com',
+          name: 'Emerson Mares',
+          role: UserRole.ADMIN
+        }
+      ];
+
+      const merged = [...defaultList];
+      for (const e of emails) {
+        if (!merged.some(m => m.email.toLowerCase() === e.email.toLowerCase())) {
+          merged.push(e);
+        }
+      }
+      setAuthorizedAccounts(merged);
+    }).catch(() => {
+      setAuthorizedAccounts([
+        { email: 'luizemerson17@gmail.com', name: 'Emerson Mares', role: UserRole.ADMIN }
+      ]);
+    });
+    return () => { isMounted = false; };
+  }, []);
+
+  const handleExecuteLogin = async (emailToLogin?: string) => {
     setIsLoading(true);
     setErrorMessage(null);
     setSuccessMessage(null);
+    setIsAccountModalOpen(false);
 
     try {
-      const { user, error } = await dbService.signInWithGoogle();
+      const emailTarget = emailToLogin || 'luizemerson17@gmail.com';
+      const { user, error } = await dbService.signInWithGoogle(emailTarget);
 
       if (error) {
         setErrorMessage(error);
         setIsLoading(false);
-      } else if (user) {
+        return;
+      }
+
+      if (user) {
         setSuccessMessage(`Acesso autorizado! Bem-vindo(a), ${user.name}.`);
         setTimeout(() => {
           onLoginSuccess(user);
@@ -64,6 +106,12 @@ export default function LoginView({ onLoginSuccess }: LoginViewProps) {
       setErrorMessage(err.message || 'Erro ao realizar login.');
       setIsLoading(false);
     }
+  };
+
+  const handleCustomEmailSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!customEmailInput.trim()) return;
+    handleExecuteLogin(customEmailInput.trim().toLowerCase());
   };
 
   return (
@@ -129,11 +177,11 @@ export default function LoginView({ onLoginSuccess }: LoginViewProps) {
             </div>
           )}
 
-          {/* GOOGLE LOGIN BUTTON */}
+          {/* GOOGLE LOGIN BUTTON & QUICK ACCOUNT PICKER */}
           <div className="py-2">
             <button
               type="button"
-              onClick={handleGoogleLogin}
+              onClick={() => setIsAccountModalOpen(true)}
               id="btn-login-google-direct"
               disabled={isLoading}
               className="w-full py-4 px-4 bg-slate-900 hover:bg-slate-800 disabled:bg-slate-600 text-white font-bold text-xs uppercase tracking-wider rounded-2xl shadow-md flex items-center justify-center gap-3 transition-all cursor-pointer hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0"
@@ -143,7 +191,7 @@ export default function LoginView({ onLoginSuccess }: LoginViewProps) {
               ) : (
                 <>
                   <GoogleLogo />
-                  Entrar com Conta Google
+                  Entrar / Selecionar Conta Google
                 </>
               )}
             </button>
@@ -167,7 +215,131 @@ export default function LoginView({ onLoginSuccess }: LoginViewProps) {
         </div>
 
       </div>
+
+      {/* GOOGLE ACCOUNT SELECTOR MODAL */}
+      <AnimatePresence>
+        {isAccountModalOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setIsAccountModalOpen(false)}
+              className="fixed inset-0 bg-slate-950/70 backdrop-blur-xs"
+            />
+
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0, y: 10 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.95, opacity: 0, y: 10 }}
+              className="relative w-full max-w-sm bg-white rounded-3xl shadow-2xl overflow-hidden z-50 border border-slate-200"
+            >
+              {/* Google Header Bar */}
+              <div className="p-6 border-b border-slate-100 bg-slate-50/50 relative">
+                <button
+                  type="button"
+                  onClick={() => setIsAccountModalOpen(false)}
+                  className="absolute top-4 right-4 text-slate-400 hover:text-slate-600 p-1.5 rounded-full hover:bg-slate-200/60 transition-colors"
+                >
+                  <X size={18} />
+                </button>
+                <div className="flex items-center gap-2 mb-2">
+                  <GoogleLogo />
+                  <span className="text-xs font-bold text-slate-700">Contas Google</span>
+                </div>
+                <h3 className="text-lg font-black text-slate-900 tracking-tight">Escolha uma Conta Google</h3>
+                <p className="text-xs text-slate-500 mt-1">
+                  Selecione a conta com a qual deseja acessar o sistema:
+                </p>
+              </div>
+
+              {/* Account List */}
+              <div className="p-4 space-y-2 max-h-[320px] overflow-y-auto">
+                {authorizedAccounts.map((account) => (
+                  <button
+                    key={account.email}
+                    type="button"
+                    onClick={() => handleExecuteLogin(account.email)}
+                    className="w-full p-3.5 bg-white hover:bg-slate-50 border border-slate-200/80 rounded-2xl text-left flex items-center justify-between transition-all group hover:border-amber-400 hover:shadow-sm cursor-pointer"
+                  >
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="w-10 h-10 rounded-full bg-slate-900 text-amber-400 flex items-center justify-center font-bold text-sm shrink-0 border border-slate-800 shadow-xs">
+                        {account.name ? account.name.substring(0, 1).toUpperCase() : 'G'}
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-xs font-bold text-slate-900 group-hover:text-amber-600 truncate">
+                          {account.name || account.email.split('@')[0]}
+                        </p>
+                        <p className="text-xxs font-mono text-slate-500 truncate">{account.email}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-1.5 shrink-0">
+                      <span className="text-[10px] font-mono font-bold px-2 py-0.5 bg-slate-100 text-slate-700 rounded-full uppercase">
+                        {account.role === UserRole.ADMIN ? 'Admin' : 'Agente'}
+                      </span>
+                      <ChevronRight size={16} className="text-slate-400 group-hover:text-amber-500 transition-colors" />
+                    </div>
+                  </button>
+                ))}
+
+                {/* Custom Email Form Toggle */}
+                {!showCustomInput ? (
+                  <button
+                    type="button"
+                    onClick={() => setShowCustomInput(true)}
+                    className="w-full p-3.5 bg-slate-50 hover:bg-amber-50/50 border border-dashed border-slate-300 rounded-2xl text-left flex items-center gap-3 transition-all text-slate-700 hover:text-amber-900 hover:border-amber-400 cursor-pointer mt-2"
+                  >
+                    <PlusCircle size={20} className="text-amber-500 shrink-0" />
+                    <div>
+                      <p className="text-xs font-bold">Usar outra conta Google...</p>
+                      <p className="text-xxs text-slate-500">Digite o e-mail para autenticar-se</p>
+                    </div>
+                  </button>
+                ) : (
+                  <form onSubmit={handleCustomEmailSubmit} className="p-3.5 bg-slate-50 border border-amber-300 rounded-2xl space-y-3 mt-2 animate-fade-in">
+                    <label className="block text-xxs font-bold uppercase tracking-wider text-slate-600">
+                      Digite o E-mail da Conta Google:
+                    </label>
+                    <input
+                      type="email"
+                      value={customEmailInput}
+                      onChange={(e) => setCustomEmailInput(e.target.value)}
+                      placeholder="seu.email@gmail.com"
+                      required
+                      autoFocus
+                      className="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl text-xs font-medium text-slate-900 focus:outline-none focus:ring-2 focus:ring-amber-500"
+                    />
+                    <div className="flex items-center justify-end gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setShowCustomInput(false)}
+                        className="px-3 py-1.5 text-xs text-slate-500 hover:text-slate-700 font-semibold cursor-pointer"
+                      >
+                        Cancelar
+                      </button>
+                      <button
+                        type="submit"
+                        className="px-4 py-1.5 text-xs bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-xl shadow-xs cursor-pointer"
+                      >
+                        Entrar com esta Conta
+                      </button>
+                    </div>
+                  </form>
+                )}
+              </div>
+
+              {/* Modal Footer */}
+              <div className="p-4 bg-slate-50 border-t border-slate-100 text-center">
+                <span className="text-[10px] text-slate-400 font-mono">
+                  SGAIT Google Auth Selector
+                </span>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
+
 
