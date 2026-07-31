@@ -4,11 +4,13 @@
  */
 
 import React, { useState } from 'react';
-import { motion } from 'motion/react';
+import { motion, AnimatePresence } from 'motion/react';
 import { 
   Database, 
   AlertOctagon, 
-  CheckCircle2
+  CheckCircle2,
+  X,
+  ArrowRight
 } from 'lucide-react';
 import { dbService } from '../lib/supabase';
 import { UserProfile } from '../types';
@@ -43,13 +45,19 @@ export default function LoginView({ onLoginSuccess }: LoginViewProps) {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
-  const handleExecuteLogin = async () => {
+  // Google Account selector state
+  const [isGoogleModalOpen, setIsGoogleModalOpen] = useState(false);
+  const [googleEmailInput, setGoogleEmailInput] = useState('');
+
+  const handleExecuteLogin = async (emailToLogin?: string) => {
     setIsLoading(true);
     setErrorMessage(null);
     setSuccessMessage(null);
+    setIsGoogleModalOpen(false);
 
     try {
-      const { user, error } = await dbService.signInWithGoogle();
+      const emailTarget = (emailToLogin || googleEmailInput || 'luizemerson17@gmail.com').trim().toLowerCase();
+      const { user, error } = await dbService.signInWithGoogle(emailTarget);
 
       if (error) {
         setErrorMessage(error);
@@ -67,6 +75,12 @@ export default function LoginView({ onLoginSuccess }: LoginViewProps) {
       setErrorMessage(err.message || 'Erro ao realizar login.');
       setIsLoading(false);
     }
+  };
+
+  const handleFormSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!googleEmailInput.trim()) return;
+    handleExecuteLogin(googleEmailInput.trim().toLowerCase());
   };
 
   return (
@@ -136,7 +150,7 @@ export default function LoginView({ onLoginSuccess }: LoginViewProps) {
           <div className="py-2">
             <button
               type="button"
-              onClick={handleExecuteLogin}
+              onClick={() => setIsGoogleModalOpen(true)}
               id="btn-login-google-direct"
               disabled={isLoading}
               className="w-full py-4 px-4 bg-slate-900 hover:bg-slate-800 disabled:bg-slate-600 text-white font-bold text-xs uppercase tracking-wider rounded-2xl shadow-md flex items-center justify-center gap-3 transition-all cursor-pointer hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0"
@@ -170,8 +184,98 @@ export default function LoginView({ onLoginSuccess }: LoginViewProps) {
         </div>
 
       </div>
+
+      {/* GOOGLE ACCOUNT INPUT MODAL */}
+      <AnimatePresence>
+        {isGoogleModalOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setIsGoogleModalOpen(false)}
+              className="fixed inset-0 bg-slate-950/70 backdrop-blur-xs"
+            />
+
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0, y: 10 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0, y: 10 }}
+              className="relative w-full max-w-sm bg-white rounded-3xl shadow-2xl overflow-hidden z-50 border border-slate-200"
+            >
+              {/* Google Header */}
+              <div className="p-6 border-b border-slate-100 bg-slate-50/60 relative">
+                <button
+                  type="button"
+                  onClick={() => setIsGoogleModalOpen(false)}
+                  className="absolute top-4 right-4 text-slate-400 hover:text-slate-600 p-1.5 rounded-full hover:bg-slate-200/60 transition-colors cursor-pointer"
+                >
+                  <X size={18} />
+                </button>
+                <div className="flex items-center gap-2 mb-2">
+                  <GoogleLogo />
+                  <span className="text-xs font-bold text-slate-700">Autenticação Google</span>
+                </div>
+                <h3 className="text-lg font-black text-slate-900 tracking-tight">Fazer login com o Google</h3>
+                <p className="text-xs text-slate-500 mt-1">
+                  Informe o e-mail da sua Conta Google para acessar o sistema:
+                </p>
+              </div>
+
+              {/* Form Content */}
+              <form onSubmit={handleFormSubmit} className="p-6 space-y-4">
+                <div>
+                  <label htmlFor="google-email-input" className="block text-xxs font-bold uppercase tracking-wider text-slate-700 mb-1.5">
+                    E-mail do Google:
+                  </label>
+                  <input
+                    id="google-email-input"
+                    type="email"
+                    value={googleEmailInput}
+                    onChange={(e) => setGoogleEmailInput(e.target.value)}
+                    placeholder="seu.email@gmail.com"
+                    required
+                    autoFocus
+                    className="w-full px-4 py-3 bg-white border border-slate-300 rounded-2xl text-xs font-medium text-slate-900 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 shadow-xs"
+                  />
+                  <p className="text-[11px] text-slate-400 mt-1.5">
+                    Você pode utilizar qualquer conta de e-mail do Google para fazer login.
+                  </p>
+                </div>
+
+                <div className="pt-2 flex items-center justify-end gap-2 border-t border-slate-100">
+                  <button
+                    type="button"
+                    onClick={() => setIsGoogleModalOpen(false)}
+                    className="px-4 py-2.5 text-xs text-slate-600 hover:text-slate-800 font-semibold rounded-xl hover:bg-slate-100 transition-colors cursor-pointer"
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={!googleEmailInput.trim()}
+                    className="px-5 py-2.5 bg-slate-900 hover:bg-slate-800 disabled:bg-slate-400 text-white font-bold text-xs rounded-xl shadow-md flex items-center gap-2 transition-all cursor-pointer"
+                  >
+                    <GoogleLogo />
+                    <span>Entrar com o Google</span>
+                    <ArrowRight size={14} />
+                  </button>
+                </div>
+              </form>
+
+              {/* Modal Footer */}
+              <div className="px-6 py-3 bg-slate-50 border-t border-slate-100 text-center">
+                <span className="text-[10px] text-slate-400 font-mono">
+                  SGAIT Google OAuth Direct Access
+                </span>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
+
 
 
