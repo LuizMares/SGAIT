@@ -493,8 +493,8 @@ async function syncFromSupabase() {
 
     if (error) {
       const errMsg = String(error.message || error);
-      if (errMsg.toLowerCase().includes('invalid api key') || error.code === '401') {
-        console.warn('Server: Supabase API Key é inválida ou expirou. Desativando cliente Supabase.');
+      if (errMsg.toLowerCase().includes('invalid api key')) {
+        console.warn('Server: Supabase API Key é inválida. Desativando cliente Supabase.');
         supabase = null;
         return;
       }

@@ -93,17 +93,26 @@ export default function App() {
 
   // Load profile and seed data on launch
   useEffect(() => {
+    let isMounted = true;
+
     const initApp = async () => {
+      // If returning from Google OAuth redirect (URL contains token or code),
+      // wait for onAuthStateChange to process the session so we don't prematurely render LoginView
+      const isOAuthRedirect = typeof window !== 'undefined' && 
+        (window.location.hash.includes('access_token') || window.location.search.includes('code='));
+
       try {
         const user = await dbService.getCurrentUser();
-        if (user) {
+        if (isMounted && user) {
           setCurrentUser(user);
-          await loadData();
+          await loadData(user);
         }
       } catch (err) {
         console.error('Falha ao inicializar sessões do SGAIT:', err);
       } finally {
-        setLoadingApp(false);
+        if (isMounted && !isOAuthRedirect) {
+          setLoadingApp(false);
+        }
       }
     };
 
@@ -113,18 +122,20 @@ export default function App() {
     let authSubscription: { unsubscribe: () => void } | null = null;
     if (isSupabaseConfigured() && supabaseClient) {
       const { data } = supabaseClient.auth.onAuthStateChange(async (event, session) => {
+        if (!isMounted) return;
         if (session?.user) {
           console.log('Supabase Auth Event:', event, session.user.email);
         }
+
         if (session?.user && (event === 'SIGNED_IN' || event === 'INITIAL_SESSION' || event === 'TOKEN_REFRESHED' || event === 'USER_UPDATED')) {
           setLoadingApp(true);
           try {
             const userProfile = await dbService.getCurrentUser(session.user);
-            if (userProfile) {
+            if (isMounted && userProfile) {
               setCurrentUser(userProfile);
               await loadData(userProfile);
               
-              // Limpa os parâmetros de token da barra de endereço após login com sucesso
+              // Clean URL parameters after successful OAuth return
               if (typeof window !== 'undefined' && (window.location.hash.includes('access_token') || window.location.search.includes('code='))) {
                 window.history.replaceState(null, '', window.location.pathname);
               }
@@ -132,15 +143,21 @@ export default function App() {
           } catch (e) {
             console.error('Erro ao processar login por onAuthStateChange:', e);
           } finally {
-            setLoadingApp(false);
+            if (isMounted) setLoadingApp(false);
           }
         } else if (event === 'SIGNED_OUT') {
-          setCurrentUser(null);
-          safeStorage.removeItem(STORAGE_KEYS.CURRENT_USER);
-          setLoadingApp(false);
+          if (isMounted) {
+            setCurrentUser(null);
+            safeStorage.removeItem(STORAGE_KEYS.CURRENT_USER);
+            setLoadingApp(false);
+          }
+        } else if (event === 'INITIAL_SESSION' && !session) {
+          if (isMounted) setLoadingApp(false);
         }
       });
       authSubscription = data.subscription;
+    } else {
+      setLoadingApp(false);
     }
 
     // Browser Online/Offline listeners
@@ -150,6 +167,7 @@ export default function App() {
     window.addEventListener('offline', handleOffline);
 
     return () => {
+      isMounted = false;
       if (authSubscription) {
         authSubscription.unsubscribe();
       }

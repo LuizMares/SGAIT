@@ -115,11 +115,13 @@ let isSupabaseDisabledDueToInvalidKey = false;
 export function markSupabaseKeyInvalid(err?: any) {
   if (!err) return;
   const msg = typeof err === 'string' ? err : (err.message || err.error_description || JSON.stringify(err));
-  const hint = err.hint || '';
+  const cleanMsg = msg.toLowerCase();
+  
+  // ONLY disable if the API Key itself is explicitly rejected by Supabase API gateway
   if (
-    msg.includes('Invalid API key') || 
-    msg.includes('JWT') ||
-    msg.includes('401')
+    cleanMsg.includes('invalid api key') || 
+    cleanMsg.includes('api key not found') ||
+    cleanMsg.includes('project_not_found')
   ) {
     if (!isSupabaseDisabledDueToInvalidKey) {
       isSupabaseDisabledDueToInvalidKey = true;
@@ -646,137 +648,92 @@ export const dbService = {
 
   async getCurrentUser(passedUser?: any): Promise<UserProfile | null> {
     try {
-      if (isSupabaseConfigured() && supabaseClient) {
+      let user = passedUser;
+      
+      // If no user passed, check current session / user from Supabase
+      if (!user && isSupabaseConfigured() && supabaseClient) {
         try {
-          let user = passedUser;
-          if (!user) {
-            const { data: { session } } = await supabaseClient.auth.getSession();
-            user = session?.user;
-          }
-          if (!user) {
+          const { data: { session } } = await supabaseClient.auth.getSession();
+          user = session?.user;
+        } catch (e) {
+          console.warn('getCurrentUser: error getting session', e);
+        }
+        
+        if (!user) {
+          try {
             const { data: { user: fetchedUser } } = await supabaseClient.auth.getUser();
             user = fetchedUser;
-          }
-
-          if (!user) {
-            // Clean hash error if returning from failed OAuth redirect
-            if (typeof window !== 'undefined' && (window.location.hash.includes('error=') || window.location.search.includes('error='))) {
-              try { window.history.replaceState(null, '', window.location.pathname); } catch (e) {}
-            }
-            // Fallback to local session even if Supabase is active
-            return safeJsonParse<UserProfile | null>(safeStorage.getItem(STORAGE_KEYS.CURRENT_USER), null);
-          }
-
-          const cleanEmail = (user.email || '').trim().toLowerCase();
-          if (!cleanEmail) {
-            return safeJsonParse<UserProfile | null>(safeStorage.getItem(STORAGE_KEYS.CURRENT_USER), null);
-          }
-
-          // Check if user has an authorized profile in Supabase
-          let authorizedUser = null;
-          try {
-            const { data, error: authError } = await supabaseClient
-              .from('sgait_authorized_emails')
-              .select('*')
-              .eq('email', cleanEmail)
-              .maybeSingle();
-            
-            if (!authError && data) {
-              authorizedUser = data;
-            } else {
-              // Check designated admin emails
-              if (cleanEmail === 'sttpojucaba@gmail.com' || cleanEmail === 'luizemerson17@gmail.com') {
-                authorizedUser = { 
-                  email: cleanEmail, 
-                  name: cleanEmail === 'sttpojucaba@gmail.com' ? 'STT Pojuca Admin' : 'Emerson Mares', 
-                  role: UserRole.ADMIN 
-                };
-              } else {
-                // Any other user is automatically classified as Agente
-                authorizedUser = { 
-                  email: cleanEmail, 
-                  name: user.user_metadata?.full_name || user.user_metadata?.name || cleanEmail.split('@')[0], 
-                  role: UserRole.AGENTE 
-                };
-              }
-            }
           } catch (e) {
-            console.warn('Failed to query sgait_authorized_emails:', e);
-            const role = await determineUserRole(cleanEmail);
-            authorizedUser = { email: cleanEmail, name: user.user_metadata?.full_name || user.user_metadata?.name || cleanEmail.split('@')[0], role };
+            console.warn('getCurrentUser: error getting user', e);
           }
-
-          // Fetch or create profile
-          let profile = null;
-          try {
-            const { data, error: profileError } = await supabaseClient
-              .from('sgait_profiles')
-              .select('*')
-              .eq('email', cleanEmail)
-              .maybeSingle();
-            profile = data;
-          } catch (e) {
-            console.warn('Failed to query sgait_profiles:', e);
-          }
-
-          const userRole = (authorizedUser?.role) || await determineUserRole(cleanEmail);
-
-          const profileData: UserProfile = profile ? {
-            id: profile.id || user.id,
-            email: profile.email || cleanEmail,
-            name: profile.name || user.user_metadata?.full_name || user.user_metadata?.name || cleanEmail.split('@')[0],
-            avatarUrl: profile.avatar_url || user.user_metadata?.avatar_url || `https://api.dicebear.com/7.x/adventurer/svg?seed=${encodeURIComponent(cleanEmail)}`,
-            role: profile.role || userRole,
-            googleId: profile.google_id || user.id,
-            firstAccessAt: profile.created_at || new Date().toISOString(),
-            lastLoginAt: new Date().toISOString()
-          } : {
-            id: user.id,
-            email: cleanEmail,
-            name: user.user_metadata?.full_name || user.user_metadata?.name || cleanEmail.split('@')[0],
-            avatarUrl: user.user_metadata?.avatar_url || `https://api.dicebear.com/7.x/adventurer/svg?seed=${encodeURIComponent(cleanEmail)}`,
-            role: userRole,
-            googleId: user.id,
-            firstAccessAt: new Date().toISOString(),
-            lastLoginAt: new Date().toISOString()
-          };
-
-          // Always sync user profile to local session storage as well
-          safeStorage.setItem(STORAGE_KEYS.CURRENT_USER, JSON.stringify(profileData));
-
-          // Write profile back to database if it didn't exist or needs update
-          try {
-            if (!profile) {
-              await supabaseClient.from('sgait_profiles').insert({
-                id: profileData.id,
-                email: profileData.email,
-                name: profileData.name,
-                avatar_url: profileData.avatarUrl,
-                role: profileData.role,
-                google_id: profileData.googleId,
-                last_login_at: profileData.lastLoginAt
-              });
-            } else {
-              await supabaseClient.from('sgait_profiles').update({
-                last_login_at: profileData.lastLoginAt,
-                name: profileData.name,
-                role: profileData.role
-              }).eq('id', profile.id);
-            }
-          } catch (e) {
-            console.warn('Could not persist profile in sgait_profiles table:', e);
-          }
-
-          return profileData;
-        } catch (err) {
-          console.error('Error fetching Supabase user in getCurrentUser:', err);
-          return safeJsonParse<UserProfile | null>(safeStorage.getItem(STORAGE_KEYS.CURRENT_USER), null);
         }
-      } else {
+      }
+
+      // If still no user in Supabase, return cached local storage user
+      if (!user) {
+        if (typeof window !== 'undefined' && (window.location.hash.includes('error=') || window.location.search.includes('error='))) {
+          try { window.history.replaceState(null, '', window.location.pathname); } catch (e) {}
+        }
         return safeJsonParse<UserProfile | null>(safeStorage.getItem(STORAGE_KEYS.CURRENT_USER), null);
       }
-    } catch (topErr) {
-      console.error('Top-level error in getCurrentUser:', topErr);
+
+      const cleanEmail = (user.email || '').trim().toLowerCase();
+      if (!cleanEmail) {
+        return safeJsonParse<UserProfile | null>(safeStorage.getItem(STORAGE_KEYS.CURRENT_USER), null);
+      }
+
+      // Determine user role (Admin vs Agente)
+      let userRole = UserRole.AGENTE;
+      if (cleanEmail === 'sttpojucaba@gmail.com' || cleanEmail === 'luizemerson17@gmail.com') {
+        userRole = UserRole.ADMIN;
+      } else {
+        try {
+          userRole = await determineUserRole(cleanEmail);
+        } catch (e) {
+          userRole = UserRole.AGENTE;
+        }
+      }
+
+      // Extract user display name and avatar from OAuth metadata or email
+      const meta = user.user_metadata || {};
+      const userName = meta.full_name || meta.name || meta.preferred_username || cleanEmail.split('@')[0];
+      const userAvatar = meta.avatar_url || meta.picture || `https://api.dicebear.com/7.x/adventurer/svg?seed=${encodeURIComponent(userName || cleanEmail)}`;
+
+      // Build the user profile
+      const profileData: UserProfile = {
+        id: user.id || `user-${cleanEmail.replace(/[^a-zA-Z0-9]/g, '')}`,
+        email: cleanEmail,
+        name: userName,
+        avatarUrl: userAvatar,
+        role: userRole,
+        googleId: user.id || `google-${cleanEmail}`,
+        firstAccessAt: user.created_at || new Date().toISOString(),
+        lastLoginAt: new Date().toISOString()
+      };
+
+      // Save to local storage cache immediately so session is remembered
+      safeStorage.setItem(STORAGE_KEYS.CURRENT_USER, JSON.stringify(profileData));
+
+      // Try to sync with Supabase tables if active, non-blocking
+      if (isSupabaseConfigured() && supabaseClient) {
+        try {
+          await supabaseClient.from('sgait_profiles').upsert({
+            id: profileData.id,
+            email: profileData.email,
+            name: profileData.name,
+            avatar_url: profileData.avatarUrl,
+            role: profileData.role,
+            google_id: profileData.googleId,
+            last_login_at: profileData.lastLoginAt
+          }, { onConflict: 'email' });
+        } catch (e) {
+          console.warn('Non-fatal error upserting sgait_profiles:', e);
+        }
+      }
+
+      return profileData;
+    } catch (err) {
+      console.error('Error in getCurrentUser:', err);
       return safeJsonParse<UserProfile | null>(safeStorage.getItem(STORAGE_KEYS.CURRENT_USER), null);
     }
   },
