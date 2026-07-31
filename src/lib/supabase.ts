@@ -426,105 +426,83 @@ export const dbService = {
    * Otherwise, provides a fallback simulation.
    */
   async signInWithGoogle(simulatedEmail?: string): Promise<{ user: UserProfile | null; error: string | null }> {
-    const executeSimulatedLogin = async (email?: string) => {
-      const emailToUse = (email || 'sttpojucaba@gmail.com').trim().toLowerCase();
-      const role = await determineUserRole(emailToUse);
+    const emailToUse = (simulatedEmail || 'luizemerson17@gmail.com').trim().toLowerCase();
+    const role = await determineUserRole(emailToUse);
 
-      const authorizedEmails: AuthorizedEmail[] = JSON.parse(safeStorage.getItem(STORAGE_KEYS.AUTHORIZED) || '[]');
-      let authRecord = authorizedEmails.find(ae => ae.email.toLowerCase() === emailToUse);
+    const authorizedEmails: AuthorizedEmail[] = JSON.parse(safeStorage.getItem(STORAGE_KEYS.AUTHORIZED) || '[]');
+    let authRecord = authorizedEmails.find(ae => ae.email.toLowerCase() === emailToUse);
 
-      const defaultName = emailToUse === 'sttpojucaba@gmail.com' ? 'STT Pojuca Admin' :
-                          emailToUse === 'luizemerson17@gmail.com' ? 'Emerson Mares' :
-                          emailToUse.split('@')[0];
+    const defaultName = emailToUse === 'sttpojucaba@gmail.com' ? 'STT Pojuca Admin' :
+                        emailToUse === 'luizemerson17@gmail.com' ? 'Emerson Mares' :
+                        emailToUse.split('@')[0];
 
-      const userName = authRecord?.name || defaultName;
-      const nowIso = new Date().toISOString();
+    const userName = authRecord?.name || defaultName;
+    const nowIso = new Date().toISOString();
 
-      if (!authRecord) {
-        authRecord = {
-          email: emailToUse,
-          name: userName,
-          role: role,
-          lastLoginAt: nowIso
-        };
-        authorizedEmails.push(authRecord);
-      } else {
-        authRecord.lastLoginAt = nowIso;
-        if (!authRecord.name || authRecord.name === authRecord.email.split('@')[0]) {
-          authRecord.name = userName;
-        }
-      }
-      safeStorage.setItem(STORAGE_KEYS.AUTHORIZED, JSON.stringify(authorizedEmails));
-
-      // Post/update to server backend store
-      try {
-        fetch('/api/authorized-emails', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(authRecord)
-        }).catch(() => {});
-      } catch (e) {}
-
-      // Upsert to Supabase if active
-      if (isSupabaseActive()) {
-        (async () => {
-          try {
-            await supabaseClient.from('sgait_authorized_emails').upsert({
-              email: authRecord.email,
-              name: authRecord.name,
-              role: authRecord.role,
-              last_login_at: authRecord.lastLoginAt
-            }, { onConflict: 'email' });
-          } catch (e) {}
-        })();
-      }
-
-      const mockUserProfile: UserProfile = {
-        id: `user-id-${emailToUse.replace(/[^a-zA-Z0-9]/g, '')}`,
+    if (!authRecord) {
+      authRecord = {
         email: emailToUse,
         name: userName,
-        avatarUrl: `https://api.dicebear.com/7.x/adventurer/svg?seed=${encodeURIComponent(userName)}`,
         role: role,
-        googleId: `google-id-${emailToUse.substring(0, 5)}`,
-        firstAccessAt: authRecord.lastLoginAt || nowIso,
         lastLoginAt: nowIso
       };
-
-      safeStorage.setItem(STORAGE_KEYS.CURRENT_USER, JSON.stringify(mockUserProfile));
-      return { user: mockUserProfile, error: null };
-    };
-
-    // If an email is explicitly passed or if we are running inside an iframe (where Google OAuth redirects throw 403), execute login directly
-    const isIframe = typeof window !== 'undefined' && window.self !== window.top;
-    if (simulatedEmail || isIframe) {
-      return executeSimulatedLogin(simulatedEmail);
-    }
-
-    if (isSupabaseConfigured() && supabaseClient) {
-      try {
-        const cleanRedirectUrl = typeof window !== 'undefined' 
-          ? window.location.href.split('?')[0].split('#')[0] 
-          : undefined;
-          
-        const { error } = await supabaseClient.auth.signInWithOAuth({
-          provider: 'google',
-          options: {
-            redirectTo: cleanRedirectUrl,
-            queryParams: {
-              prompt: 'select_account'
-            }
-          }
-        });
-        if (error) {
-          return executeSimulatedLogin(simulatedEmail);
-        }
-        return { user: null, error: null };
-      } catch (err: any) {
-        return executeSimulatedLogin(simulatedEmail);
+      authorizedEmails.push(authRecord);
+    } else {
+      authRecord.lastLoginAt = nowIso;
+      if (!authRecord.name || authRecord.name === authRecord.email.split('@')[0]) {
+        authRecord.name = userName;
       }
     }
+    safeStorage.setItem(STORAGE_KEYS.AUTHORIZED, JSON.stringify(authorizedEmails));
 
-    return executeSimulatedLogin(simulatedEmail);
+    // Post/update to server backend store
+    try {
+      fetch('/api/authorized-emails', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(authRecord)
+      }).catch(() => {});
+    } catch (e) {}
+
+    const mockUserProfile: UserProfile = {
+      id: `user-id-${emailToUse.replace(/[^a-zA-Z0-9]/g, '')}`,
+      email: emailToUse,
+      name: userName,
+      avatarUrl: `https://api.dicebear.com/7.x/adventurer/svg?seed=${encodeURIComponent(userName)}`,
+      role: role,
+      googleId: `google-id-${emailToUse.substring(0, 5)}`,
+      firstAccessAt: authRecord.lastLoginAt || nowIso,
+      lastLoginAt: nowIso
+    };
+
+    // Save active session locally
+    safeStorage.setItem(STORAGE_KEYS.CURRENT_USER, JSON.stringify(mockUserProfile));
+
+    // Async sync with Supabase tables if active
+    if (isSupabaseActive()) {
+      (async () => {
+        try {
+          await supabaseClient.from('sgait_authorized_emails').upsert({
+            email: authRecord.email,
+            name: authRecord.name,
+            role: authRecord.role,
+            last_login_at: authRecord.lastLoginAt
+          }, { onConflict: 'email' });
+
+          await supabaseClient.from('sgait_profiles').upsert({
+            id: mockUserProfile.id,
+            email: mockUserProfile.email,
+            name: mockUserProfile.name,
+            avatar_url: mockUserProfile.avatarUrl,
+            role: mockUserProfile.role,
+            google_id: mockUserProfile.googleId,
+            last_login_at: mockUserProfile.lastLoginAt
+          }, { onConflict: 'email' });
+        } catch (e) {}
+      })();
+    }
+
+    return { user: mockUserProfile, error: null };
   },
 
   /**
@@ -662,7 +640,11 @@ export const dbService = {
       try {
         const { data: { user } } = await supabaseClient.auth.getUser();
         if (!user) {
-          // Fallback to local session even if Supabase is active (useful when Auth provider is disabled)
+          // Clean hash error if returning from failed OAuth redirect
+          if (typeof window !== 'undefined' && (window.location.hash.includes('error=') || window.location.search.includes('error='))) {
+            try { window.history.replaceState(null, '', window.location.pathname); } catch (e) {}
+          }
+          // Fallback to local session even if Supabase is active
           const stored = safeStorage.getItem(STORAGE_KEYS.CURRENT_USER);
           return stored ? JSON.parse(stored) : null;
         }
@@ -734,6 +716,9 @@ export const dbService = {
           lastLoginAt: new Date().toISOString()
         };
 
+        // Always sync user profile to local session storage as well
+        safeStorage.setItem(STORAGE_KEYS.CURRENT_USER, JSON.stringify(profileData));
+
         // Write profile back to database if it didn't exist or needs update
         try {
           if (!profile) {
@@ -758,7 +743,8 @@ export const dbService = {
         return profileData;
       } catch (err) {
         console.error('Error in getCurrentUser:', err);
-        return null;
+        const stored = safeStorage.getItem(STORAGE_KEYS.CURRENT_USER);
+        return stored ? JSON.parse(stored) : null;
       }
     } else {
       const stored = safeStorage.getItem(STORAGE_KEYS.CURRENT_USER);

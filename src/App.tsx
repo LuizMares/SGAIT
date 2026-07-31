@@ -129,9 +129,6 @@ export default function App() {
           } finally {
             setLoadingApp(false);
           }
-        } else if (event === 'SIGNED_OUT') {
-          setCurrentUser(null);
-          setTickets([]);
         }
       });
       authSubscription = data.subscription;

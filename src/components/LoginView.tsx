@@ -42,8 +42,8 @@ export default function LoginView({ onLoginSuccess }: LoginViewProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
-  const handleGoogleLogin = async (e?: React.FormEvent) => {
-    if (e) e.preventDefault();
+
+  const handleGoogleLogin = async () => {
     setIsLoading(true);
     setErrorMessage(null);
     setSuccessMessage(null);
@@ -61,7 +61,7 @@ export default function LoginView({ onLoginSuccess }: LoginViewProps) {
         setSuccessMessage(`Acesso autorizado! Bem-vindo(a), ${user.name}.`);
         setTimeout(() => {
           onLoginSuccess(user);
-        }, 600);
+        }, 300);
       }
     } catch (err: any) {
       setErrorMessage(err.message || 'Erro ao realizar login.');
@@ -137,7 +137,7 @@ export default function LoginView({ onLoginSuccess }: LoginViewProps) {
           <div className="py-2">
             <button
               type="button"
-              onClick={() => handleGoogleLogin()}
+              onClick={handleGoogleLogin}
               id="btn-login-google-direct"
               disabled={isLoading}
               className="w-full py-4 px-4 bg-slate-900 hover:bg-slate-800 disabled:bg-slate-600 text-white font-bold text-xs uppercase tracking-wider rounded-2xl shadow-md flex items-center justify-center gap-3 transition-all cursor-pointer hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0"
