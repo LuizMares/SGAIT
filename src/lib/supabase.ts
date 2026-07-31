@@ -256,6 +256,20 @@ const initializeLocalStorage = () => {
         // Keep only emails that are either luizemerson17@gmail.com or other custom added emails (remove removed defaults)
         const removedEmails = ['sttpojuca@gmail.com', 'diretoria@sgait.gov.br', 'agente.silva@sgait.gov.br', 'agente.souza@sgait.gov.br'];
         const filtered = parsed.filter(item => !removedEmails.includes(item.email));
+        
+        // Ensure luizemerson17@gmail.com is always present in authorized list as ADMIN
+        const emersonIndex = filtered.findIndex(item => item.email && item.email.toLowerCase() === 'luizemerson17@gmail.com');
+        if (emersonIndex >= 0) {
+          filtered[emersonIndex].role = UserRole.ADMIN;
+          filtered[emersonIndex].name = filtered[emersonIndex].name || 'Emerson Mares';
+        } else {
+          filtered.push({
+            email: 'luizemerson17@gmail.com',
+            role: UserRole.ADMIN,
+            name: 'Emerson Mares',
+            lastLoginAt: new Date().toISOString()
+          });
+        }
         safeStorage.setItem(STORAGE_KEYS.AUTHORIZED, JSON.stringify(filtered));
       }
     } catch (e) {
@@ -263,13 +277,17 @@ const initializeLocalStorage = () => {
     }
   }
 
-  // Clear current user if it is sttpojuca@gmail.com
+  // Clear current user if it is sttpojuca@gmail.com, and ensure luizemerson17@gmail.com is set as ADMIN
   const currUserStr = safeStorage.getItem(STORAGE_KEYS.CURRENT_USER);
   if (currUserStr) {
     try {
       const parsedUser = JSON.parse(currUserStr);
       if (parsedUser && parsedUser.email === 'sttpojuca@gmail.com') {
         safeStorage.removeItem(STORAGE_KEYS.CURRENT_USER);
+      } else if (parsedUser && parsedUser.email && parsedUser.email.toLowerCase() === 'luizemerson17@gmail.com') {
+        parsedUser.role = UserRole.ADMIN;
+        parsedUser.name = parsedUser.name || 'Emerson Mares';
+        safeStorage.setItem(STORAGE_KEYS.CURRENT_USER, JSON.stringify(parsedUser));
       }
     } catch (e) {}
   }

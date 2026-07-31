@@ -54,10 +54,7 @@ export default function LoginView({ onLoginSuccess }: LoginViewProps) {
       if (error) {
         setErrorMessage(error);
         setIsLoading(false);
-        return;
-      }
-
-      if (user) {
+      } else if (user) {
         setSuccessMessage(`Acesso autorizado! Bem-vindo(a), ${user.name}.`);
         setTimeout(() => {
           onLoginSuccess(user);
@@ -65,7 +62,6 @@ export default function LoginView({ onLoginSuccess }: LoginViewProps) {
       }
     } catch (err: any) {
       setErrorMessage(err.message || 'Erro ao realizar login.');
-    } finally {
       setIsLoading(false);
     }
   };
@@ -133,7 +129,7 @@ export default function LoginView({ onLoginSuccess }: LoginViewProps) {
             </div>
           )}
 
-          {/* GOOGLE DIRECT LOGIN BUTTON */}
+          {/* GOOGLE LOGIN BUTTON */}
           <div className="py-2">
             <button
               type="button"
@@ -174,3 +170,4 @@ export default function LoginView({ onLoginSuccess }: LoginViewProps) {
     </div>
   );
 }
+
