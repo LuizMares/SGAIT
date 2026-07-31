@@ -4,13 +4,11 @@
  */
 
 import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion } from 'motion/react';
 import { 
   Database, 
   AlertOctagon, 
-  CheckCircle2,
-  X,
-  ArrowRight
+  CheckCircle2
 } from 'lucide-react';
 import { dbService } from '../lib/supabase';
 import { UserProfile } from '../types';
@@ -45,19 +43,14 @@ export default function LoginView({ onLoginSuccess }: LoginViewProps) {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
-  // Google Account selector state
-  const [isGoogleModalOpen, setIsGoogleModalOpen] = useState(false);
-  const [googleEmailInput, setGoogleEmailInput] = useState('');
-
-  const handleExecuteLogin = async (emailToLogin?: string) => {
+  // Handle Google OAuth Redirect via Supabase
+  const handleGoogleOAuthLogin = async () => {
     setIsLoading(true);
     setErrorMessage(null);
     setSuccessMessage(null);
-    setIsGoogleModalOpen(false);
 
     try {
-      const emailTarget = (emailToLogin || googleEmailInput || 'luizemerson17@gmail.com').trim().toLowerCase();
-      const { user, error } = await dbService.signInWithGoogle(emailTarget);
+      const { user, error } = await dbService.signInWithGoogle();
 
       if (error) {
         setErrorMessage(error);
@@ -72,15 +65,9 @@ export default function LoginView({ onLoginSuccess }: LoginViewProps) {
         }, 300);
       }
     } catch (err: any) {
-      setErrorMessage(err.message || 'Erro ao realizar login.');
+      setErrorMessage(err.message || 'Erro ao realizar login via Google Auth.');
       setIsLoading(false);
     }
-  };
-
-  const handleFormSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!googleEmailInput.trim()) return;
-    handleExecuteLogin(googleEmailInput.trim().toLowerCase());
   };
 
   return (
@@ -92,10 +79,10 @@ export default function LoginView({ onLoginSuccess }: LoginViewProps) {
         backgroundSize: '20px 20px'
       }}
     >
-      <div className="max-w-md w-full bg-white rounded-3xl border border-slate-200/80 shadow-xl overflow-hidden flex flex-col justify-between relative min-h-[480px]">
+      <div className="max-w-md w-full bg-white rounded-3xl border border-slate-200/80 shadow-xl overflow-hidden flex flex-col justify-between relative min-h-[460px]">
         
         {/* Institutional Navy Header Banner with Traffic Yellow Accent */}
-        <div className="bg-slate-950 text-slate-100 px-6 py-12 text-center relative shrink-0 border-b-4 border-amber-500">
+        <div className="bg-slate-950 text-slate-100 px-6 py-10 text-center relative shrink-0 border-b-4 border-amber-500">
           <div className="absolute top-4 left-4 flex items-center gap-1.5 opacity-75 text-xxs font-mono tracking-wider text-amber-400 font-bold">
             <span>SISTEMA OFICIAL</span>
             <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
@@ -106,22 +93,23 @@ export default function LoginView({ onLoginSuccess }: LoginViewProps) {
             initial={{ scale: 0.9, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             transition={{ duration: 0.3 }}
-            className="w-16 h-16 bg-amber-500 rounded-2xl mx-auto flex items-center justify-center border-2 border-slate-900 shadow-md text-slate-950 font-black text-2xl tracking-tighter mb-4"
+            className="w-14 h-14 bg-amber-500 rounded-2xl mx-auto flex items-center justify-center border-2 border-slate-900 shadow-md text-slate-950 font-black text-xl tracking-tighter mb-3"
           >
             SGAIT
           </motion.div>
-          <h2 className="text-2xl font-black tracking-tight text-slate-50">SGAIT</h2>
-          <p className="text-[10px] text-amber-400 font-mono tracking-widest uppercase mt-1.5 font-bold">Sistema de Gestão de Autos de Infração</p>
-          <p className="text-[9px] text-slate-400 font-sans tracking-wide uppercase mt-1">Superintendência de Trânsito e Transporte Pojuca - BA</p>
+          <h2 className="text-xl font-black tracking-tight text-slate-50">SGAIT</h2>
+          <p className="text-[10px] text-amber-400 font-mono tracking-widest uppercase mt-1 font-bold">Sistema de Gestão de Autos de Infração</p>
+          <p className="text-[9px] text-slate-400 font-sans tracking-wide uppercase mt-0.5">Superintendência de Trânsito e Transporte Pojuca - BA</p>
         </div>
 
         {/* Form Body Container */}
-        <div className="p-6 space-y-6 flex-1 text-slate-700 flex flex-col justify-between bg-slate-50/50">
+        <div className="p-6 space-y-5 flex-1 text-slate-700 flex flex-col justify-between bg-slate-50/50">
           
-          <div className="space-y-2 text-center">
-            <h3 className="font-extrabold text-xs text-slate-800 uppercase tracking-wider">Acesso de Agentes de Trânsito</h3>
+          {/* Header Subtitle */}
+          <div className="text-center space-y-1">
+            <h3 className="font-extrabold text-xs text-slate-800 uppercase tracking-wider">Acesso Único Google Auth</h3>
             <p className="text-xxs text-slate-500 max-w-xs mx-auto leading-relaxed">
-              Autentique-se com sua credencial institucional do Google para iniciar o serviço de campo.
+              Autentique-se com sua conta corporativa Google para acessar o sistema com segurança.
             </p>
           </div>
 
@@ -146,11 +134,11 @@ export default function LoginView({ onLoginSuccess }: LoginViewProps) {
             </div>
           )}
 
-          {/* GOOGLE LOGIN BUTTON */}
+          {/* GOOGLE AUTH BUTTON */}
           <div className="py-2">
             <button
               type="button"
-              onClick={() => setIsGoogleModalOpen(true)}
+              onClick={handleGoogleOAuthLogin}
               id="btn-login-google-direct"
               disabled={isLoading}
               className="w-full py-4 px-4 bg-slate-900 hover:bg-slate-800 disabled:bg-slate-600 text-white font-bold text-xs uppercase tracking-wider rounded-2xl shadow-md flex items-center justify-center gap-3 transition-all cursor-pointer hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0"
@@ -160,119 +148,30 @@ export default function LoginView({ onLoginSuccess }: LoginViewProps) {
               ) : (
                 <>
                   <GoogleLogo />
-                  Entrar com Conta Google
+                  <span>Entrar com o Google</span>
                 </>
               )}
             </button>
           </div>
 
           {/* Connection Info Banner */}
-          <div className="flex items-center justify-center gap-1.5 text-xxs font-mono text-slate-400 pt-2 border-t border-slate-50">
+          <div className="flex items-center justify-center gap-1.5 text-xxs font-mono text-slate-400 pt-2 border-t border-slate-100">
             <Database size={12} className="text-emerald-500 animate-pulse" />
             <span>
-              Banco de Dados: <b>Supabase Cloud (Online)</b>
+              Autenticação: <b>Google OAuth via Supabase</b>
             </span>
           </div>
 
         </div>
 
         {/* Footer Legal Terms Block */}
-        <div className="bg-slate-50 border-t border-slate-100 p-4 text-center shrink-0">
+        <div className="bg-slate-50 border-t border-slate-100 p-3.5 text-center shrink-0">
           <p className="text-[10px] text-slate-400 font-sans leading-relaxed">
             Ao autenticar-se, o operador declara ciência e conformidade com as regras de sigilo e responsabilidade de fiscalização de trânsito.
           </p>
         </div>
 
       </div>
-
-      {/* GOOGLE ACCOUNT INPUT MODAL */}
-      <AnimatePresence>
-        {isGoogleModalOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setIsGoogleModalOpen(false)}
-              className="fixed inset-0 bg-slate-950/70 backdrop-blur-xs"
-            />
-
-            <motion.div
-              initial={{ scale: 0.95, opacity: 0, y: 10 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.95, opacity: 0, y: 10 }}
-              className="relative w-full max-w-sm bg-white rounded-3xl shadow-2xl overflow-hidden z-50 border border-slate-200"
-            >
-              {/* Google Header */}
-              <div className="p-6 border-b border-slate-100 bg-slate-50/60 relative">
-                <button
-                  type="button"
-                  onClick={() => setIsGoogleModalOpen(false)}
-                  className="absolute top-4 right-4 text-slate-400 hover:text-slate-600 p-1.5 rounded-full hover:bg-slate-200/60 transition-colors cursor-pointer"
-                >
-                  <X size={18} />
-                </button>
-                <div className="flex items-center gap-2 mb-2">
-                  <GoogleLogo />
-                  <span className="text-xs font-bold text-slate-700">Autenticação Google</span>
-                </div>
-                <h3 className="text-lg font-black text-slate-900 tracking-tight">Fazer login com o Google</h3>
-                <p className="text-xs text-slate-500 mt-1">
-                  Informe o e-mail da sua Conta Google para acessar o sistema:
-                </p>
-              </div>
-
-              {/* Form Content */}
-              <form onSubmit={handleFormSubmit} className="p-6 space-y-4">
-                <div>
-                  <label htmlFor="google-email-input" className="block text-xxs font-bold uppercase tracking-wider text-slate-700 mb-1.5">
-                    E-mail do Google:
-                  </label>
-                  <input
-                    id="google-email-input"
-                    type="email"
-                    value={googleEmailInput}
-                    onChange={(e) => setGoogleEmailInput(e.target.value)}
-                    placeholder="seu.email@gmail.com"
-                    required
-                    autoFocus
-                    className="w-full px-4 py-3 bg-white border border-slate-300 rounded-2xl text-xs font-medium text-slate-900 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 shadow-xs"
-                  />
-                  <p className="text-[11px] text-slate-400 mt-1.5">
-                    Você pode utilizar qualquer conta de e-mail do Google para fazer login.
-                  </p>
-                </div>
-
-                <div className="pt-2 flex items-center justify-end gap-2 border-t border-slate-100">
-                  <button
-                    type="button"
-                    onClick={() => setIsGoogleModalOpen(false)}
-                    className="px-4 py-2.5 text-xs text-slate-600 hover:text-slate-800 font-semibold rounded-xl hover:bg-slate-100 transition-colors cursor-pointer"
-                  >
-                    Cancelar
-                  </button>
-                  <button
-                    type="submit"
-                    disabled={!googleEmailInput.trim()}
-                    className="px-5 py-2.5 bg-slate-900 hover:bg-slate-800 disabled:bg-slate-400 text-white font-bold text-xs rounded-xl shadow-md flex items-center gap-2 transition-all cursor-pointer"
-                  >
-                    <GoogleLogo />
-                    <span>Entrar com o Google</span>
-                    <ArrowRight size={14} />
-                  </button>
-                </div>
-              </form>
-
-              {/* Modal Footer */}
-              <div className="px-6 py-3 bg-slate-50 border-t border-slate-100 text-center">
-                <span className="text-[10px] text-slate-400 font-mono">
-                  SGAIT Google OAuth Direct Access
-                </span>
-              </div>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
     </div>
   );
 }

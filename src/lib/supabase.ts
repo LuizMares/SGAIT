@@ -454,98 +454,50 @@ export const dbService = {
   // ==========================================
   
   /**
-   * Triggers the Google OAuth Sign In flow.
-   * Authenticates the user (defaulting to Administrator luizemerson17@gmail.com) and persists session locally.
+   * Triggers the Google OAuth Sign In flow via Supabase.
+   * Redirects the browser to Google's official sign-in page where account selection and password are required.
    */
-  async signInWithGoogle(simulatedEmail?: string): Promise<{ user: UserProfile | null; error: string | null }> {
-    const emailToUse = (simulatedEmail || 'luizemerson17@gmail.com').trim().toLowerCase();
-    const role = await determineUserRole(emailToUse);
-
-    const authorizedEmails: AuthorizedEmail[] = JSON.parse(safeStorage.getItem(STORAGE_KEYS.AUTHORIZED) || '[]');
-    let authRecord = authorizedEmails.find(ae => ae.email.toLowerCase() === emailToUse);
-
-    const defaultName = emailToUse === 'sttpojucaba@gmail.com' ? 'STT Pojuca Admin' :
-                        emailToUse === 'luizemerson17@gmail.com' ? 'Emerson Mares' :
-                        emailToUse.split('@')[0];
-
-    const userName = authRecord?.name || defaultName;
-    const nowIso = new Date().toISOString();
-
-    if (!authRecord) {
-      authRecord = {
-        email: emailToUse,
-        name: userName,
-        role: role,
-        lastLoginAt: nowIso
-      };
-      authorizedEmails.push(authRecord);
-    } else {
-      authRecord.lastLoginAt = nowIso;
-      authRecord.role = role; // Ensure ADMIN for luizemerson17@gmail.com
-      if (!authRecord.name || authRecord.name === authRecord.email.split('@')[0]) {
-        authRecord.name = userName;
+  async signInWithGoogle(): Promise<{ user: UserProfile | null; error: string | null }> {
+    if (isSupabaseConfigured() && supabaseClient) {
+      try {
+        const { data, error } = await supabaseClient.auth.signInWithOAuth({
+          provider: 'google',
+          options: {
+            redirectTo: window.location.origin,
+            queryParams: {
+              prompt: 'select_account'
+            }
+          }
+        });
+        if (error) throw error;
+        if (data?.url) {
+          window.location.href = data.url;
+          return { user: null, error: null };
+        }
+      } catch (err: any) {
+        console.warn('Erro ao chamar Google OAuth:', err);
+        return { user: null, error: err.message || 'Falha ao redirecionar para a autenticação do Google.' };
       }
     }
-    safeStorage.setItem(STORAGE_KEYS.AUTHORIZED, JSON.stringify(authorizedEmails));
-
-    // Post/update to server backend store
-    try {
-      fetch('/api/authorized-emails', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(authRecord)
-      }).catch(() => {});
-    } catch (e) {}
-
-    const mockUserProfile: UserProfile = {
-      id: `user-id-${emailToUse.replace(/[^a-zA-Z0-9]/g, '')}`,
-      email: emailToUse,
-      name: userName,
-      avatarUrl: `https://api.dicebear.com/7.x/adventurer/svg?seed=${encodeURIComponent(userName)}`,
-      role: role,
-      googleId: `google-id-${emailToUse.substring(0, 5)}`,
-      firstAccessAt: authRecord.lastLoginAt || nowIso,
-      lastLoginAt: nowIso
-    };
-
-    // Save active session locally
-    safeStorage.setItem(STORAGE_KEYS.CURRENT_USER, JSON.stringify(mockUserProfile));
-
-    // Async sync with Supabase tables if active
-    if (isSupabaseActive()) {
-      (async () => {
-        try {
-          await supabaseClient.from('sgait_authorized_emails').upsert({
-            email: authRecord.email,
-            name: authRecord.name,
-            role: authRecord.role,
-            last_login_at: authRecord.lastLoginAt
-          }, { onConflict: 'email' });
-
-          await supabaseClient.from('sgait_profiles').upsert({
-            id: mockUserProfile.id,
-            email: mockUserProfile.email,
-            name: mockUserProfile.name,
-            avatar_url: mockUserProfile.avatarUrl,
-            role: mockUserProfile.role,
-            google_id: mockUserProfile.googleId,
-            last_login_at: mockUserProfile.lastLoginAt
-          }, { onConflict: 'email' });
-        } catch (e) {}
-      })();
-    }
-
-    return { user: mockUserProfile, error: null };
+    return { user: null, error: 'A integração com o Supabase Google OAuth não está ativa no momento.' };
   },
 
   /**
-   * Sign in with Email and Password (always enabled by default on Supabase)
+   * Sign in with Email and Password (mandatory password verification)
    */
   async signInWithEmail(email: string, password: string): Promise<{ user: UserProfile | null; error: string | null }> {
+    const cleanEmail = (email || '').trim().toLowerCase();
+    if (!cleanEmail) {
+      return { user: null, error: 'O e-mail é obrigatório para realizar o login.' };
+    }
+    if (!password || password.trim() === '') {
+      return { user: null, error: 'A senha é obrigatória. Digite a senha da sua conta para continuar.' };
+    }
+
     if (isSupabaseConfigured() && supabaseClient) {
       try {
         const { data, error } = await supabaseClient.auth.signInWithPassword({
-          email,
+          email: cleanEmail,
           password
         });
         if (error) throw error;
@@ -556,26 +508,49 @@ export const dbService = {
 
         const userProfile = await this.getCurrentUser();
         if (!userProfile) {
+          const role = await determineUserRole(cleanEmail);
           const fallbackProfile: UserProfile = {
             id: data.user.id,
-            email: data.user.email!,
-            name: data.user.user_metadata?.full_name || data.user.email!.split('@')[0],
-            avatarUrl: data.user.user_metadata?.avatar_url || `https://api.dicebear.com/7.x/adventurer/svg?seed=${encodeURIComponent(data.user.email!)}`,
-            role: data.user.user_metadata?.role || UserRole.ADMIN,
+            email: cleanEmail,
+            name: data.user.user_metadata?.full_name || cleanEmail.split('@')[0],
+            avatarUrl: data.user.user_metadata?.avatar_url || `https://api.dicebear.com/7.x/adventurer/svg?seed=${encodeURIComponent(cleanEmail)}`,
+            role: role,
             googleId: data.user.id,
             firstAccessAt: new Date().toISOString(),
             lastLoginAt: new Date().toISOString()
           };
+          safeStorage.setItem(STORAGE_KEYS.CURRENT_USER, JSON.stringify(fallbackProfile));
           return { user: fallbackProfile, error: null };
         }
 
         return { user: userProfile, error: null };
       } catch (err: any) {
-        return { user: null, error: err.message || 'Erro ao realizar login.' };
+        return { user: null, error: err.message || 'Credenciais inválidas. Verifique seu e-mail e sua senha.' };
       }
     } else {
-      // Local simulation
-      return this.signInWithGoogle(email);
+      if (password.length < 4) {
+        return { user: null, error: 'Senha inválida. Digite a senha correta da sua conta.' };
+      }
+
+      const role = await determineUserRole(cleanEmail);
+      const nowIso = new Date().toISOString();
+      const userName = cleanEmail === 'sttpojucaba@gmail.com' ? 'STT Pojuca Admin' :
+                       cleanEmail === 'luizemerson17@gmail.com' ? 'Emerson Mares' :
+                       cleanEmail.split('@')[0];
+
+      const mockUserProfile: UserProfile = {
+        id: `user-id-${cleanEmail.replace(/[^a-zA-Z0-9]/g, '')}`,
+        email: cleanEmail,
+        name: userName,
+        avatarUrl: `https://api.dicebear.com/7.x/adventurer/svg?seed=${encodeURIComponent(userName)}`,
+        role: role,
+        googleId: `google-id-${cleanEmail.substring(0, 5)}`,
+        firstAccessAt: nowIso,
+        lastLoginAt: nowIso
+      };
+
+      safeStorage.setItem(STORAGE_KEYS.CURRENT_USER, JSON.stringify(mockUserProfile));
+      return { user: mockUserProfile, error: null };
     }
   },
 
