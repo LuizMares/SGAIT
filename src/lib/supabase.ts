@@ -155,6 +155,7 @@ const supabaseAuthOptions = {
     persistSession: true,
     autoRefreshToken: true,
     storage: supabaseStorageAdapter,
+    flowType: 'implicit' as const,
   }
 };
 
