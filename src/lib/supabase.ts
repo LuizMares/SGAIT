@@ -475,15 +475,7 @@ export const dbService = {
         });
         if (error) throw error;
         if (data?.url) {
-          try {
-            if (typeof window !== 'undefined' && window.self !== window.top && window.top) {
-              window.top.location.href = data.url;
-            } else {
-              window.location.href = data.url;
-            }
-          } catch (e) {
-            window.location.href = data.url;
-          }
+          window.location.href = data.url;
           return { user: null, error: null };
         }
       } catch (err: any) {

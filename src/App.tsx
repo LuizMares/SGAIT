@@ -115,6 +115,13 @@ export default function App() {
   useEffect(() => {
     let isMounted = true;
 
+    // Check if browser currently has OAuth return tokens or codes in the URL
+    const hasPendingOAuthUrl = typeof window !== 'undefined' && (
+      window.location.hash.includes('access_token') ||
+      window.location.hash.includes('refresh_token') ||
+      window.location.search.includes('code=')
+    );
+
     // Helper to process session user and transition state immediately to logged-in
     const handleLoginUser = async (userObj: any) => {
       try {
@@ -133,28 +140,39 @@ export default function App() {
 
     const initApp = async () => {
       try {
-        // 1. Explicitly check active Supabase session on app load
+        // 1. Explicitly check active Supabase session on app load via getSession()
         if (isSupabaseConfigured() && supabaseClient) {
-          const { data: { session } } = await supabaseClient.auth.getSession();
-          if (session?.user) {
-            const loggedIn = await handleLoginUser(session.user);
-            if (loggedIn) return;
+          const { data, error } = await supabaseClient.auth.getSession();
+          if (error) {
+            console.warn('Erro em supabaseClient.auth.getSession():', error);
+          }
+          if (data?.session?.user) {
+            const loggedIn = await handleLoginUser(data.session.user);
+            if (loggedIn && isMounted) {
+              setLoadingApp(false);
+              return;
+            }
           }
         }
 
         // 2. Check cached profile if no active Supabase session or if Supabase is offline
-        const cachedUser = await dbService.getCurrentUser();
-        if (isMounted && cachedUser) {
-          setCurrentUser(cachedUser);
-          await loadData(cachedUser);
+        // ONLY stop loading if there are NO pending OAuth tokens in the URL currently being processed
+        if (!hasPendingOAuthUrl) {
+          const cachedUser = await dbService.getCurrentUser();
+          if (isMounted && cachedUser) {
+            setCurrentUser(cachedUser);
+            await loadData(cachedUser);
+          }
+          if (isMounted) {
+            if (typeof window !== 'undefined' && window.location.href.includes('error=')) {
+              cleanUrlAuthParams();
+            }
+            setLoadingApp(false);
+          }
         }
       } catch (err) {
         console.error('Falha ao inicializar sessões do SGAIT:', err);
-      } finally {
-        if (isMounted) {
-          if (typeof window !== 'undefined' && window.location.href.includes('error=')) {
-            cleanUrlAuthParams();
-          }
+        if (isMounted && !hasPendingOAuthUrl) {
           setLoadingApp(false);
         }
       }
@@ -162,7 +180,7 @@ export default function App() {
 
     initApp();
 
-    // 3. Listener de mudanças no estado de autenticação do Supabase
+    // 3. Robust listener for Supabase authentication state changes
     let authSubscription: { unsubscribe: () => void } | null = null;
     if (isSupabaseConfigured() && supabaseClient) {
       const { data } = supabaseClient.auth.onAuthStateChange(async (event, session) => {
@@ -185,9 +203,7 @@ export default function App() {
           if (typeof window !== 'undefined' && window.location.href.includes('error=')) {
             cleanUrlAuthParams();
           }
-          const hasAuthCode = typeof window !== 'undefined' && 
-            (window.location.hash.includes('access_token') || window.location.search.includes('code='));
-          if (!hasAuthCode && isMounted) {
+          if (!hasPendingOAuthUrl && isMounted) {
             setLoadingApp(false);
           }
         }
@@ -197,12 +213,12 @@ export default function App() {
       setLoadingApp(false);
     }
 
-    // Safety timeout: Ensure app never stays stuck on loading screen
+    // Safety timeout: Ensure app never stays stuck indefinitely on loading screen
     const safetyTimer = setTimeout(() => {
       if (isMounted) {
         setLoadingApp(false);
       }
-    }, 4000);
+    }, 4500);
 
     // Browser Online/Offline listeners
     const handleOnline = () => setIsOnline(true);
@@ -212,6 +228,7 @@ export default function App() {
 
     return () => {
       isMounted = false;
+      clearTimeout(safetyTimer);
       if (authSubscription) {
         authSubscription.unsubscribe();
       }
