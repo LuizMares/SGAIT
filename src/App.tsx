@@ -149,8 +149,17 @@ export default function App() {
           }
           return true;
         }
-      } catch (err) {
-        console.error('Erro ao processar perfil do usuário:', err);
+      } catch (err: any) {
+        console.warn('Erro ao processar perfil do usuário (tratado silenciosamente):', err);
+        if (isMounted) {
+          setCurrentUser(null);
+          setLoadingApp(false);
+        }
+        return false;
+      }
+      if (isMounted) {
+        setCurrentUser(null);
+        setLoadingApp(false);
       }
       return false;
     };
@@ -163,32 +172,42 @@ export default function App() {
         cleanUrlAuthParams();
       }
 
-      if (isSupabaseConfigured() && supabaseClient) {
-        try {
-          const { data } = await supabaseClient.auth.getSession();
-          if (data?.session?.user) {
-            const cachedUser = await dbService.getCurrentUser(data.session.user);
-            if (isMounted && cachedUser) {
-              authHandled = true;
-              setCurrentUser(cachedUser);
-              await loadData(cachedUser);
+      try {
+        if (isSupabaseConfigured() && supabaseClient) {
+          const { data, error } = await supabaseClient.auth.getSession();
+          if (error || !data?.session?.user) {
+            if (isMounted) {
+              setCurrentUser(null);
+              setLoadingApp(false);
             }
+            return;
           }
-        } catch (e) {
-          console.warn('Erro ao verificar sessão ativa em finalizeUnauthenticatedState:', e);
+          const cachedUser = await dbService.getCurrentUser(data.session.user);
+          if (isMounted && cachedUser) {
+            authHandled = true;
+            setCurrentUser(cachedUser);
+            await loadData(cachedUser);
+          } else if (isMounted) {
+            setCurrentUser(null);
+          }
+        } else {
+          // If Supabase is not configured, allow local dev user fallback
+          const cachedUser = await dbService.getCurrentUser();
+          if (isMounted && cachedUser) {
+            authHandled = true;
+            setCurrentUser(cachedUser);
+            await loadData(cachedUser);
+          }
         }
-      } else {
-        // If Supabase is not configured, allow local dev user fallback
-        const cachedUser = await dbService.getCurrentUser();
-        if (isMounted && cachedUser) {
-          authHandled = true;
-          setCurrentUser(cachedUser);
-          await loadData(cachedUser);
+      } catch (e) {
+        console.warn('Erro ao verificar sessão ativa em finalizeUnauthenticatedState:', e);
+        if (isMounted) {
+          setCurrentUser(null);
         }
-      }
-
-      if (isMounted) {
-        setLoadingApp(false);
+      } finally {
+        if (isMounted) {
+          setLoadingApp(false);
+        }
       }
     };
 
@@ -203,8 +222,9 @@ export default function App() {
         if (event === 'SIGNED_IN' || (event === 'INITIAL_SESSION' && session?.user) || (event === 'TOKEN_REFRESHED' && session?.user)) {
           if (session?.user) {
             const success = await handleLoginUser(session.user);
-            if (!success) {
-              await finalizeUnauthenticatedState();
+            if (!success && isMounted) {
+              setCurrentUser(null);
+              setLoadingApp(false);
             }
           }
         } else if (event === 'SIGNED_OUT') {
@@ -217,6 +237,7 @@ export default function App() {
           }
         } else if (event === 'INITIAL_SESSION' && !session?.user) {
           if (!hasOAuthParams && isMounted) {
+            setCurrentUser(null);
             setLoadingApp(false);
           }
         }
@@ -232,9 +253,15 @@ export default function App() {
           if (session?.user) {
             const success = await handleLoginUser(session.user);
             if (success) return;
-          } else if (!hasOAuthParams) {
-            // No session and no OAuth parameters in URL -> stop loading immediately and show login screen!
             if (isMounted) {
+              setCurrentUser(null);
+              setLoadingApp(false);
+            }
+            return;
+          } else {
+            // Sem sessão ativa no Supabase -> interrompe carregamento imediatamente sem refazer requisições!
+            if (isMounted) {
+              setCurrentUser(null);
               setLoadingApp(false);
             }
             return;
@@ -252,12 +279,12 @@ export default function App() {
           }
           return;
         }
-
-        // Fallback if there are OAuth parameters processing in URL
-        await finalizeUnauthenticatedState();
       } catch (err) {
-        console.error('Falha ao inicializar autenticação do SGAIT:', err);
-        if (isMounted) setLoadingApp(false);
+        console.warn('Tratamento silencioso de erro na autenticação do SGAIT:', err);
+        if (isMounted) {
+          setCurrentUser(null);
+          setLoadingApp(false);
+        }
       }
     };
 
