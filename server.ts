@@ -44,6 +44,18 @@ function getEnvSupabaseConfig() {
   return { envUrl, envKey };
 }
 
+function isValidUrl(urlStr: any): boolean {
+  if (!urlStr || typeof urlStr !== 'string') return false;
+  const trimmed = urlStr.trim();
+  if (!trimmed || trimmed === 'undefined' || trimmed === 'null' || trimmed.includes('your-supabase-project')) return false;
+  try {
+    const parsed = new URL(trimmed.startsWith('http') ? trimmed : `https://${trimmed}`);
+    return (parsed.protocol === 'http:' || parsed.protocol === 'https:') && parsed.hostname.includes('.');
+  } catch (_) {
+    return false;
+  }
+}
+
 let supabase: any = null;
 let store: ServerStore;
 
@@ -53,18 +65,13 @@ function initSupabaseClient(url?: string, key?: string) {
   let targetUrl = url || envUrl || (store && store.supabaseUrl) || DEFAULT_SUPABASE_URL;
   let targetKey = key || envKey || (store && store.supabaseKey) || DEFAULT_SUPABASE_ANON_KEY;
 
-  if (!targetUrl || !targetUrl.includes('.') || targetUrl.includes('your-supabase-project')) {
-    targetUrl = DEFAULT_SUPABASE_URL;
-  } else if (!targetUrl.startsWith('http://') && !targetUrl.startsWith('https://')) {
+  if (!isValidUrl(targetUrl) || !targetKey || targetKey.trim().length < 5 || targetKey.includes('your-supabase')) {
+    supabase = null;
+    return false;
+  }
+
+  if (!targetUrl.startsWith('http://') && !targetUrl.startsWith('https://')) {
     targetUrl = 'https://' + targetUrl.trim();
-  }
-
-  if (!targetKey || targetKey.trim().length < 5 || targetKey === 'your-supabase-anon-key') {
-    targetKey = DEFAULT_SUPABASE_ANON_KEY;
-  }
-
-  if (targetUrl === DEFAULT_SUPABASE_URL && !key && !envKey) {
-    targetKey = DEFAULT_SUPABASE_ANON_KEY;
   }
 
   if (targetUrl && targetKey) {

@@ -85,6 +85,27 @@ const sanitizeUrl = (urlStr: any): string => {
   return '';
 };
 
+export function isValidSupabaseUrl(urlStr: any): boolean {
+  if (!urlStr || typeof urlStr !== 'string') return false;
+  const trimmed = urlStr.trim();
+  if (
+    !trimmed ||
+    trimmed === 'undefined' ||
+    trimmed === 'null' ||
+    trimmed === 'your-supabase-project.supabase.co' ||
+    trimmed === 'https://your-supabase-project.supabase.co' ||
+    trimmed.includes('your-supabase-project')
+  ) {
+    return false;
+  }
+  try {
+    const parsed = new URL(trimmed.startsWith('http') ? trimmed : `https://${trimmed}`);
+    return (parsed.protocol === 'http:' || parsed.protocol === 'https:') && parsed.hostname.includes('.');
+  } catch (_) {
+    return false;
+  }
+}
+
 // Read environmental variables with local storage dynamic configuration fallback
 const getSupabaseConfig = () => {
   const envUrl = (import.meta as any).env?.VITE_SUPABASE_URL || '';
@@ -139,12 +160,11 @@ export function markSupabaseKeyInvalid(err?: any) {
 
 // Check if Supabase credentials are validly configured
 export const isSupabaseConfigured = () => Boolean(
-  supabaseUrl && 
+  isValidSupabaseUrl(supabaseUrl) && 
   supabaseAnonKey && 
   supabaseAnonKey !== 'your-supabase-anon-key' &&
-  !isSupabaseDisabledDueToInvalidKey &&
-  supabaseUrl.includes('.') &&
-  !supabaseUrl.includes('your-supabase-project')
+  !supabaseAnonKey.includes('your-supabase') &&
+  !isSupabaseDisabledDueToInvalidKey
 );
 
 export const isSupabaseActive = () => isSupabaseConfigured() && supabaseClient !== null;
@@ -168,12 +188,13 @@ const supabaseAuthOptions = {
 
 // Real Supabase instance initialized directly
 let client: any = null;
-if (supabaseUrl && supabaseAnonKey && supabaseAnonKey !== 'your-supabase-anon-key') {
+if (isValidSupabaseUrl(supabaseUrl) && supabaseAnonKey && supabaseAnonKey !== 'your-supabase-anon-key' && !supabaseAnonKey.includes('your-supabase')) {
   try {
     client = createClient(supabaseUrl, supabaseAnonKey, supabaseAuthOptions);
     console.log('Supabase conectado diretamente em:', supabaseUrl);
   } catch (err) {
-    console.error('Failed to initialize Supabase client:', err);
+    console.warn('Supabase não pôde ser inicializado (modo local ativo):', err);
+    client = null;
   }
 }
 export let supabaseClient = client;
@@ -543,7 +564,14 @@ export const dbService = {
   async signInWithGoogle(): Promise<{ user: UserProfile | null; error: string | null }> {
     if (isSupabaseConfigured() && supabaseClient) {
       try {
-        const redirectUrl = typeof window !== 'undefined' ? window.location.origin : '';
+        let redirectUrl = 'https://sgait-production.up.railway.app';
+        if (typeof window !== 'undefined' && window.location.origin) {
+          if (window.location.hostname.includes('railway.app')) {
+            redirectUrl = 'https://sgait-production.up.railway.app';
+          } else {
+            redirectUrl = window.location.origin;
+          }
+        }
         const { data, error } = await supabaseClient.auth.signInWithOAuth({
           provider: 'google',
           options: {

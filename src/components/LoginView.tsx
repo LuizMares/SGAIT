@@ -3,150 +3,81 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
   Database, 
   AlertOctagon, 
   CheckCircle2,
-  Mail,
-  Lock,
-  User,
-  LogIn,
-  UserPlus,
   ShieldCheck
 } from 'lucide-react';
 import { dbService } from '../lib/supabase';
-import { UserProfile, UserRole } from '../types';
+import { UserProfile } from '../types';
 
 interface LoginViewProps {
   onLoginSuccess: (user: UserProfile) => void;
 }
 
+const GoogleLogo = () => (
+  <svg className="w-5 h-5 shrink-0" viewBox="0 0 24 24">
+    <path
+      fill="#4285F4"
+      d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+    />
+    <path
+      fill="#34A853"
+      d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+    />
+    <path
+      fill="#FBBC05"
+      d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"
+    />
+    <path
+      fill="#EA4335"
+      d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"
+    />
+  </svg>
+);
+
 export default function LoginView({ onLoginSuccess }: LoginViewProps) {
-  const [isSignUp, setIsSignUp] = useState(false);
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [fullName, setFullName] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
-  const toggleMode = () => {
-    setIsSignUp(!isSignUp);
-    setErrorMessage(null);
-    setSuccessMessage(null);
-  };
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const { hash, search, href } = window.location;
+      if (href.includes('error=') || hash.includes('error=')) {
+        try {
+          const urlObj = new URL(window.location.href.replace('#', '?'));
+          const errDesc = urlObj.searchParams.get('error_description') || urlObj.searchParams.get('error') || 'Falha no login com Google.';
+          setErrorMessage(decodeURIComponent(errDesc));
+        } catch (e) {
+          setErrorMessage('Falha na autenticação via Google OAuth.');
+        }
+      }
+    }
+  }, []);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleGoogleLogin = async () => {
     setIsLoading(true);
     setErrorMessage(null);
     setSuccessMessage(null);
 
-    const cleanEmail = email.trim().toLowerCase();
-    if (!cleanEmail) {
-      setErrorMessage('Por favor, informe seu e-mail institucional.');
+    try {
+      const { user, error } = await dbService.signInWithGoogle();
+      if (error) {
+        setErrorMessage(error);
+        setIsLoading(false);
+      } else if (user) {
+        setSuccessMessage(`Acesso autorizado! Bem-vindo(a), ${user.name}.`);
+        setTimeout(() => {
+          onLoginSuccess(user);
+        }, 400);
+      }
+    } catch (err: any) {
+      setErrorMessage(err.message || 'Erro ao realizar login via Google.');
       setIsLoading(false);
-      return;
-    }
-
-    if (!password) {
-      setErrorMessage('Por favor, digite sua senha.');
-      setIsLoading(false);
-      return;
-    }
-
-    if (isSignUp) {
-      if (!fullName.trim()) {
-        setErrorMessage('Por favor, informe seu nome completo para o cadastro.');
-        setIsLoading(false);
-        return;
-      }
-
-      if (password.length < 6) {
-        setErrorMessage('A senha deve ter no mínimo 6 caracteres.');
-        setIsLoading(false);
-        return;
-      }
-
-      try {
-        const { user, error } = await dbService.signUpWithEmail(cleanEmail, password, fullName.trim(), UserRole.AGENTE);
-        if (error) {
-          if (error.toLowerCase().includes('api key') || error.toLowerCase().includes('apikey') || error.toLowerCase().includes('jwt')) {
-            const localRes = await dbService.localSignUpWithEmail(cleanEmail, password, fullName.trim(), UserRole.AGENTE);
-            if (localRes.user) {
-              setSuccessMessage(`Cadastro realizado com sucesso! Bem-vindo(a), ${localRes.user.name}.`);
-              setTimeout(() => {
-                onLoginSuccess(localRes.user!);
-              }, 400);
-              return;
-            }
-          }
-          setErrorMessage(error);
-          setIsLoading(false);
-          return;
-        }
-
-        if (user) {
-          setSuccessMessage(`Cadastro realizado com sucesso! Bem-vindo(a), ${user.name}.`);
-          setTimeout(() => {
-            onLoginSuccess(user);
-          }, 800);
-        } else {
-          setSuccessMessage('Conta registrada com sucesso! Faça login para continuar.');
-          setIsSignUp(false);
-          setIsLoading(false);
-        }
-      } catch (err: any) {
-        const localRes = await dbService.localSignUpWithEmail(cleanEmail, password, fullName.trim(), UserRole.AGENTE);
-        if (localRes.user) {
-          setSuccessMessage(`Cadastro realizado com sucesso! Bem-vindo(a), ${localRes.user.name}.`);
-          setTimeout(() => {
-            onLoginSuccess(localRes.user!);
-          }, 400);
-          return;
-        }
-        setErrorMessage(err.message || 'Erro ao realizar cadastro.');
-        setIsLoading(false);
-      }
-    } else {
-      try {
-        const { user, error } = await dbService.signInWithEmail(cleanEmail, password);
-        if (error) {
-          if (error.toLowerCase().includes('api key') || error.toLowerCase().includes('apikey') || error.toLowerCase().includes('jwt')) {
-            const localRes = await dbService.localSignInWithEmail(cleanEmail, password);
-            if (localRes.user) {
-              setSuccessMessage(`Acesso autorizado! Bem-vindo(a), ${localRes.user.name}.`);
-              setTimeout(() => {
-                onLoginSuccess(localRes.user!);
-              }, 400);
-              return;
-            }
-          }
-          setErrorMessage(error);
-          setIsLoading(false);
-          return;
-        }
-
-        if (user) {
-          setSuccessMessage(`Acesso autorizado! Bem-vindo(a), ${user.name}.`);
-          setTimeout(() => {
-            onLoginSuccess(user);
-          }, 400);
-        }
-      } catch (err: any) {
-        const localRes = await dbService.localSignInWithEmail(cleanEmail, password);
-        if (localRes.user) {
-          setSuccessMessage(`Acesso autorizado! Bem-vindo(a), ${localRes.user.name}.`);
-          setTimeout(() => {
-            onLoginSuccess(localRes.user!);
-          }, 400);
-          return;
-        }
-        setErrorMessage(err.message || 'Erro ao realizar login.');
-        setIsLoading(false);
-      }
     }
   };
 
@@ -182,45 +113,15 @@ export default function LoginView({ onLoginSuccess }: LoginViewProps) {
         </div>
 
         {/* Form Body Container */}
-        <div className="p-6 space-y-4 flex-1 text-slate-700 flex flex-col justify-between bg-slate-50/50">
-
-          {/* Mode Switch Tabs */}
-          <div className="flex bg-slate-200/70 p-1 rounded-2xl border border-slate-300/60">
-            <button
-              type="button"
-              onClick={() => { if (isSignUp) toggleMode(); }}
-              className={`flex-1 py-2 text-xs font-extrabold rounded-xl transition-all flex items-center justify-center gap-2 ${
-                !isSignUp 
-                  ? 'bg-slate-900 text-amber-400 shadow-md' 
-                  : 'text-slate-600 hover:text-slate-900'
-              }`}
-            >
-              <LogIn size={15} />
-              <span>Entrar</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => { if (!isSignUp) toggleMode(); }}
-              className={`flex-1 py-2 text-xs font-extrabold rounded-xl transition-all flex items-center justify-center gap-2 ${
-                isSignUp 
-                  ? 'bg-slate-900 text-amber-400 shadow-md' 
-                  : 'text-slate-600 hover:text-slate-900'
-              }`}
-            >
-              <UserPlus size={15} />
-              <span>Criar Conta</span>
-            </button>
-          </div>
+        <div className="p-6 space-y-5 flex-1 text-slate-700 flex flex-col justify-between bg-slate-50/50">
 
           {/* Header Subtitle */}
-          <div className="text-center space-y-1">
+          <div className="text-center space-y-1 pt-2">
             <h3 className="font-extrabold text-xs text-slate-800 uppercase tracking-wider">
-              {isSignUp ? 'Cadastro de Novo Agente' : 'Acesso com E-mail e Senha'}
+              Acesso do Agente
             </h3>
             <p className="text-xxs text-slate-500 max-w-xs mx-auto leading-relaxed">
-              {isSignUp 
-                ? 'Preencha seus dados oficiais para se cadastrar no sistema Supabase.' 
-                : 'Informe suas credenciais cadastradas para acessar o painel de trânsito.'}
+              Autentique-se utilizando sua conta Google institucional para acessar o painel de trânsito.
             </p>
           </div>
 
@@ -257,92 +158,23 @@ export default function LoginView({ onLoginSuccess }: LoginViewProps) {
             )}
           </AnimatePresence>
 
-          {/* LOGIN / SIGNUP FORM */}
-          <form onSubmit={handleSubmit} className="space-y-3.5 pt-1">
-            {/* Full Name field if Sign Up */}
-            {isSignUp && (
-              <div>
-                <label className="block text-xxs font-mono font-bold uppercase tracking-wider text-slate-600 mb-1">
-                  Nome Completo *
-                </label>
-                <div className="relative">
-                  <input
-                    type="text"
-                    required={isSignUp}
-                    value={fullName}
-                    onChange={(e) => setFullName(e.target.value)}
-                    placeholder="Ex: Carlos Eduardo Silva"
-                    className="w-full bg-white border border-slate-300 focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 rounded-2xl pl-10 pr-4 py-3 text-xs text-slate-800 font-medium focus:outline-none transition-all shadow-xs"
-                  />
-                  <User size={16} className="absolute left-3.5 top-3.5 text-slate-400" />
-                </div>
-              </div>
-            )}
-
-            {/* Email Field */}
-            <div>
-              <label className="block text-xxs font-mono font-bold uppercase tracking-wider text-slate-600 mb-1">
-                E-mail *
-              </label>
-              <div className="relative">
-                <input
-                  type="email"
-                  required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="exemplo@sgait.gov.br"
-                  className="w-full bg-white border border-slate-300 focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 rounded-2xl pl-10 pr-4 py-3 text-xs text-slate-800 font-medium focus:outline-none transition-all shadow-xs"
-                />
-                <Mail size={16} className="absolute left-3.5 top-3.5 text-slate-400" />
-              </div>
-            </div>
-
-            {/* Password Field */}
-            <div>
-              <label className="block text-xxs font-mono font-bold uppercase tracking-wider text-slate-600 mb-1">
-                Senha *
-              </label>
-              <div className="relative">
-                <input
-                  type="password"
-                  required
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="••••••••"
-                  className="w-full bg-white border border-slate-300 focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 rounded-2xl pl-10 pr-4 py-3 text-xs text-slate-800 font-medium focus:outline-none transition-all shadow-xs"
-                />
-                <Lock size={16} className="absolute left-3.5 top-3.5 text-slate-400" />
-              </div>
-            </div>
-
-            {/* Submit Button */}
-            <button
-              type="submit"
-              id={isSignUp ? 'btn-submit-signup' : 'btn-submit-login'}
-              disabled={isLoading}
-              className="w-full py-3.5 px-4 bg-amber-500 hover:bg-amber-400 disabled:bg-slate-400 text-slate-950 font-black text-xs uppercase tracking-wider rounded-2xl shadow-md flex items-center justify-center gap-2 transition-all cursor-pointer hover:shadow-lg active:scale-[0.99] mt-2"
-            >
-              {isLoading ? (
-                <div className="w-4 h-4 border-2 border-slate-950 border-t-transparent rounded-full animate-spin" />
-              ) : (
-                <>
-                  <ShieldCheck size={18} />
-                  <span>{isSignUp ? 'Finalizar Cadastro' : 'Entrar no Sistema'}</span>
-                </>
-              )}
-            </button>
-          </form>
-
-          {/* Toggle Hint */}
-          <div className="text-center pt-2">
+          {/* GOOGLE OAUTH LOGIN BUTTON */}
+          <div className="py-2">
             <button
               type="button"
-              onClick={toggleMode}
-              className="text-xxs text-slate-600 hover:text-amber-600 font-bold underline transition-colors cursor-pointer"
+              id="btn-google-login"
+              onClick={handleGoogleLogin}
+              disabled={isLoading}
+              className="w-full py-4 px-4 bg-white hover:bg-slate-100 border-2 border-slate-300 text-slate-800 font-extrabold text-xs tracking-wide rounded-2xl shadow-md flex items-center justify-center gap-3 transition-all cursor-pointer hover:shadow-lg active:scale-[0.99]"
             >
-              {isSignUp 
-                ? 'Já possui uma conta? Clique aqui para entrar' 
-                : 'Não tem conta? Clique aqui para se cadastrar'}
+              {isLoading ? (
+                <div className="w-5 h-5 border-2 border-amber-500 border-t-transparent rounded-full animate-spin" />
+              ) : (
+                <>
+                  <GoogleLogo />
+                  <span>Entrar com o Google</span>
+                </>
+              )}
             </button>
           </div>
 
@@ -350,7 +182,7 @@ export default function LoginView({ onLoginSuccess }: LoginViewProps) {
           <div className="flex items-center justify-center gap-1.5 text-xxs font-mono text-slate-400 pt-3 border-t border-slate-200">
             <Database size={12} className="text-emerald-500 animate-pulse" />
             <span>
-              Autenticação: <b>E-mail & Senha via Supabase Auth</b>
+              Autenticação Social: <b>Google OAuth via Supabase</b>
             </span>
           </div>
 
