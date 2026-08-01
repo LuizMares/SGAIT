@@ -267,7 +267,9 @@ export default function App() {
     const safetyTimer = setTimeout(() => {
       if (isMounted && !authHandled) {
         console.warn('Safety timer ativando finalização de carregamento...');
-        finalizeUnauthenticatedState();
+        if (isMounted) {
+          setLoadingApp(false);
+        }
       }
     }, 5000);
 
