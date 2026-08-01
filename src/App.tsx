@@ -429,26 +429,41 @@ export default function App() {
     }
   };
 
-  // Application preloader screen
+  // Application preloader screen (Carregando autenticação...)
   if (loadingApp) {
     return (
-      <div className="h-screen w-full flex flex-col items-center justify-center bg-slate-950 text-slate-100 font-sans">
+      <div 
+        id="auth-loading-screen"
+        className="h-screen w-full flex flex-col items-center justify-center bg-slate-950 text-slate-100 font-sans p-6 select-none"
+      >
         <div className="relative mb-6">
           <div className="w-16 h-16 border-4 border-amber-500 border-t-transparent rounded-full animate-spin" />
           <div className="absolute inset-0 flex items-center justify-center font-black text-xs text-amber-400">
-            SG
+            SGAIT
           </div>
         </div>
-        <div className="bg-amber-500 text-slate-950 font-black text-lg px-3 py-1 rounded-xl shadow-lg mb-2">
-          SGAIT
+        
+        <div className="bg-amber-500 text-slate-950 font-black text-xs uppercase tracking-wider px-3 py-1 rounded-xl shadow-lg mb-3">
+          Superintendência de Trânsito
         </div>
-        <h2 className="text-sm font-bold tracking-wide text-slate-200">Superintendência de Trânsito</h2>
-        <span className="text-xxs font-mono text-amber-400/80 mt-1 uppercase tracking-widest animate-pulse">Sincronizando Módulos de Campo...</span>
+        
+        <h2 className="text-base font-bold tracking-wide text-slate-100">
+          Carregando autenticação...
+        </h2>
+        
+        <p className="text-xs text-slate-400 mt-1.5 max-w-xs text-center leading-relaxed">
+          Verificando sessão ativa e validando credenciais com Supabase Google Auth.
+        </p>
+
+        <div className="mt-6 flex items-center gap-2 text-xxs font-mono text-amber-400/90 bg-slate-900 border border-slate-800 px-3.5 py-1.5 rounded-full shadow-inner">
+          <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
+          <span>SGAIT AUTHENTICATION ENGINE</span>
+        </div>
       </div>
     );
   }
 
-  // Auth Guard
+  // Auth Guard: Only render main panel if currentUser is non-null
   if (!currentUser) {
     return <LoginView onLoginSuccess={handleLoginSuccess} />;
   }
