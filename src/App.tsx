@@ -111,18 +111,30 @@ export default function App() {
     }
   };
 
-  // Load profile and seed data on launch
+  // Load profile and seed data on launch with explicit OAuth callback handling
   useEffect(() => {
     let isMounted = true;
+    let authFinished = false;
 
-    // Check if browser currently has OAuth return tokens or codes in the URL
-    const hasPendingOAuthUrl = typeof window !== 'undefined' && (
-      window.location.hash.includes('access_token') ||
-      window.location.hash.includes('refresh_token') ||
-      window.location.search.includes('code=')
-    );
+    // Helper to detect if browser URL currently has OAuth return parameters or codes
+    const isOAuthCallbackUrl = () => {
+      if (typeof window === 'undefined') return false;
+      const { hash, search, href } = window.location;
+      return (
+        hash.includes('access_token') ||
+        hash.includes('refresh_token') ||
+        hash.includes('type=recovery') ||
+        hash.includes('error=') ||
+        search.includes('code=') ||
+        search.includes('error=') ||
+        href.includes('access_token') ||
+        href.includes('code=')
+      );
+    };
 
-    // Helper to process session user and transition state immediately to logged-in
+    const hasOAuthParams = isOAuthCallbackUrl();
+
+    // Process user profile and complete login
     const handleLoginUser = async (userObj: any) => {
       try {
         const userProfile = await dbService.getCurrentUser(userObj);
@@ -138,19 +150,44 @@ export default function App() {
       return false;
     };
 
-    // 1. Subscribe to Supabase auth state change FIRST to catch OAuth return tokens instantly
+    // Finalize auth checking phase when no session was obtained
+    const finalizeUnauthenticatedState = async () => {
+      if (!isMounted || authFinished) return;
+      authFinished = true;
+
+      if (typeof window !== 'undefined' && window.location.href.includes('error=')) {
+        cleanUrlAuthParams();
+      }
+
+      // Check cached local profile fallback
+      const cachedUser = await dbService.getCurrentUser();
+      if (isMounted && cachedUser) {
+        setCurrentUser(cachedUser);
+        await loadData(cachedUser);
+      }
+
+      if (isMounted) {
+        setLoadingApp(false);
+      }
+    };
+
+    // 1. Subscribe to Supabase auth state changes FIRST to capture OAuth callback tokens
     let authSubscription: { unsubscribe: () => void } | null = null;
     if (isSupabaseConfigured() && supabaseClient) {
       const { data } = supabaseClient.auth.onAuthStateChange(async (event, session) => {
         if (!isMounted) return;
-        
+
         console.log('Supabase Auth Event:', event, session?.user?.email);
 
         if (session?.user) {
+          authFinished = true;
           setLoadingApp(true);
-          await handleLoginUser(session.user);
-          if (isMounted) setLoadingApp(false);
+          const loggedIn = await handleLoginUser(session.user);
+          if (loggedIn && isMounted) {
+            setLoadingApp(false);
+          }
         } else if (event === 'SIGNED_OUT') {
+          authFinished = true;
           if (isMounted) {
             setCurrentUser(null);
             safeStorage.removeItem(STORAGE_KEYS.CURRENT_USER);
@@ -158,64 +195,71 @@ export default function App() {
             setLoadingApp(false);
           }
         } else if (event === 'INITIAL_SESSION' && !session) {
-          if (typeof window !== 'undefined' && window.location.href.includes('error=')) {
-            cleanUrlAuthParams();
-          }
-          if (!hasPendingOAuthUrl && isMounted) {
-            setLoadingApp(false);
+          if (!hasOAuthParams) {
+            await finalizeUnauthenticatedState();
           }
         }
       });
       authSubscription = data.subscription;
     }
 
-    // 2. Explicitly check session via getSession() after setting up listener
-    const initApp = async () => {
+    // 2. Explicitly wait for Supabase to resolve session and process OAuth return params
+    const initAppAuth = async () => {
       try {
         if (isSupabaseConfigured() && supabaseClient) {
+          // Check session explicitly
           const { data, error } = await supabaseClient.auth.getSession();
           if (error) {
-            console.warn('Erro em supabaseClient.auth.getSession():', error);
+            console.warn('Aviso em getSession():', error);
           }
+
           if (data?.session?.user) {
+            authFinished = true;
             const loggedIn = await handleLoginUser(data.session.user);
             if (loggedIn && isMounted) {
               setLoadingApp(false);
               return;
             }
           }
+
+          // If session is not immediately available but URL contains OAuth callback parameters:
+          if (hasOAuthParams) {
+            console.log('Processando parâmetros de URL do Google OAuth via Supabase...');
+            let attempts = 0;
+            // Poll for up to 3 seconds for session to populate from OAuth callback processing
+            while (attempts < 20 && isMounted && !authFinished) {
+              await new Promise(res => setTimeout(res, 150));
+              attempts++;
+              const retry = await supabaseClient.auth.getSession();
+              if (retry.data?.session?.user) {
+                authFinished = true;
+                const loggedIn = await handleLoginUser(retry.data.session.user);
+                if (loggedIn && isMounted) {
+                  setLoadingApp(false);
+                  return;
+                }
+              }
+            }
+          }
         }
 
-        // 3. Fallback to cached profile ONLY if no pending OAuth processing in URL
-        if (!hasPendingOAuthUrl) {
-          const cachedUser = await dbService.getCurrentUser();
-          if (isMounted && cachedUser) {
-            setCurrentUser(cachedUser);
-            await loadData(cachedUser);
-          }
-          if (isMounted) {
-            if (typeof window !== 'undefined' && window.location.href.includes('error=')) {
-              cleanUrlAuthParams();
-            }
-            setLoadingApp(false);
-          }
-        }
+        // Fallback to local user or render login
+        await finalizeUnauthenticatedState();
       } catch (err) {
-        console.error('Falha ao inicializar sessões do SGAIT:', err);
-        if (isMounted && !hasPendingOAuthUrl) {
-          setLoadingApp(false);
-        }
+        console.error('Falha ao inicializar autenticação do SGAIT:', err);
+        await finalizeUnauthenticatedState();
       }
     };
 
-    initApp();
+    initAppAuth();
 
-    // Safety timeout: Ensure app never stays stuck indefinitely on loading screen
+    // Safety timer: Prevent staying stuck on loading screen under extreme network failures
     const safetyTimer = setTimeout(() => {
-      if (isMounted) {
-        setLoadingApp(false);
+      if (isMounted && !authFinished) {
+        console.warn('Safety timer ativando finalização de carregamento...');
+        finalizeUnauthenticatedState();
       }
-    }, 4500);
+    }, 6000);
 
     // Browser Online/Offline listeners
     const handleOnline = () => setIsOnline(true);
