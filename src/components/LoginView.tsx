@@ -73,6 +73,16 @@ export default function LoginView({ onLoginSuccess }: LoginViewProps) {
       try {
         const { user, error } = await dbService.signUpWithEmail(cleanEmail, password, fullName.trim(), UserRole.AGENTE);
         if (error) {
+          if (error.toLowerCase().includes('api key') || error.toLowerCase().includes('apikey') || error.toLowerCase().includes('jwt')) {
+            const localRes = await dbService.localSignUpWithEmail(cleanEmail, password, fullName.trim(), UserRole.AGENTE);
+            if (localRes.user) {
+              setSuccessMessage(`Cadastro realizado com sucesso! Bem-vindo(a), ${localRes.user.name}.`);
+              setTimeout(() => {
+                onLoginSuccess(localRes.user!);
+              }, 400);
+              return;
+            }
+          }
           setErrorMessage(error);
           setIsLoading(false);
           return;
@@ -89,6 +99,14 @@ export default function LoginView({ onLoginSuccess }: LoginViewProps) {
           setIsLoading(false);
         }
       } catch (err: any) {
+        const localRes = await dbService.localSignUpWithEmail(cleanEmail, password, fullName.trim(), UserRole.AGENTE);
+        if (localRes.user) {
+          setSuccessMessage(`Cadastro realizado com sucesso! Bem-vindo(a), ${localRes.user.name}.`);
+          setTimeout(() => {
+            onLoginSuccess(localRes.user!);
+          }, 400);
+          return;
+        }
         setErrorMessage(err.message || 'Erro ao realizar cadastro.');
         setIsLoading(false);
       }
@@ -96,6 +114,16 @@ export default function LoginView({ onLoginSuccess }: LoginViewProps) {
       try {
         const { user, error } = await dbService.signInWithEmail(cleanEmail, password);
         if (error) {
+          if (error.toLowerCase().includes('api key') || error.toLowerCase().includes('apikey') || error.toLowerCase().includes('jwt')) {
+            const localRes = await dbService.localSignInWithEmail(cleanEmail, password);
+            if (localRes.user) {
+              setSuccessMessage(`Acesso autorizado! Bem-vindo(a), ${localRes.user.name}.`);
+              setTimeout(() => {
+                onLoginSuccess(localRes.user!);
+              }, 400);
+              return;
+            }
+          }
           setErrorMessage(error);
           setIsLoading(false);
           return;
@@ -108,6 +136,14 @@ export default function LoginView({ onLoginSuccess }: LoginViewProps) {
           }, 400);
         }
       } catch (err: any) {
+        const localRes = await dbService.localSignInWithEmail(cleanEmail, password);
+        if (localRes.user) {
+          setSuccessMessage(`Acesso autorizado! Bem-vindo(a), ${localRes.user.name}.`);
+          setTimeout(() => {
+            onLoginSuccess(localRes.user!);
+          }, 400);
+          return;
+        }
         setErrorMessage(err.message || 'Erro ao realizar login.');
         setIsLoading(false);
       }

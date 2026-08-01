@@ -23,8 +23,8 @@ interface ServerStore {
   supabaseKey?: string;
 }
 
-const DEFAULT_SUPABASE_URL = 'https://yanvopffwhhfadlxcbkg.supabase.co';
-const DEFAULT_SUPABASE_ANON_KEY = 'sb_publishable_4_fnl9gzrpte3y5cfuywla_kygmnkdp';
+const DEFAULT_SUPABASE_URL = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL || '';
+const DEFAULT_SUPABASE_ANON_KEY = process.env.VITE_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY || process.env.SUPABASE_KEY || '';
 
 function getEnvSupabaseConfig() {
   const envUrl = (

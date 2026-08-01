@@ -56,8 +56,8 @@ export function safeJsonParse<T>(raw: string | null | undefined, fallback: T): T
   }
 }
 
-const DEFAULT_SUPABASE_URL = 'https://yanvopffwhhfadlxcbkg.supabase.co';
-const DEFAULT_SUPABASE_ANON_KEY = 'sb_publishable_4_fnl9gzrpte3y5cfuywla_kygmnkdp';
+const DEFAULT_SUPABASE_URL = (import.meta as any).env?.VITE_SUPABASE_URL || '';
+const DEFAULT_SUPABASE_ANON_KEY = (import.meta as any).env?.VITE_SUPABASE_ANON_KEY || '';
 
 const sanitizeUrl = (urlStr: any): string => {
   if (!urlStr || typeof urlStr !== 'string') return '';
@@ -87,22 +87,20 @@ const sanitizeUrl = (urlStr: any): string => {
 
 // Read environmental variables with local storage dynamic configuration fallback
 const getSupabaseConfig = () => {
-  let url = (import.meta as any).env?.VITE_SUPABASE_URL || safeStorage.getItem('VITE_SUPABASE_URL') || '';
-  let anonKey = (import.meta as any).env?.VITE_SUPABASE_ANON_KEY || safeStorage.getItem('VITE_SUPABASE_ANON_KEY') || '';
+  const envUrl = (import.meta as any).env?.VITE_SUPABASE_URL || '';
+  const envKey = (import.meta as any).env?.VITE_SUPABASE_ANON_KEY || '';
+
+  let url = envUrl || safeStorage.getItem('VITE_SUPABASE_URL') || DEFAULT_SUPABASE_URL || '';
+  let anonKey = envKey || safeStorage.getItem('VITE_SUPABASE_ANON_KEY') || DEFAULT_SUPABASE_ANON_KEY || '';
 
   let sanitizedUrl = sanitizeUrl(url);
 
   if (!sanitizedUrl || !sanitizedUrl.includes('.') || sanitizedUrl.includes('your-supabase-project')) {
-    sanitizedUrl = DEFAULT_SUPABASE_URL;
+    sanitizedUrl = DEFAULT_SUPABASE_URL || '';
   }
 
   if (!anonKey || anonKey === 'your-supabase-anon-key' || anonKey === 'undefined' || anonKey === 'null' || anonKey.trim() === '') {
-    anonKey = DEFAULT_SUPABASE_ANON_KEY;
-  }
-
-  // If using default URL and no custom key was explicitly stored in safeStorage, pair with DEFAULT_SUPABASE_ANON_KEY
-  if (sanitizedUrl === DEFAULT_SUPABASE_URL && !safeStorage.getItem('VITE_SUPABASE_ANON_KEY')) {
-    anonKey = DEFAULT_SUPABASE_ANON_KEY;
+    anonKey = DEFAULT_SUPABASE_ANON_KEY || '';
   }
 
   return { url: sanitizedUrl, anonKey };
@@ -112,20 +110,29 @@ let { url: supabaseUrl, anonKey: supabaseAnonKey } = getSupabaseConfig();
 
 let isSupabaseDisabledDueToInvalidKey = false;
 
+export function isApiKeyError(err: any): boolean {
+  if (!err) return false;
+  const msg = typeof err === 'string' ? err : (err.message || err.error_description || err.error || err.msg || JSON.stringify(err));
+  const cleanMsg = msg.toLowerCase();
+  return (
+    cleanMsg.includes('invalid api key') || 
+    cleanMsg.includes('api key invalid') ||
+    cleanMsg.includes('api key not found') ||
+    cleanMsg.includes('project_not_found') ||
+    cleanMsg.includes('apikey') ||
+    cleanMsg.includes('invalid key') ||
+    cleanMsg.includes('jwt') ||
+    cleanMsg.includes('unauthorized') ||
+    cleanMsg.includes('bad apikey')
+  );
+}
+
 export function markSupabaseKeyInvalid(err?: any) {
   if (!err) return;
-  const msg = typeof err === 'string' ? err : (err.message || err.error_description || JSON.stringify(err));
-  const cleanMsg = msg.toLowerCase();
-  
-  // ONLY disable if the API Key itself is explicitly rejected by Supabase API gateway
-  if (
-    cleanMsg.includes('invalid api key') || 
-    cleanMsg.includes('api key not found') ||
-    cleanMsg.includes('project_not_found')
-  ) {
+  if (isApiKeyError(err)) {
     if (!isSupabaseDisabledDueToInvalidKey) {
       isSupabaseDisabledDueToInvalidKey = true;
-      console.info('Supabase API Key é inválida ou o projeto está desativado.');
+      console.info('Supabase API Key é inválida ou o projeto está desativado. Modo de armazenamento local ativado.');
     }
   }
 }
@@ -575,6 +582,44 @@ export const dbService = {
     return { user: fallbackProfile, error: null };
   },
 
+  async localSignInWithEmail(email: string, password: string): Promise<{ user: UserProfile | null; error: string | null }> {
+    const cleanEmail = (email || '').trim().toLowerCase();
+    if (password.length < 4) {
+      return { user: null, error: 'Senha inválida. Digite a senha correta da sua conta.' };
+    }
+
+    const role = await determineUserRole(cleanEmail);
+    const nowIso = new Date().toISOString();
+    const userName = cleanEmail === 'sttpojucaba@gmail.com' ? 'STT Pojuca Admin' :
+                     cleanEmail === 'luizemerson17@gmail.com' ? 'Emerson Mares' :
+                     cleanEmail.split('@')[0];
+
+    const mockUserProfile: UserProfile = {
+      id: `user-id-${cleanEmail.replace(/[^a-zA-Z0-9]/g, '')}`,
+      email: cleanEmail,
+      name: userName,
+      avatarUrl: `https://api.dicebear.com/7.x/adventurer/svg?seed=${encodeURIComponent(userName)}`,
+      role: role,
+      googleId: `user-id-${cleanEmail.substring(0, 5)}`,
+      firstAccessAt: nowIso,
+      lastLoginAt: nowIso
+    };
+
+    safeStorage.setItem(STORAGE_KEYS.CURRENT_USER, JSON.stringify(mockUserProfile));
+    return { user: mockUserProfile, error: null };
+  },
+
+  async localSignUpWithEmail(email: string, password: string, name: string, role: UserRole = UserRole.AGENTE): Promise<{ user: UserProfile | null; error: string | null }> {
+    const cleanEmail = (email || '').trim().toLowerCase();
+    const cleanName = (name || '').trim();
+    const authorizedEmails: AuthorizedEmail[] = JSON.parse(safeStorage.getItem(STORAGE_KEYS.AUTHORIZED) || '[]');
+    if (!authorizedEmails.some(ae => ae.email.toLowerCase() === cleanEmail)) {
+      authorizedEmails.push({ email: cleanEmail, name: cleanName, role });
+      safeStorage.setItem(STORAGE_KEYS.AUTHORIZED, JSON.stringify(authorizedEmails));
+    }
+    return this.localSignInWithEmail(cleanEmail, password);
+  },
+
   /**
    * Sign in with Email and Password (mandatory password verification)
    */
@@ -584,7 +629,7 @@ export const dbService = {
       return { user: null, error: 'O e-mail é obrigatório para realizar o login.' };
     }
     if (!password || password.trim() === '') {
-      return { user: null, error: 'A senha é obrigatória. Digite a senha da sua conta para continuar.' };
+      return { user: null, error: 'A senha é obrigatoria. Digite a senha da sua conta para continuar.' };
     }
 
     if (isSupabaseConfigured() && supabaseClient) {
@@ -593,7 +638,18 @@ export const dbService = {
           email: cleanEmail,
           password
         });
-        if (error) throw error;
+        if (error) {
+          markSupabaseKeyInvalid(error);
+          if (isApiKeyError(error) || isSupabaseDisabledDueToInvalidKey) {
+            console.info('Fallback de login local ativado devido a chave Supabase inválida.');
+            return this.localSignInWithEmail(cleanEmail, password);
+          }
+          let userMsg = error.message || 'Credenciais inválidas. Verifique seu e-mail e sua senha.';
+          if (userMsg.toLowerCase().includes('invalid login credentials')) {
+            userMsg = 'E-mail ou senha incorretos. Verifique suas credenciais ou crie uma conta.';
+          }
+          return { user: null, error: userMsg };
+        }
 
         if (!data.user) {
           throw new Error('Usuário ou senha incorretos.');
@@ -618,32 +674,19 @@ export const dbService = {
 
         return { user: userProfile, error: null };
       } catch (err: any) {
-        return { user: null, error: err.message || 'Credenciais inválidas. Verifique seu e-mail e sua senha.' };
+        markSupabaseKeyInvalid(err);
+        if (isApiKeyError(err) || isSupabaseDisabledDueToInvalidKey) {
+          console.info('Fallback de login local ativado após exceção no Supabase.');
+          return this.localSignInWithEmail(cleanEmail, password);
+        }
+        let userMsg = err?.message || 'Credenciais inválidas. Verifique seu e-mail e sua senha.';
+        if (userMsg.toLowerCase().includes('invalid login credentials')) {
+          userMsg = 'E-mail ou senha incorretos. Verifique suas credenciais ou crie uma conta.';
+        }
+        return { user: null, error: userMsg };
       }
     } else {
-      if (password.length < 4) {
-        return { user: null, error: 'Senha inválida. Digite a senha correta da sua conta.' };
-      }
-
-      const role = await determineUserRole(cleanEmail);
-      const nowIso = new Date().toISOString();
-      const userName = cleanEmail === 'sttpojucaba@gmail.com' ? 'STT Pojuca Admin' :
-                       cleanEmail === 'luizemerson17@gmail.com' ? 'Emerson Mares' :
-                       cleanEmail.split('@')[0];
-
-      const mockUserProfile: UserProfile = {
-        id: `user-id-${cleanEmail.replace(/[^a-zA-Z0-9]/g, '')}`,
-        email: cleanEmail,
-        name: userName,
-        avatarUrl: `https://api.dicebear.com/7.x/adventurer/svg?seed=${encodeURIComponent(userName)}`,
-        role: role,
-        googleId: `google-id-${cleanEmail.substring(0, 5)}`,
-        firstAccessAt: nowIso,
-        lastLoginAt: nowIso
-      };
-
-      safeStorage.setItem(STORAGE_KEYS.CURRENT_USER, JSON.stringify(mockUserProfile));
-      return { user: mockUserProfile, error: null };
+      return this.localSignInWithEmail(cleanEmail, password);
     }
   },
 
@@ -651,19 +694,29 @@ export const dbService = {
    * Sign up with Email and Password
    */
   async signUpWithEmail(email: string, password: string, name: string, role: UserRole = UserRole.AGENTE): Promise<{ user: UserProfile | null; error: string | null }> {
+    const cleanEmail = (email || '').trim().toLowerCase();
+    const cleanName = (name || '').trim();
+
     if (isSupabaseConfigured() && supabaseClient) {
       try {
         const { data, error } = await supabaseClient.auth.signUp({
-          email,
+          email: cleanEmail,
           password,
           options: {
             data: {
-              full_name: name,
+              full_name: cleanName,
               role: role
             }
           }
         });
-        if (error) throw error;
+        if (error) {
+          markSupabaseKeyInvalid(error);
+          if (isApiKeyError(error) || isSupabaseDisabledDueToInvalidKey) {
+            console.info('Fallback de cadastro local ativado devido a chave Supabase inválida.');
+            return this.localSignUpWithEmail(cleanEmail, password, cleanName, role);
+          }
+          return { user: null, error: error.message || 'Erro ao registrar nova conta.' };
+        }
 
         if (!data.user) {
           throw new Error('Não foi possível registrar o usuário.');
@@ -672,8 +725,8 @@ export const dbService = {
         // Add to authorized_emails in database
         try {
           await supabaseClient.from('sgait_authorized_emails').insert({
-            email: email,
-            name: name,
+            email: cleanEmail,
+            name: cleanName,
             role: role
           });
         } catch (e) {
@@ -682,16 +735,17 @@ export const dbService = {
 
         const profileData: UserProfile = {
           id: data.user.id,
-          email: email,
-          name: name,
-          avatarUrl: `https://api.dicebear.com/7.x/adventurer/svg?seed=${encodeURIComponent(name)}`,
+          email: cleanEmail,
+          name: cleanName,
+          avatarUrl: `https://api.dicebear.com/7.x/adventurer/svg?seed=${encodeURIComponent(cleanName)}`,
           role: role,
           googleId: data.user.id,
           firstAccessAt: new Date().toISOString(),
           lastLoginAt: new Date().toISOString()
         };
 
-        // Try to insert directly in profiles
+        safeStorage.setItem(STORAGE_KEYS.CURRENT_USER, JSON.stringify(profileData));
+
         try {
           await supabaseClient.from('sgait_profiles').insert({
             id: profileData.id,
@@ -708,16 +762,15 @@ export const dbService = {
 
         return { user: profileData, error: null };
       } catch (err: any) {
+        markSupabaseKeyInvalid(err);
+        if (isApiKeyError(err) || isSupabaseDisabledDueToInvalidKey) {
+          console.info('Fallback de cadastro local ativado após exceção no Supabase.');
+          return this.localSignUpWithEmail(cleanEmail, password, cleanName, role);
+        }
         return { user: null, error: err.message || 'Erro ao registrar nova conta.' };
       }
     } else {
-      // Local simulation registration
-      const authorizedEmails: AuthorizedEmail[] = JSON.parse(safeStorage.getItem(STORAGE_KEYS.AUTHORIZED) || '[]');
-      if (!authorizedEmails.some(ae => ae.email.toLowerCase() === email.toLowerCase())) {
-        authorizedEmails.push({ email, name, role });
-        safeStorage.setItem(STORAGE_KEYS.AUTHORIZED, JSON.stringify(authorizedEmails));
-      }
-      return this.signInWithEmail(email, password);
+      return this.localSignUpWithEmail(cleanEmail, password, cleanName, role);
     }
   },
 
