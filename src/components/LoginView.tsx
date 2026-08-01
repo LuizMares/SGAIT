@@ -151,7 +151,7 @@ export default function LoginView({ onLoginSuccess }: LoginViewProps) {
           )}
 
           {/* GOOGLE AUTH BUTTON */}
-          <div className="py-2 space-y-3">
+          <div className="py-2">
             <button
               type="button"
               onClick={handleGoogleOAuthLogin}

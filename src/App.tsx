@@ -114,7 +114,7 @@ export default function App() {
   // Load profile and seed data on launch with explicit OAuth callback handling
   useEffect(() => {
     let isMounted = true;
-    let authFinished = false;
+    let authHandled = false;
 
     // Helper to detect if browser URL currently has OAuth return parameters or codes
     const isOAuthCallbackUrl = () => {
@@ -135,13 +135,18 @@ export default function App() {
     const hasOAuthParams = isOAuthCallbackUrl();
 
     // Process user profile and complete login
-    const handleLoginUser = async (userObj: any) => {
+    const handleLoginUser = async (userObj: any): Promise<boolean> => {
+      if (authHandled) return true;
       try {
         const userProfile = await dbService.getCurrentUser(userObj);
         if (isMounted && userProfile) {
+          authHandled = true;
           setCurrentUser(userProfile);
           await loadData(userProfile);
           cleanUrlAuthParams();
+          if (isMounted) {
+            setLoadingApp(false);
+          }
           return true;
         }
       } catch (err) {
@@ -152,8 +157,7 @@ export default function App() {
 
     // Finalize auth checking phase when no session was obtained
     const finalizeUnauthenticatedState = async () => {
-      if (!isMounted || authFinished) return;
-      authFinished = true;
+      if (!isMounted || authHandled) return;
 
       if (typeof window !== 'undefined' && window.location.href.includes('error=')) {
         cleanUrlAuthParams();
@@ -162,6 +166,7 @@ export default function App() {
       // Check cached local profile fallback
       const cachedUser = await dbService.getCurrentUser();
       if (isMounted && cachedUser) {
+        authHandled = true;
         setCurrentUser(cachedUser);
         await loadData(cachedUser);
       }
@@ -171,7 +176,7 @@ export default function App() {
       }
     };
 
-    // 1. Subscribe to Supabase auth state changes FIRST to capture OAuth callback tokens
+    // 1. Subscribe to Supabase auth state changes FIRST to capture OAuth callback tokens & INITIAL_SESSION
     let authSubscription: { unsubscribe: () => void } | null = null;
     if (isSupabaseConfigured() && supabaseClient) {
       const { data } = supabaseClient.auth.onAuthStateChange(async (event, session) => {
@@ -179,24 +184,27 @@ export default function App() {
 
         console.log('Supabase Auth Event:', event, session?.user?.email);
 
-        if (session?.user) {
-          authFinished = true;
-          setLoadingApp(true);
-          const loggedIn = await handleLoginUser(session.user);
-          if (loggedIn && isMounted) {
-            setLoadingApp(false);
+        if (event === 'INITIAL_SESSION') {
+          if (session?.user) {
+            const success = await handleLoginUser(session.user);
+            if (!success) {
+              await finalizeUnauthenticatedState();
+            }
+          } else if (!hasOAuthParams) {
+            await finalizeUnauthenticatedState();
+          }
+        } else if (session?.user) {
+          const success = await handleLoginUser(session.user);
+          if (!success) {
+            await finalizeUnauthenticatedState();
           }
         } else if (event === 'SIGNED_OUT') {
-          authFinished = true;
+          authHandled = false;
           if (isMounted) {
             setCurrentUser(null);
             safeStorage.removeItem(STORAGE_KEYS.CURRENT_USER);
             cleanUrlAuthParams();
             setLoadingApp(false);
-          }
-        } else if (event === 'INITIAL_SESSION' && !session) {
-          if (!hasOAuthParams) {
-            await finalizeUnauthenticatedState();
           }
         }
       });
@@ -214,30 +222,22 @@ export default function App() {
           }
 
           if (data?.session?.user) {
-            authFinished = true;
-            const loggedIn = await handleLoginUser(data.session.user);
-            if (loggedIn && isMounted) {
-              setLoadingApp(false);
-              return;
-            }
+            const success = await handleLoginUser(data.session.user);
+            if (success) return;
           }
 
           // If session is not immediately available but URL contains OAuth callback parameters:
           if (hasOAuthParams) {
-            console.log('Processando parâmetros de URL do Google OAuth via Supabase...');
+            console.log('Aguardando retorno do Google OAuth via Supabase...');
             let attempts = 0;
             // Poll for up to 3 seconds for session to populate from OAuth callback processing
-            while (attempts < 20 && isMounted && !authFinished) {
+            while (attempts < 20 && isMounted && !authHandled) {
               await new Promise(res => setTimeout(res, 150));
               attempts++;
               const retry = await supabaseClient.auth.getSession();
               if (retry.data?.session?.user) {
-                authFinished = true;
-                const loggedIn = await handleLoginUser(retry.data.session.user);
-                if (loggedIn && isMounted) {
-                  setLoadingApp(false);
-                  return;
-                }
+                const success = await handleLoginUser(retry.data.session.user);
+                if (success) return;
               }
             }
           }
@@ -255,11 +255,11 @@ export default function App() {
 
     // Safety timer: Prevent staying stuck on loading screen under extreme network failures
     const safetyTimer = setTimeout(() => {
-      if (isMounted && !authFinished) {
+      if (isMounted && !authHandled) {
         console.warn('Safety timer ativando finalização de carregamento...');
         finalizeUnauthenticatedState();
       }
-    }, 6000);
+    }, 5000);
 
     // Browser Online/Offline listeners
     const handleOnline = () => setIsOnline(true);

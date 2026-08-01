@@ -686,18 +686,27 @@ export const dbService = {
       // If no user passed, check current session / user from Supabase
       if (!user && isSupabaseConfigured() && supabaseClient) {
         try {
-          const { data: { session } } = await supabaseClient.auth.getSession();
-          user = session?.user;
+          const { data, error } = await supabaseClient.auth.getSession();
+          if (!error && data?.session?.user) {
+            user = data.session.user;
+          }
         } catch (e) {
-          console.warn('getCurrentUser: error getting session', e);
+          console.warn('getCurrentUser: erro ao obter sessão do Supabase', e);
         }
 
-        if (!user) {
+        // Only attempt getUser() if a valid session exists to avoid triggering 401 Unauthorized API calls
+        if (!user && supabaseClient) {
           try {
-            const { data: { user: fetchedUser } } = await supabaseClient.auth.getUser();
-            user = fetchedUser;
+            // Check if there is an active session before calling getUser()
+            const { data: { session } } = await supabaseClient.auth.getSession();
+            if (session?.access_token) {
+              const { data: { user: fetchedUser }, error: userErr } = await supabaseClient.auth.getUser();
+              if (fetchedUser && !userErr) {
+                user = fetchedUser;
+              }
+            }
           } catch (e) {
-            console.warn('getCurrentUser: error getting user', e);
+            console.warn('getCurrentUser: erro ao buscar usuário autenticado', e);
           }
         }
       }
