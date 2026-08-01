@@ -691,15 +691,6 @@ export const dbService = {
         } catch (e) {
           console.warn('getCurrentUser: error getting session', e);
         }
-        
-        if (!user) {
-          try {
-            const { data: { user: fetchedUser } } = await supabaseClient.auth.getUser();
-            user = fetchedUser;
-          } catch (e) {
-            console.warn('getCurrentUser: error getting user', e);
-          }
-        }
       }
 
       // If still no user in Supabase, return cached local storage user
