@@ -163,27 +163,23 @@ export default function App() {
         cleanUrlAuthParams();
       }
 
-      // Check if there is an active Supabase session before calling dbService.getCurrentUser()
-      let hasActiveSession = false;
-      let sessionUser: any = null;
-
       if (isSupabaseConfigured() && supabaseClient) {
         try {
           const { data } = await supabaseClient.auth.getSession();
           if (data?.session?.user) {
-            hasActiveSession = true;
-            sessionUser = data.session.user;
+            const cachedUser = await dbService.getCurrentUser(data.session.user);
+            if (isMounted && cachedUser) {
+              authHandled = true;
+              setCurrentUser(cachedUser);
+              await loadData(cachedUser);
+            }
           }
         } catch (e) {
           console.warn('Erro ao verificar sessão ativa em finalizeUnauthenticatedState:', e);
         }
       } else {
-        // If Supabase is not configured, local mode is allowed
-        hasActiveSession = true;
-      }
-
-      if (hasActiveSession) {
-        const cachedUser = await dbService.getCurrentUser(sessionUser);
+        // If Supabase is not configured, allow local dev user fallback
+        const cachedUser = await dbService.getCurrentUser();
         if (isMounted && cachedUser) {
           authHandled = true;
           setCurrentUser(cachedUser);
@@ -220,8 +216,8 @@ export default function App() {
             setLoadingApp(false);
           }
         } else if (event === 'INITIAL_SESSION' && !session?.user) {
-          if (!hasOAuthParams) {
-            await finalizeUnauthenticatedState();
+          if (!hasOAuthParams && isMounted) {
+            setLoadingApp(false);
           }
         }
       });
@@ -236,14 +232,32 @@ export default function App() {
           if (session?.user) {
             const success = await handleLoginUser(session.user);
             if (success) return;
+          } else if (!hasOAuthParams) {
+            // No session and no OAuth parameters in URL -> stop loading immediately and show login screen!
+            if (isMounted) {
+              setLoadingApp(false);
+            }
+            return;
           }
+        } else {
+          // If Supabase is not configured (local mode)
+          const cachedUser = await dbService.getCurrentUser();
+          if (isMounted && cachedUser) {
+            authHandled = true;
+            setCurrentUser(cachedUser);
+            await loadData(cachedUser);
+          }
+          if (isMounted) {
+            setLoadingApp(false);
+          }
+          return;
         }
 
-        // Fallback to local user or render login
+        // Fallback if there are OAuth parameters processing in URL
         await finalizeUnauthenticatedState();
       } catch (err) {
         console.error('Falha ao inicializar autenticação do SGAIT:', err);
-        await finalizeUnauthenticatedState();
+        if (isMounted) setLoadingApp(false);
       }
     };
 
