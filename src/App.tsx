@@ -91,21 +91,70 @@ export default function App() {
     }
   };
 
+  // Helper to clean OAuth or error URL parameters after auth processing
+  const cleanUrlAuthParams = () => {
+    if (typeof window !== 'undefined') {
+      const href = window.location.href;
+      if (
+        href.includes('access_token') ||
+        href.includes('code=') ||
+        href.includes('error=') ||
+        href.includes('refresh_token=') ||
+        href.includes('error_description=')
+      ) {
+        try {
+          window.history.replaceState(null, '', window.location.pathname);
+        } catch (e) {
+          console.warn('Erro ao limpar parâmetros de URL:', e);
+        }
+      }
+    }
+  };
+
   // Load profile and seed data on launch
   useEffect(() => {
     let isMounted = true;
 
+    // Helper to process session user and transition state immediately to logged-in
+    const handleLoginUser = async (userObj: any) => {
+      try {
+        const userProfile = await dbService.getCurrentUser(userObj);
+        if (isMounted && userProfile) {
+          setCurrentUser(userProfile);
+          await loadData(userProfile);
+          cleanUrlAuthParams();
+          return true;
+        }
+      } catch (err) {
+        console.error('Erro ao processar perfil do usuário:', err);
+      }
+      return false;
+    };
+
     const initApp = async () => {
       try {
-        const user = await dbService.getCurrentUser();
-        if (isMounted && user) {
-          setCurrentUser(user);
-          await loadData(user);
+        // 1. Explicitly check active Supabase session on app load
+        if (isSupabaseConfigured() && supabaseClient) {
+          const { data: { session } } = await supabaseClient.auth.getSession();
+          if (session?.user) {
+            const loggedIn = await handleLoginUser(session.user);
+            if (loggedIn) return;
+          }
+        }
+
+        // 2. Check cached profile if no active Supabase session or if Supabase is offline
+        const cachedUser = await dbService.getCurrentUser();
+        if (isMounted && cachedUser) {
+          setCurrentUser(cachedUser);
+          await loadData(cachedUser);
         }
       } catch (err) {
         console.error('Falha ao inicializar sessões do SGAIT:', err);
       } finally {
         if (isMounted) {
+          if (typeof window !== 'undefined' && window.location.href.includes('error=')) {
+            cleanUrlAuthParams();
+          }
           setLoadingApp(false);
         }
       }
@@ -113,57 +162,32 @@ export default function App() {
 
     initApp();
 
-    // Safety timeout: Ensure app never stays stuck on loading screen if OAuth redirect hash is present
-    const isOAuthRedirect = typeof window !== 'undefined' && 
-      (window.location.hash.includes('access_token') || window.location.search.includes('code='));
-
-    if (isOAuthRedirect) {
-      setTimeout(() => {
-        if (isMounted) {
-          setLoadingApp(false);
-        }
-      }, 2000);
-    }
-
-    // Listener de mudanças de estado de autenticação (Crucial para capturar o retorno do Google OAuth)
+    // 3. Listener de mudanças no estado de autenticação do Supabase
     let authSubscription: { unsubscribe: () => void } | null = null;
     if (isSupabaseConfigured() && supabaseClient) {
       const { data } = supabaseClient.auth.onAuthStateChange(async (event, session) => {
         if (!isMounted) return;
-        if (session?.user) {
-          console.log('Supabase Auth Event:', event, session.user.email);
-        }
+        
+        console.log('Supabase Auth Event:', event, session?.user?.email);
 
-        if (session?.user && (event === 'SIGNED_IN' || event === 'INITIAL_SESSION' || event === 'TOKEN_REFRESHED' || event === 'USER_UPDATED')) {
+        if (session?.user) {
           setLoadingApp(true);
-          try {
-            const userProfile = await dbService.getCurrentUser(session.user);
-            if (isMounted && userProfile) {
-              setCurrentUser(userProfile);
-              await loadData(userProfile);
-              
-              // Clean URL parameters after successful OAuth return
-              if (typeof window !== 'undefined' && (window.location.hash.includes('access_token') || window.location.search.includes('code='))) {
-                window.history.replaceState(null, '', window.location.pathname);
-              }
-            }
-          } catch (e) {
-            console.error('Erro ao processar login por onAuthStateChange:', e);
-          } finally {
-            if (isMounted) setLoadingApp(false);
-          }
+          await handleLoginUser(session.user);
+          if (isMounted) setLoadingApp(false);
         } else if (event === 'SIGNED_OUT') {
           if (isMounted) {
             setCurrentUser(null);
             safeStorage.removeItem(STORAGE_KEYS.CURRENT_USER);
+            cleanUrlAuthParams();
             setLoadingApp(false);
           }
         } else if (event === 'INITIAL_SESSION' && !session) {
-          if (isMounted) {
-            // Clean URL hash if returning from a failed/expired OAuth redirect to prevent loop
-            if (typeof window !== 'undefined' && (window.location.hash.includes('access_token') || window.location.search.includes('code=') || window.location.hash.includes('error='))) {
-              window.history.replaceState(null, '', window.location.pathname);
-            }
+          if (typeof window !== 'undefined' && window.location.href.includes('error=')) {
+            cleanUrlAuthParams();
+          }
+          const hasAuthCode = typeof window !== 'undefined' && 
+            (window.location.hash.includes('access_token') || window.location.search.includes('code='));
+          if (!hasAuthCode && isMounted) {
             setLoadingApp(false);
           }
         }
@@ -172,6 +196,13 @@ export default function App() {
     } else {
       setLoadingApp(false);
     }
+
+    // Safety timeout: Ensure app never stays stuck on loading screen
+    const safetyTimer = setTimeout(() => {
+      if (isMounted) {
+        setLoadingApp(false);
+      }
+    }, 4000);
 
     // Browser Online/Offline listeners
     const handleOnline = () => setIsOnline(true);
