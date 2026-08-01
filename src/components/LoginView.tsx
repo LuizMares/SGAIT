@@ -109,11 +109,11 @@ export default function LoginView({ onLoginSuccess }: LoginViewProps) {
             initial={{ scale: 0.9, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             transition={{ duration: 0.3 }}
-            className="w-12 h-12 bg-amber-500 rounded-2xl mx-auto flex items-center justify-center border-2 border-slate-900 shadow-md text-slate-950 font-black text-xl tracking-tighter mb-2"
+            className="w-14 h-14 bg-amber-500 rounded-2xl mx-auto flex items-center justify-center border-2 border-slate-900 shadow-md text-slate-950 font-black text-2xl tracking-tighter mb-2"
           >
             SGAIT
           </motion.div>
-          <h2 className="text-xl font-black tracking-tight text-slate-50">SGAIT</h2>
+          <h2 className="text-2xl font-black tracking-tight text-slate-50">SGAIT</h2>
           <p className="text-[10px] text-amber-400 font-mono tracking-widest uppercase mt-0.5 font-bold">Sistema de Gestão de Autos de Infração</p>
           <p className="text-[9px] text-slate-400 font-sans tracking-wide uppercase mt-0.5">Superintendência de Trânsito e Transporte Pojuca - BA</p>
         </div>
@@ -191,6 +191,7 @@ export default function LoginView({ onLoginSuccess }: LoginViewProps) {
     </div>
   );
 }
+
 
 
 

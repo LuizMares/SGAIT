@@ -463,11 +463,11 @@ export const dbService = {
   async signInWithGoogle(): Promise<{ user: UserProfile | null; error: string | null }> {
     if (isSupabaseConfigured() && supabaseClient) {
       try {
-        const cleanRedirectUrl = typeof window !== 'undefined' ? (window.location.origin + window.location.pathname) : '';
+        const redirectUrl = typeof window !== 'undefined' ? window.location.origin : '';
         const { data, error } = await supabaseClient.auth.signInWithOAuth({
           provider: 'google',
           options: {
-            redirectTo: cleanRedirectUrl,
+            redirectTo: redirectUrl,
             queryParams: {
               prompt: 'select_account'
             }
