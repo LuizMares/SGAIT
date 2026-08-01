@@ -142,11 +142,27 @@ export const isSupabaseConfigured = () => Boolean(
 
 export const isSupabaseActive = () => isSupabaseConfigured() && supabaseClient !== null;
 
+// Custom storage adapter for Supabase to handle sandboxed/iframe environments
+export const supabaseStorageAdapter = {
+  getItem: (key: string) => safeStorage.getItem(key),
+  setItem: (key: string, value: string) => safeStorage.setItem(key, value),
+  removeItem: (key: string) => safeStorage.removeItem(key),
+};
+
+const supabaseAuthOptions = {
+  auth: {
+    detectSessionInUrl: true,
+    persistSession: true,
+    autoRefreshToken: true,
+    storage: supabaseStorageAdapter,
+  }
+};
+
 // Real Supabase instance initialized directly
 let client: any = null;
 if (supabaseUrl && supabaseAnonKey && supabaseAnonKey !== 'your-supabase-anon-key') {
   try {
-    client = createClient(supabaseUrl, supabaseAnonKey);
+    client = createClient(supabaseUrl, supabaseAnonKey, supabaseAuthOptions);
     console.log('Supabase conectado diretamente em:', supabaseUrl);
   } catch (err) {
     console.error('Failed to initialize Supabase client:', err);
@@ -166,7 +182,7 @@ export function updateRuntimeSupabaseConfig(url: string, anonKey: string) {
   isSupabaseDisabledDueToInvalidKey = false;
 
   try {
-    supabaseClient = createClient(cleanUrl, cleanKey);
+    supabaseClient = createClient(cleanUrl, cleanKey, supabaseAuthOptions);
     console.log('Runtime Supabase client updated successfully:', cleanUrl);
 
     // Notify backend server to update its Supabase client as well

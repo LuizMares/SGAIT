@@ -138,49 +138,7 @@ export default function App() {
       return false;
     };
 
-    const initApp = async () => {
-      try {
-        // 1. Explicitly check active Supabase session on app load via getSession()
-        if (isSupabaseConfigured() && supabaseClient) {
-          const { data, error } = await supabaseClient.auth.getSession();
-          if (error) {
-            console.warn('Erro em supabaseClient.auth.getSession():', error);
-          }
-          if (data?.session?.user) {
-            const loggedIn = await handleLoginUser(data.session.user);
-            if (loggedIn && isMounted) {
-              setLoadingApp(false);
-              return;
-            }
-          }
-        }
-
-        // 2. Check cached profile if no active Supabase session or if Supabase is offline
-        // ONLY stop loading if there are NO pending OAuth tokens in the URL currently being processed
-        if (!hasPendingOAuthUrl) {
-          const cachedUser = await dbService.getCurrentUser();
-          if (isMounted && cachedUser) {
-            setCurrentUser(cachedUser);
-            await loadData(cachedUser);
-          }
-          if (isMounted) {
-            if (typeof window !== 'undefined' && window.location.href.includes('error=')) {
-              cleanUrlAuthParams();
-            }
-            setLoadingApp(false);
-          }
-        }
-      } catch (err) {
-        console.error('Falha ao inicializar sessões do SGAIT:', err);
-        if (isMounted && !hasPendingOAuthUrl) {
-          setLoadingApp(false);
-        }
-      }
-    };
-
-    initApp();
-
-    // 3. Robust listener for Supabase authentication state changes
+    // 1. Subscribe to Supabase auth state change FIRST to catch OAuth return tokens instantly
     let authSubscription: { unsubscribe: () => void } | null = null;
     if (isSupabaseConfigured() && supabaseClient) {
       const { data } = supabaseClient.auth.onAuthStateChange(async (event, session) => {
@@ -209,9 +167,48 @@ export default function App() {
         }
       });
       authSubscription = data.subscription;
-    } else {
-      setLoadingApp(false);
     }
+
+    // 2. Explicitly check session via getSession() after setting up listener
+    const initApp = async () => {
+      try {
+        if (isSupabaseConfigured() && supabaseClient) {
+          const { data, error } = await supabaseClient.auth.getSession();
+          if (error) {
+            console.warn('Erro em supabaseClient.auth.getSession():', error);
+          }
+          if (data?.session?.user) {
+            const loggedIn = await handleLoginUser(data.session.user);
+            if (loggedIn && isMounted) {
+              setLoadingApp(false);
+              return;
+            }
+          }
+        }
+
+        // 3. Fallback to cached profile ONLY if no pending OAuth processing in URL
+        if (!hasPendingOAuthUrl) {
+          const cachedUser = await dbService.getCurrentUser();
+          if (isMounted && cachedUser) {
+            setCurrentUser(cachedUser);
+            await loadData(cachedUser);
+          }
+          if (isMounted) {
+            if (typeof window !== 'undefined' && window.location.href.includes('error=')) {
+              cleanUrlAuthParams();
+            }
+            setLoadingApp(false);
+          }
+        }
+      } catch (err) {
+        console.error('Falha ao inicializar sessões do SGAIT:', err);
+        if (isMounted && !hasPendingOAuthUrl) {
+          setLoadingApp(false);
+        }
+      }
+    };
+
+    initApp();
 
     // Safety timeout: Ensure app never stays stuck indefinitely on loading screen
     const safetyTimer = setTimeout(() => {
