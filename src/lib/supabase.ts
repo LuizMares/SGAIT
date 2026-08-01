@@ -739,38 +739,31 @@ export const dbService = {
     try {
       let user = passedUser;
       
-      // If no user passed, check current session / user from Supabase
+      // If no user passed, check current active session from Supabase without triggering 401 network calls
       if (!user && isSupabaseConfigured() && supabaseClient) {
-        // Ensure session initialization and localStorage parsing are complete
         const { session } = await ensureSessionInitialized();
         if (session?.user) {
           user = session.user;
         }
-
-        // ONLY attempt getUser() if a valid session with an access_token is confirmed in memory/localStorage
-        if (!user && session?.access_token) {
-          try {
-            const { data: userData, error: userErr } = await supabaseClient.auth.getUser();
-            if (userData?.user && !userErr) {
-              user = userData.user;
-            }
-          } catch (e) {
-            console.warn('getCurrentUser: erro ao buscar usuário autenticado', e);
-          }
-        }
       }
 
-      // If still no user in Supabase, return cached local storage user
+      // If still no user in Supabase, return cached local storage user ONLY if Supabase is not configured
       if (!user) {
         if (typeof window !== 'undefined' && (window.location.hash.includes('error=') || window.location.search.includes('error='))) {
           try { window.history.replaceState(null, '', window.location.pathname); } catch (e) {}
         }
-        return safeJsonParse<UserProfile | null>(safeStorage.getItem(STORAGE_KEYS.CURRENT_USER), null);
+        if (!isSupabaseConfigured()) {
+          return safeJsonParse<UserProfile | null>(safeStorage.getItem(STORAGE_KEYS.CURRENT_USER), null);
+        }
+        return null;
       }
 
       const cleanEmail = (user.email || '').trim().toLowerCase();
       if (!cleanEmail) {
-        return safeJsonParse<UserProfile | null>(safeStorage.getItem(STORAGE_KEYS.CURRENT_USER), null);
+        if (!isSupabaseConfigured()) {
+          return safeJsonParse<UserProfile | null>(safeStorage.getItem(STORAGE_KEYS.CURRENT_USER), null);
+        }
+        return null;
       }
 
       // Determine user role (Admin vs Agente)

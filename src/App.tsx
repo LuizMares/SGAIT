@@ -176,7 +176,7 @@ export default function App() {
       }
     };
 
-    // 1. Subscribe to Supabase auth state changes FIRST to capture OAuth callback tokens & INITIAL_SESSION
+    // 1. Subscribe to Supabase auth state changes FIRST to capture OAuth callback tokens & SIGNED_IN / INITIAL_SESSION
     let authSubscription: { unsubscribe: () => void } | null = null;
     if (isSupabaseConfigured() && supabaseClient) {
       const { data } = supabaseClient.auth.onAuthStateChange(async (event, session) => {
@@ -184,19 +184,12 @@ export default function App() {
 
         console.log('Supabase Auth Event:', event, session?.user?.email);
 
-        if (event === 'INITIAL_SESSION') {
+        if (event === 'SIGNED_IN' || (event === 'INITIAL_SESSION' && session?.user) || (event === 'TOKEN_REFRESHED' && session?.user)) {
           if (session?.user) {
             const success = await handleLoginUser(session.user);
             if (!success) {
               await finalizeUnauthenticatedState();
             }
-          } else if (!hasOAuthParams) {
-            await finalizeUnauthenticatedState();
-          }
-        } else if (session?.user) {
-          const success = await handleLoginUser(session.user);
-          if (!success) {
-            await finalizeUnauthenticatedState();
           }
         } else if (event === 'SIGNED_OUT') {
           authHandled = false;
@@ -205,6 +198,10 @@ export default function App() {
             safeStorage.removeItem(STORAGE_KEYS.CURRENT_USER);
             cleanUrlAuthParams();
             setLoadingApp(false);
+          }
+        } else if (event === 'INITIAL_SESSION' && !session?.user) {
+          if (!hasOAuthParams) {
+            await finalizeUnauthenticatedState();
           }
         }
       });
