@@ -532,7 +532,7 @@ export default function App() {
         </h2>
         
         <p className="text-xs text-slate-400 mt-1.5 max-w-xs text-center leading-relaxed">
-          Verificando sessão ativa e validando credenciais com Supabase Google Auth.
+          Verificando sessão ativa e validando credenciais com Supabase Auth.
         </p>
 
         <div className="mt-6 flex items-center gap-2 text-xxs font-mono text-amber-400/90 bg-slate-900 border border-slate-800 px-3.5 py-1.5 rounded-full shadow-inner">

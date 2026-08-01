@@ -717,7 +717,7 @@ export const dbService = {
         authorizedEmails.push({ email, name, role });
         safeStorage.setItem(STORAGE_KEYS.AUTHORIZED, JSON.stringify(authorizedEmails));
       }
-      return this.signInWithGoogle(email);
+      return this.signInWithEmail(email, password);
     }
   },
 
