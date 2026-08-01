@@ -358,11 +358,11 @@ export default function DashboardView({ tickets }: DashboardViewProps) {
             {infractionRankings.length === 0 ? (
               <div className="text-center py-6 text-slate-500 text-sm">Nenhuma infração registrada no período.</div>
             ) : (
-              infractionRankings.map((inf) => {
+              infractionRankings.map((inf, idx) => {
                 const percentage = stats.total > 0 ? (inf.count / stats.total) * 100 : 0;
                 
                 return (
-                  <div key={inf.code} className="space-y-1.5">
+                  <div key={`inf-rank-${inf.code}-${idx}`} className="space-y-1.5">
                     <div className="flex items-start justify-between text-xs gap-3">
                       <div className="font-semibold text-slate-200 min-w-0 flex-1">
                         <span className="font-mono bg-amber-500/20 px-2 py-0.5 rounded text-xxs text-amber-400 font-black mr-2 border border-amber-500/30">{inf.code}</span>
@@ -414,7 +414,7 @@ export default function DashboardView({ tickets }: DashboardViewProps) {
                 ];
 
                 return (
-                  <div key={agent.name} className="flex items-center justify-between py-3">
+                  <div key={`agent-rank-${agent.name}-${index}`} className="flex items-center justify-between py-3">
                     <div className="flex items-center gap-3 min-w-0">
                       {/* Rank badge */}
                       <span className={`w-5 h-5 flex items-center justify-center rounded-full text-xxs font-black font-mono shrink-0 ${badgeColors[index] || 'bg-slate-900'}`}>

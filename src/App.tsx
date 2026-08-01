@@ -704,12 +704,12 @@ export default function App() {
 
       {/* MOBILE BOTTOM NAVIGATION BAR */}
       <nav className="fixed bottom-0 left-0 right-0 z-40 bg-slate-950/95 border-t border-slate-800/90 backdrop-blur-md md:hidden px-2 py-1.5 flex items-center justify-around shadow-2xl">
-        {navTabs.map((tab) => {
+        {navTabs.map((tab, idx) => {
           const Icon = tab.icon;
           const isActive = currentView === tab.id;
           return (
             <button
-              key={tab.id}
+              key={`mob-tab-${tab.id}-${idx}`}
               onClick={() => setCurrentView(tab.id)}
               className={`flex flex-col items-center justify-center py-1 px-2 rounded-xl transition-all relative ${
                 isActive 

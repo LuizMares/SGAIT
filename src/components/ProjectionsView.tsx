@@ -312,8 +312,8 @@ export default function ProjectionsView({ tickets, infractions }: ProjectionsVie
           className="bg-slate-50 border border-slate-200 text-xs px-3 py-1.5 rounded-lg font-medium"
         >
           <option value="">Todos os Agentes</option>
-          {uniqueAgents.map(ag => (
-            <option key={ag.id} value={ag.id}>{ag.name}</option>
+          {uniqueAgents.map((ag, idx) => (
+            <option key={`proj-ag-${ag.id || idx}-${idx}`} value={ag.id}>{ag.name}</option>
           ))}
         </select>
 
@@ -325,8 +325,8 @@ export default function ProjectionsView({ tickets, infractions }: ProjectionsVie
           className="bg-slate-50 border border-slate-200 text-xs px-3 py-1.5 rounded-lg font-medium font-mono"
         >
           <option value="">Todas as Infrações</option>
-          {infractions.map(inf => (
-            <option key={inf.code} value={inf.code}>{inf.code} - {inf.description.substring(0, 30)}...</option>
+          {infractions.map((inf, idx) => (
+            <option key={`proj-inf-opt-${inf.code}-${idx}`} value={inf.code}>{inf.code} - {inf.description.substring(0, 30)}...</option>
           ))}
         </select>
 
@@ -338,8 +338,8 @@ export default function ProjectionsView({ tickets, infractions }: ProjectionsVie
           className="bg-slate-50 border border-slate-200 text-xs px-3 py-1.5 rounded-lg font-medium"
         >
           <option value="">Todos os Veículos</option>
-          {uniqueVehicleTypes.map(vt => (
-            <option key={vt} value={vt}>{vt}</option>
+          {uniqueVehicleTypes.map((vt, idx) => (
+            <option key={`proj-vt-${vt}-${idx}`} value={vt}>{vt}</option>
           ))}
         </select>
 
@@ -482,7 +482,7 @@ export default function ProjectionsView({ tickets, infractions }: ProjectionsVie
                 const percentage = (inf.gross / totalGross) * 100;
 
                 return (
-                  <div key={inf.code} className="space-y-1.5">
+                  <div key={`proj-inf-bd-${inf.code}-${idx}`} className="space-y-1.5">
                     <div className="flex justify-between items-start gap-4">
                       <div className="text-xs min-w-0 flex-1">
                         <span className="font-mono bg-slate-100 font-bold px-1.5 py-0.5 rounded text-xxs text-slate-600 mr-1.5">{inf.code}</span>
@@ -531,8 +531,8 @@ export default function ProjectionsView({ tickets, infractions }: ProjectionsVie
                     <td colSpan={4} className="py-8 text-center text-slate-400 italic">Nenhum registro correspondente.</td>
                   </tr>
                 ) : (
-                  agentFinancialBreakdown.map(row => (
-                    <tr key={row.name} className="hover:bg-slate-50/50 transition-colors">
+                  agentFinancialBreakdown.map((row, idx) => (
+                    <tr key={`proj-agent-row-${row.name}-${idx}`} className="hover:bg-slate-50/50 transition-colors">
                       <td className="py-2 px-3 font-semibold text-slate-700">{row.name}</td>
                       <td className="py-2 px-3 text-center font-mono font-bold text-slate-600">{row.count}</td>
                       <td className="py-2 px-3 text-right font-mono text-slate-500">R$ {row.gross.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>

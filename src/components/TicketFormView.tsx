@@ -641,8 +641,8 @@ export default function TicketFormView({ user, infractions, onSuccessSubmit }: T
                 onChange={(e) => setVehicleType(e.target.value)}
                 className="w-full px-4 py-3 bg-white border-2 border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-4 focus:ring-amber-500/10 focus:border-amber-500 text-slate-800 font-semibold shadow-xs min-h-[48px]"
               >
-                {VEHICLE_TYPES.map(type => (
-                  <option key={type} value={type}>{type}</option>
+                {VEHICLE_TYPES.map((type, idx) => (
+                  <option key={`tf-vt-${type}-${idx}`} value={type}>{type}</option>
                 ))}
               </select>
             </div>
@@ -730,11 +730,11 @@ export default function TicketFormView({ user, infractions, onSuccessSubmit }: T
               {isDropdownOpen && (
                 <div className="absolute left-0 right-0 mt-1.5 bg-white border-2 border-slate-200 rounded-xl shadow-xl max-h-64 overflow-y-auto divide-y divide-slate-100 z-50">
                   {filteredInfractions.length > 0 ? (
-                    filteredInfractions.map((inf) => {
+                    filteredInfractions.map((inf, idx) => {
                       const isAlreadyAdded = selectedInfractions.some(item => item.code === inf.code);
                       return (
                         <button
-                          key={inf.code}
+                          key={`tf-inf-opt-${inf.code}-${idx}`}
                           type="button"
                           onClick={() => handleAddInfraction(inf)}
                           className={`w-full text-left px-4 py-3 hover:bg-amber-500/5 transition-colors flex flex-col gap-1 cursor-pointer ${

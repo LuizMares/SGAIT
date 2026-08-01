@@ -967,10 +967,18 @@ export const dbService = {
           .from('sgait_autos')
           .upsert(dbPayload, { onConflict: 'ait_number' });
 
-        if (error && (error.code === '42703' || (error.message && (error.message.toLowerCase().includes('column') || error.message.toLowerCase().includes('does not exist'))))) {
+        const isColumnMissingError = (err: any) => {
+          if (!err) return false;
+          const msg = String(err.message || err).toLowerCase();
+          const code = String(err.code || '');
+          return code === '42703' || code === 'PGRST204' || msg.includes('column') || msg.includes('schema cache') || msg.includes('does not exist');
+        };
+
+        if (error && isColumnMissingError(error)) {
           delete dbPayload.additional_infractions;
           delete dbPayload.infractions;
           delete dbPayload.detection_type;
+          delete dbPayload.educational_action_number;
           const retryCol = await supabaseClient
             .from('sgait_autos')
             .upsert(dbPayload, { onConflict: 'ait_number' });
@@ -1070,11 +1078,26 @@ export const dbService = {
         if (ticket.adminMeasure !== undefined) payload.admin_measure = ticket.adminMeasure;
         if (ticket.observations !== undefined) payload.observations = ticket.observations;
         if (ticket.photos !== undefined) payload.photos = Array.isArray(ticket.photos) ? ticket.photos : [];
+        if (ticket.detectionType !== undefined) payload.detection_type = ticket.detectionType;
+        if (ticket.educationalActionNumber !== undefined) payload.educational_action_number = ticket.educationalActionNumber || null;
 
+        let updateRes: any;
         if (ticket.aitNumber) {
-          await supabaseClient.from('sgait_autos').update(payload).eq('ait_number', ticket.aitNumber);
+          updateRes = await supabaseClient.from('sgait_autos').update(payload).eq('ait_number', ticket.aitNumber);
         } else {
-          await supabaseClient.from('sgait_autos').update(payload).eq('id', id);
+          updateRes = await supabaseClient.from('sgait_autos').update(payload).eq('id', id);
+        }
+
+        if (updateRes?.error && (updateRes.error.code === '42703' || updateRes.error.code === 'PGRST204' || (updateRes.error.message && (updateRes.error.message.toLowerCase().includes('column') || updateRes.error.message.toLowerCase().includes('schema cache') || updateRes.error.message.toLowerCase().includes('does not exist'))))) {
+          delete payload.additional_infractions;
+          delete payload.infractions;
+          delete payload.detection_type;
+          delete payload.educational_action_number;
+          if (ticket.aitNumber) {
+            await supabaseClient.from('sgait_autos').update(payload).eq('ait_number', ticket.aitNumber);
+          } else {
+            await supabaseClient.from('sgait_autos').update(payload).eq('id', id);
+          }
         }
       } catch (err: any) {
         console.warn('Supabase updateTicket exception:', err);

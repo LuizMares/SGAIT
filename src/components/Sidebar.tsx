@@ -170,13 +170,13 @@ export default function Sidebar({
 
       {/* Navigation Links */}
       <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-2 border-solid">
-        {filteredItems.map((item) => {
+        {filteredItems.map((item, idx) => {
           const Icon = item.icon;
           const isActive = currentView === item.id;
           return (
             <button
               id={`nav-${item.id}`}
-              key={item.id}
+              key={`nav-item-${item.id}-${idx}`}
               onClick={() => {
                 setCurrentView(item.id);
                 if (onCloseMobile) onCloseMobile();

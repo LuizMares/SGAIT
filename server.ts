@@ -3,7 +3,10 @@ import path from 'path';
 import fs from 'fs';
 import { createServer as createViteServer } from 'vite';
 import { createClient } from '@supabase/supabase-js';
+import dotenv from 'dotenv';
 import { DEFAULT_INFRACTIONS } from './src/lib/infractionsData';
+
+dotenv.config();
 
 const PORT = Number(process.env.PORT) || 3000;
 const app = express();
@@ -20,19 +23,35 @@ interface ServerStore {
   supabaseKey?: string;
 }
 
-// Supabase configuration for direct server-side proxy sync
-let rawUrl = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL || '';
-let rawKey = process.env.VITE_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY || '';
-
 const DEFAULT_SUPABASE_URL = 'https://yanvopffwhhfadlxcbkg.supabase.co';
 const DEFAULT_SUPABASE_ANON_KEY = 'sb_publishable_4_fnl9gzrpte3y5cfuywla_kygmnkdp';
+
+function getEnvSupabaseConfig() {
+  const envUrl = (
+    process.env.SUPABASE_URL ||
+    process.env.VITE_SUPABASE_URL ||
+    ''
+  ).trim();
+
+  const envKey = (
+    process.env.SUPABASE_ANON_KEY ||
+    process.env.VITE_SUPABASE_ANON_KEY ||
+    process.env.SUPABASE_SERVICE_ROLE_KEY ||
+    process.env.SUPABASE_KEY ||
+    ''
+  ).trim();
+
+  return { envUrl, envKey };
+}
 
 let supabase: any = null;
 let store: ServerStore;
 
 function initSupabaseClient(url?: string, key?: string) {
-  let targetUrl = url || (store && store.supabaseUrl) || rawUrl;
-  let targetKey = key || (store && store.supabaseKey) || rawKey;
+  const { envUrl, envKey } = getEnvSupabaseConfig();
+
+  let targetUrl = url || envUrl || (store && store.supabaseUrl) || DEFAULT_SUPABASE_URL;
+  let targetKey = key || envKey || (store && store.supabaseKey) || DEFAULT_SUPABASE_ANON_KEY;
 
   if (!targetUrl || !targetUrl.includes('.') || targetUrl.includes('your-supabase-project')) {
     targetUrl = DEFAULT_SUPABASE_URL;
@@ -44,14 +63,25 @@ function initSupabaseClient(url?: string, key?: string) {
     targetKey = DEFAULT_SUPABASE_ANON_KEY;
   }
 
-  if (targetUrl === DEFAULT_SUPABASE_URL && (!store || !store.supabaseKey)) {
+  if (targetUrl === DEFAULT_SUPABASE_URL && !key && !envKey) {
     targetKey = DEFAULT_SUPABASE_ANON_KEY;
   }
 
   if (targetUrl && targetKey) {
     try {
-      supabase = createClient(targetUrl, targetKey);
-      console.log(`Server: Client Supabase ativado para: ${targetUrl}`);
+      supabase = createClient(targetUrl, targetKey, {
+        global: {
+          headers: {
+            'apikey': targetKey,
+            'Authorization': `Bearer ${targetKey}`
+          }
+        },
+        auth: {
+          persistSession: false,
+          autoRefreshToken: false
+        }
+      });
+      console.log(`Server: Client Supabase ativado para: ${targetUrl} com apikey/Authorization configurados.`);
       return true;
     } catch (e) {
       console.warn('Server: Supabase client initialization error:', e);
@@ -363,11 +393,19 @@ async function pushTicketToSupabase(ticket: any) {
       return { success: false, needsTables: true, error: 'Tabela sgait_autos não existe no Supabase. Execute o script SQL no Supabase.' };
     }
 
-    // Retry 1: If optional jsonb or detection_type columns don't exist in user DB schema
-    if (error && (error.code === '42703' || (error.message && (error.message.toLowerCase().includes('column') || error.message.toLowerCase().includes('does not exist'))))) {
+    // Retry 1: If optional jsonb, detection_type, or educational_action_number columns don't exist in user DB schema
+    const isColumnError = (err: any) => {
+      if (!err) return false;
+      const msg = String(err.message || err).toLowerCase();
+      const code = String(err.code || '');
+      return code === '42703' || code === 'PGRST204' || msg.includes('column') || msg.includes('schema cache') || msg.includes('does not exist');
+    };
+
+    if (error && isColumnError(error)) {
       delete payload.additional_infractions;
       delete payload.infractions;
       delete payload.detection_type;
+      delete payload.educational_action_number;
       try {
         const retryCol = await supabase.from('sgait_autos').upsert(payload, { onConflict: 'ait_number' });
         error = retryCol.error;
@@ -519,6 +557,8 @@ async function syncFromSupabase() {
         adminMeasure: row.admin_measure,
         additionalInfractions: row.additional_infractions || row.additionalInfractions || [],
         infractions: row.infractions || row.additional_infractions || row.additionalInfractions || [],
+        detectionType: row.detection_type || row.detectionType || 'In Loco',
+        educationalActionNumber: row.educational_action_number || row.educationalActionNumber || undefined,
         observations: row.observations,
         photos: row.photos || [],
         agentId: row.agent_id,
@@ -623,7 +663,18 @@ app.post('/api/config/supabase', async (req, res) => {
   const cleanKey = anonKey.trim();
 
   try {
-    const testClient = createClient(cleanUrl, cleanKey);
+    const testClient = createClient(cleanUrl, cleanKey, {
+      global: {
+        headers: {
+          'apikey': cleanKey,
+          'Authorization': `Bearer ${cleanKey}`
+        }
+      },
+      auth: {
+        persistSession: false,
+        autoRefreshToken: false
+      }
+    });
     // Test query against Supabase
     const { error } = await testClient.from('sgait_autos').select('count', { count: 'exact', head: true });
 

@@ -357,8 +357,8 @@ export default function TicketListView({ user, tickets, infractions, onReloadNee
                 className="w-full px-3 py-2.5 bg-slate-50 border-2 border-slate-200 text-xs rounded-xl font-bold focus:outline-none focus:border-amber-500"
               >
                 <option value="">Todos</option>
-                {uniqueAgents.map(ag => (
-                  <option key={ag.id} value={ag.id}>{ag.name}</option>
+                {uniqueAgents.map((ag, idx) => (
+                  <option key={`list-ag-${ag.id || idx}-${idx}`} value={ag.id}>{ag.name}</option>
                 ))}
               </select>
             </div>
@@ -373,8 +373,8 @@ export default function TicketListView({ user, tickets, infractions, onReloadNee
                 className="w-full px-3 py-2.5 bg-slate-50 border-2 border-slate-200 text-xs rounded-xl font-bold focus:outline-none focus:border-amber-500"
               >
                 <option value="">Todos</option>
-                {VEHICLE_TYPES.map(vt => (
-                  <option key={vt} value={vt}>{vt}</option>
+                {VEHICLE_TYPES.map((vt, idx) => (
+                  <option key={`list-vt-${vt}-${idx}`} value={vt}>{vt}</option>
                 ))}
               </select>
             </div>
@@ -429,12 +429,12 @@ export default function TicketListView({ user, tickets, infractions, onReloadNee
           <div>
             {/* MOBILE CARDS VIEW (md:hidden) */}
             <div className="block md:hidden divide-y divide-slate-100">
-              {filteredTickets.map((ticket) => {
+              {filteredTickets.map((ticket, idx) => {
                 const isAuthoredByMe = ticket.agentId === user.id;
                 const canEdit = user.role === UserRole.ADMIN || isAuthoredByMe;
 
                 return (
-                  <div key={ticket.id} className="p-4 hover:bg-slate-50/60 transition-colors space-y-3 text-slate-800">
+                  <div key={`ticket-card-${ticket.id || idx}-${idx}`} className="p-4 hover:bg-slate-50/60 transition-colors space-y-3 text-slate-800">
                     {/* Header line: AIT number & Nature Badge */}
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
@@ -551,12 +551,12 @@ export default function TicketListView({ user, tickets, infractions, onReloadNee
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 text-xs">
-                  {filteredTickets.map((ticket) => {
+                  {filteredTickets.map((ticket, idx) => {
                     const isAuthoredByMe = ticket.agentId === user.id;
                     const canEdit = user.role === UserRole.ADMIN || isAuthoredByMe;
 
                     return (
-                      <tr key={ticket.id} className="hover:bg-slate-50/40 transition-colors">
+                      <tr key={`ticket-row-${ticket.id || idx}-${idx}`} className="hover:bg-slate-50/40 transition-colors">
                         {/* AIT Number */}
                         <td className="py-4 px-5 font-mono font-bold text-slate-800">
                           {ticket.aitNumber}
@@ -940,8 +940,8 @@ export default function TicketListView({ user, tickets, infractions, onReloadNee
                   onChange={(e) => setEditVehicleType(e.target.value)}
                   className="w-full px-3 py-2 bg-white border-2 border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-4 focus:ring-amber-500/10 focus:border-amber-500 font-bold"
                 >
-                  {VEHICLE_TYPES.map(vt => (
-                    <option key={vt} value={vt}>{vt}</option>
+                  {VEHICLE_TYPES.map((vt, idx) => (
+                    <option key={`edit-vt-${vt}-${idx}`} value={vt}>{vt}</option>
                   ))}
                 </select>
               </div>
@@ -967,8 +967,8 @@ export default function TicketListView({ user, tickets, infractions, onReloadNee
                   onChange={(e) => setEditInfractionCode(e.target.value)}
                   className="w-full px-3 py-2 bg-white border-2 border-slate-200 rounded-xl text-xs focus:outline-none focus:ring-4 focus:ring-amber-500/10 focus:border-amber-500 font-mono text-slate-700 font-bold"
                 >
-                  {infractions.map(inf => (
-                    <option key={inf.code} value={inf.code}>{inf.code} - {inf.description.substring(0, 50)}...</option>
+                  {infractions.map((inf, idx) => (
+                    <option key={`edit-inf-${inf.code}-${idx}`} value={inf.code}>{inf.code} - {inf.description.substring(0, 50)}...</option>
                   ))}
                 </select>
               </div>

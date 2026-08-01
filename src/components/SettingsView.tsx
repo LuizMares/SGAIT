@@ -917,12 +917,12 @@ export default function SettingsView({ user, authorizedEmails, infractions, onRe
                         </td>
                       </tr>
                     ) : (
-                      filteredAuthorizedEmails.map((ae) => {
+                      filteredAuthorizedEmails.map((ae, idx) => {
                         const isLogged = !!ae.lastLoginAt;
                         const isSelf = ae.email.toLowerCase() === user.email.toLowerCase();
 
                         return (
-                          <tr key={ae.email} className="hover:bg-slate-50/60 transition-colors">
+                          <tr key={`ae-row-${ae.email || idx}-${idx}`} className="hover:bg-slate-50/60 transition-colors">
                             <td className="py-3 px-4 font-bold text-slate-800">
                               <div className="flex items-center gap-2.5">
                                 <img
@@ -1176,8 +1176,8 @@ export default function SettingsView({ user, authorizedEmails, infractions, onRe
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 text-xxs">
-                  {infractions.map((inf) => (
-                    <tr key={inf.code} className="hover:bg-slate-50/40 transition-colors">
+                  {infractions.map((inf, idx) => (
+                    <tr key={`setting-inf-row-${inf.code}-${idx}`} className="hover:bg-slate-50/40 transition-colors">
                       <td className="py-2 px-3 font-mono font-bold text-slate-800">{inf.code}</td>
                       <td className="py-2 px-3 max-w-[150px] truncate font-semibold" title={inf.description}>{inf.description}</td>
                       <td className="py-2 px-3 font-mono font-semibold text-slate-500">{inf.article}</td>
