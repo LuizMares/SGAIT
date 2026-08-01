@@ -33,7 +33,7 @@ import ProjectionsView from './components/ProjectionsView';
 import SettingsView from './components/SettingsView';
 import LoginView from './components/LoginView';
 
-import { dbService, isSupabaseConfigured, supabaseClient, safeStorage, STORAGE_KEYS, addDeletedTicketKeys } from './lib/supabase';
+import { dbService, isSupabaseConfigured, supabaseClient, safeStorage, STORAGE_KEYS, addDeletedTicketKeys, ensureSessionInitialized } from './lib/supabase';
 import { UserProfile, TrafficTicket, InfractionType, AuthorizedEmail, UserRole } from './types';
 
 export default function App() {
@@ -211,35 +211,14 @@ export default function App() {
       authSubscription = data.subscription;
     }
 
-    // 2. Explicitly wait for Supabase to resolve session and process OAuth return params
+    // 2. Explicitly wait for Supabase session initialization and process OAuth return params asynchronously
     const initAppAuth = async () => {
       try {
         if (isSupabaseConfigured() && supabaseClient) {
-          // Check session explicitly
-          const { data, error } = await supabaseClient.auth.getSession();
-          if (error) {
-            console.warn('Aviso em getSession():', error);
-          }
-
-          if (data?.session?.user) {
-            const success = await handleLoginUser(data.session.user);
+          const { session } = await ensureSessionInitialized();
+          if (session?.user) {
+            const success = await handleLoginUser(session.user);
             if (success) return;
-          }
-
-          // If session is not immediately available but URL contains OAuth callback parameters:
-          if (hasOAuthParams) {
-            console.log('Aguardando retorno do Google OAuth via Supabase...');
-            let attempts = 0;
-            // Poll for up to 3 seconds for session to populate from OAuth callback processing
-            while (attempts < 20 && isMounted && !authHandled) {
-              await new Promise(res => setTimeout(res, 150));
-              attempts++;
-              const retry = await supabaseClient.auth.getSession();
-              if (retry.data?.session?.user) {
-                const success = await handleLoginUser(retry.data.session.user);
-                if (success) return;
-              }
-            }
           }
         }
 

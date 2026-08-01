@@ -170,7 +170,63 @@ if (supabaseUrl && supabaseAnonKey && supabaseAnonKey !== 'your-supabase-anon-ke
 }
 export let supabaseClient = client;
 
+let sessionInitPromise: Promise<{ session: any | null }> | null = null;
+
+/**
+ * Ensures Supabase session and URL hash tokens (_getSessionFromURL) are fully processed
+ * and saved into storage BEFORE any auth API calls (like getUser()) are attempted.
+ */
+export async function ensureSessionInitialized(): Promise<{ session: any | null }> {
+  if (!isSupabaseConfigured() || !supabaseClient) {
+    return { session: null };
+  }
+
+  if (!sessionInitPromise) {
+    sessionInitPromise = (async () => {
+      try {
+        // Request initial session from Supabase client.
+        // detectSessionInUrl: true automatically triggers parsing of URL hash/query in getSession()
+        const { data, error } = await supabaseClient.auth.getSession();
+        
+        if (error) {
+          console.warn('ensureSessionInitialized: erro em getSession():', error);
+        }
+
+        let session = data?.session || null;
+
+        // If URL contains OAuth callback parameters (#access_token or ?code),
+        // wait asynchronously for Supabase to finish parsing and persisting session to storage
+        if (!session && typeof window !== 'undefined') {
+          const { hash, search, href } = window.location;
+          const hasUrlParams = hash.includes('access_token') || hash.includes('code=') || search.includes('code=') || href.includes('access_token');
+          
+          if (hasUrlParams) {
+            let attempts = 0;
+            while (attempts < 20) {
+              await new Promise(resolve => setTimeout(resolve, 100));
+              attempts++;
+              const { data: retryData } = await supabaseClient.auth.getSession();
+              if (retryData?.session?.access_token) {
+                session = retryData.session;
+                break;
+              }
+            }
+          }
+        }
+
+        return { session };
+      } catch (err) {
+        console.warn('ensureSessionInitialized falhou:', err);
+        return { session: null };
+      }
+    })();
+  }
+
+  return sessionInitPromise;
+}
+
 export function updateRuntimeSupabaseConfig(url: string, anonKey: string) {
+  sessionInitPromise = null;
   const cleanUrl = sanitizeUrl(url) || (url.startsWith('http') ? url.trim() : `https://${url.trim()}`);
   const cleanKey = anonKey.trim();
 
@@ -685,25 +741,18 @@ export const dbService = {
       
       // If no user passed, check current session / user from Supabase
       if (!user && isSupabaseConfigured() && supabaseClient) {
-        try {
-          const { data, error } = await supabaseClient.auth.getSession();
-          if (!error && data?.session?.user) {
-            user = data.session.user;
-          }
-        } catch (e) {
-          console.warn('getCurrentUser: erro ao obter sessão do Supabase', e);
+        // Ensure session initialization and localStorage parsing are complete
+        const { session } = await ensureSessionInitialized();
+        if (session?.user) {
+          user = session.user;
         }
 
-        // Only attempt getUser() if a valid session exists to avoid triggering 401 Unauthorized API calls
-        if (!user && supabaseClient) {
+        // ONLY attempt getUser() if a valid session with an access_token is confirmed in memory/localStorage
+        if (!user && session?.access_token) {
           try {
-            // Check if there is an active session before calling getUser()
-            const { data: { session } } = await supabaseClient.auth.getSession();
-            if (session?.access_token) {
-              const { data: { user: fetchedUser }, error: userErr } = await supabaseClient.auth.getUser();
-              if (fetchedUser && !userErr) {
-                user = fetchedUser;
-              }
+            const { data: userData, error: userErr } = await supabaseClient.auth.getUser();
+            if (userData?.user && !userErr) {
+              user = userData.user;
             }
           } catch (e) {
             console.warn('getCurrentUser: erro ao buscar usuário autenticado', e);
