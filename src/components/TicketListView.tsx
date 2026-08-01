@@ -43,7 +43,8 @@ export default function TicketListView({ user, tickets, infractions, onReloadNee
   const [filterAgent, setFilterAgent] = useState('');
   const [filterVehicleType, setFilterVehicleType] = useState('');
   const [filterNature, setFilterNature] = useState('');
-  const [sortBy, setSortBy] = useState('newest'); // newest, oldest, value-desc, value-asc
+  const [filterDetectionType, setFilterDetectionType] = useState('');
+  const [sortBy, setSortBy] = useState('newest'); // newest, oldest, value-desc, value-asc, score-desc
   const [showFilters, setShowFilters] = useState(false);
 
   // 2. Active Selected Ticket Detail Modal State
@@ -61,10 +62,25 @@ export default function TicketListView({ user, tickets, infractions, onReloadNee
   const [actionLoading, setActionLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
+  // Helper for safe BR date formatting (DD/MM/YYYY)
+  const formatDateBR = (dateStr?: string) => {
+    if (!dateStr) return '---';
+    const cleanDate = String(dateStr).substring(0, 10);
+    const parts = cleanDate.split('-');
+    if (parts.length === 3 && parts[0].length === 4) {
+      return `${parts[2]}/${parts[1]}/${parts[0]}`;
+    }
+    return cleanDate;
+  };
+
   // List of unique agents present in the current tickets for the agent filter
   const uniqueAgents = useMemo(() => {
     const agentsMap = new Map<string, string>();
-    tickets.forEach(t => agentsMap.set(t.agentId, t.agentName));
+    tickets.forEach(t => {
+      const key = t.agentId || t.agentName;
+      const label = t.agentName || t.agentId || 'Agente';
+      if (key) agentsMap.set(key, label);
+    });
     return Array.from(agentsMap.entries()).map(([id, name]) => ({ id, name }));
   }, [tickets]);
 
@@ -84,65 +100,122 @@ export default function TicketListView({ user, tickets, infractions, onReloadNee
     'Outro'
   ];
 
+  // Active filter count
+  const activeFilterCount = useMemo(() => {
+    return [
+      searchTerm,
+      filterPlate,
+      filterDate,
+      filterAgent,
+      filterVehicleType,
+      filterNature,
+      filterDetectionType
+    ].filter(val => Boolean(val && val.trim() !== '')).length;
+  }, [searchTerm, filterPlate, filterDate, filterAgent, filterVehicleType, filterNature, filterDetectionType]);
+
   // 4. Apply Filters & Sorting
   const filteredTickets = useMemo(() => {
     let result = [...tickets];
 
-    // Search by AIT number or general text
+    // Search by AIT number, plate, description, location, agent, infraction code, framing, article, or observations
     if (searchTerm.trim() !== '') {
-      const term = searchTerm.toLowerCase();
-      result = result.filter(t => 
-        t.aitNumber.toLowerCase().includes(term) ||
-        t.infractionDescription.toLowerCase().includes(term) ||
-        t.location.toLowerCase().includes(term)
-      );
+      const term = searchTerm.trim().toLowerCase();
+      const cleanTerm = term.replace(/[^a-z0-9]/g, '');
+      result = result.filter(t => {
+        const ait = (t.aitNumber || '').toLowerCase();
+        const desc = (t.infractionDescription || '').toLowerCase();
+        const loc = (t.location || '').toLowerCase();
+        const plate = (t.plate || '').toLowerCase();
+        const plateClean = plate.replace(/[^a-z0-9]/g, '');
+        const agent = (t.agentName || '').toLowerCase();
+        const code = (t.infractionCode || '').toLowerCase();
+        const art = (t.article || '').toLowerCase();
+        const fram = (t.framing || '').toLowerCase();
+        const obs = (t.observations || '').toLowerCase();
+
+        return (
+          ait.includes(term) ||
+          desc.includes(term) ||
+          loc.includes(term) ||
+          plate.includes(term) ||
+          (cleanTerm.length >= 2 && plateClean.includes(cleanTerm)) ||
+          agent.includes(term) ||
+          code.includes(term) ||
+          art.includes(term) ||
+          fram.includes(term) ||
+          obs.includes(term)
+        );
+      });
     }
 
-    // Filter by Plate
+    // Filter by Plate (handles formats like ABC-1234 or ABC1234 or MERCOSUL ABC1D23)
     if (filterPlate.trim() !== '') {
-      const p = filterPlate.toUpperCase();
-      result = result.filter(t => t.plate.includes(p));
+      const p = filterPlate.toUpperCase().replace(/[^A-Z0-9]/g, '');
+      result = result.filter(t => {
+        const ticketPlateClean = (t.plate || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
+        return ticketPlateClean.includes(p);
+      });
     }
 
-    // Filter by Date
+    // Filter by Date (YYYY-MM-DD)
     if (filterDate !== '') {
       result = result.filter(t => (t.infractionDate || '').substring(0, 10) === filterDate);
     }
 
-    // Filter by Agent
+    // Filter by Agent (match agentId or agentName)
     if (filterAgent !== '') {
-      result = result.filter(t => t.agentId === filterAgent);
+      result = result.filter(t => t.agentId === filterAgent || t.agentName === filterAgent);
     }
 
     // Filter by Vehicle Type
     if (filterVehicleType !== '') {
-      result = result.filter(t => t.vehicleType === filterVehicleType);
+      result = result.filter(t => (t.vehicleType || '').trim().toLowerCase() === filterVehicleType.trim().toLowerCase());
     }
 
-    // Filter by Nature
+    // Filter by Nature / Severity
     if (filterNature !== '') {
-      result = result.filter(t => t.nature === filterNature);
+      result = result.filter(t => (t.nature || '').trim().toLowerCase() === filterNature.trim().toLowerCase());
+    }
+
+    // Filter by Constatação / Detection Type
+    if (filterDetectionType !== '') {
+      result = result.filter(t => (t.detectionType || '').trim().toLowerCase() === filterDetectionType.trim().toLowerCase());
     }
 
     // Sorting logic
     result.sort((a, b) => {
       if (sortBy === 'newest') {
-        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+        const timeA = new Date((a.infractionDate || a.createdAt) + (a.infractionTime ? `T${a.infractionTime}` : '')).getTime() || new Date(a.createdAt).getTime();
+        const timeB = new Date((b.infractionDate || b.createdAt) + (b.infractionTime ? `T${b.infractionTime}` : '')).getTime() || new Date(b.createdAt).getTime();
+        return timeB - timeA;
       }
       if (sortBy === 'oldest') {
-        return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+        const timeA = new Date((a.infractionDate || a.createdAt) + (a.infractionTime ? `T${a.infractionTime}` : '')).getTime() || new Date(a.createdAt).getTime();
+        const timeB = new Date((b.infractionDate || b.createdAt) + (b.infractionTime ? `T${b.infractionTime}` : '')).getTime() || new Date(b.createdAt).getTime();
+        return timeA - timeB;
       }
       if (sortBy === 'value-desc') {
-        return b.fineValue - a.fineValue;
+        return (b.fineValue || 0) - (a.fineValue || 0);
       }
       if (sortBy === 'value-asc') {
-        return a.fineValue - b.fineValue;
+        return (a.fineValue || 0) - (b.fineValue || 0);
+      }
+      if (sortBy === 'score-desc') {
+        return (b.score || 0) - (a.score || 0);
       }
       return 0;
     });
 
     return result;
-  }, [tickets, searchTerm, filterPlate, filterDate, filterAgent, filterVehicleType, filterNature, sortBy]);
+  }, [tickets, searchTerm, filterPlate, filterDate, filterAgent, filterVehicleType, filterNature, filterDetectionType, sortBy]);
+
+  // Statistics of current filtered view
+  const filteredStats = useMemo(() => {
+    const count = filteredTickets.length;
+    const totalValue = filteredTickets.reduce((acc, t) => acc + (t.fineValue || 0), 0);
+    const totalScore = filteredTickets.reduce((acc, t) => acc + (t.score || 0), 0);
+    return { count, totalValue, totalScore };
+  }, [filteredTickets]);
 
   // 5. Delete Action Handler
   const handleDelete = async (id: string) => {
@@ -299,29 +372,35 @@ export default function TicketListView({ user, tickets, infractions, onReloadNee
             >
               <option value="newest">Mais Recentes</option>
               <option value="oldest">Mais Antigos</option>
-              <option value="value-desc">Maior Valor</option>
-              <option value="value-asc">Menor Valor</option>
+              <option value="value-desc">Maior Valor (R$)</option>
+              <option value="value-asc">Menor Valor (R$)</option>
+              <option value="score-desc">Maior Pontuação CNH</option>
             </select>
 
-            {/* Toggle Advanced Filters Button */}
+            {/* Toggle Advanced Filters Button with Active Count Badge */}
             <button
               id="btn-toggle-filters"
               onClick={() => setShowFilters(!showFilters)}
-              className={`flex items-center gap-2 px-4 py-2.5 text-xs font-bold rounded-xl border-2 transition-all cursor-pointer ${
-                showFilters 
-                  ? 'bg-amber-500 border-amber-500 text-slate-950' 
+              className={`flex items-center gap-2 px-4 py-2.5 text-xs font-bold rounded-xl border-2 transition-all cursor-pointer relative ${
+                showFilters || activeFilterCount > 0
+                  ? 'bg-amber-500 border-amber-500 text-slate-950 shadow-sm' 
                   : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
               }`}
             >
               <Filter size={15} />
-              Filtros Avançados
+              <span>Filtros Avançados</span>
+              {activeFilterCount > 0 && (
+                <span className="ml-1 px-1.5 py-0.5 bg-slate-950 text-amber-400 text-[10px] font-black rounded-full">
+                  {activeFilterCount}
+                </span>
+              )}
             </button>
           </div>
         </div>
 
         {/* ADVANCED FILTER DRAWER */}
         {showFilters && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-4 pt-4 border-t border-slate-100 animate-fade-in text-slate-700">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-6 gap-4 pt-4 border-t border-slate-100 animate-fade-in text-slate-700">
             {/* Filter: Plate */}
             <div className="space-y-1">
               <label className="text-[10px] font-black text-slate-500 uppercase tracking-wider">Filtrar Placa</label>
@@ -356,7 +435,7 @@ export default function TicketListView({ user, tickets, infractions, onReloadNee
                 onChange={(e) => setFilterAgent(e.target.value)}
                 className="w-full px-3 py-2.5 bg-slate-50 border-2 border-slate-200 text-xs rounded-xl font-bold focus:outline-none focus:border-amber-500"
               >
-                <option value="">Todos</option>
+                <option value="">Todos os Agentes</option>
                 {uniqueAgents.map((ag, idx) => (
                   <option key={`list-ag-${ag.id || idx}-${idx}`} value={ag.id}>{ag.name}</option>
                 ))}
@@ -372,7 +451,7 @@ export default function TicketListView({ user, tickets, infractions, onReloadNee
                 onChange={(e) => setFilterVehicleType(e.target.value)}
                 className="w-full px-3 py-2.5 bg-slate-50 border-2 border-slate-200 text-xs rounded-xl font-bold focus:outline-none focus:border-amber-500"
               >
-                <option value="">Todos</option>
+                <option value="">Todos os Veículos</option>
                 {VEHICLE_TYPES.map((vt, idx) => (
                   <option key={`list-vt-${vt}-${idx}`} value={vt}>{vt}</option>
                 ))}
@@ -388,7 +467,7 @@ export default function TicketListView({ user, tickets, infractions, onReloadNee
                 onChange={(e) => setFilterNature(e.target.value)}
                 className="w-full px-3 py-2.5 bg-slate-50 border-2 border-slate-200 text-xs rounded-xl font-bold focus:outline-none focus:border-amber-500"
               >
-                <option value="">Todas</option>
+                <option value="">Todas as Gravidades</option>
                 <option value="Leve">Leve</option>
                 <option value="Média">Média</option>
                 <option value="Grave">Grave</option>
@@ -396,8 +475,27 @@ export default function TicketListView({ user, tickets, infractions, onReloadNee
               </select>
             </div>
 
+            {/* Filter: Detection Type */}
+            <div className="space-y-1">
+              <label className="text-[10px] font-black text-slate-500 uppercase tracking-wider">Constatação</label>
+              <select
+                id="filter-detection-type"
+                value={filterDetectionType}
+                onChange={(e) => setFilterDetectionType(e.target.value)}
+                className="w-full px-3 py-2.5 bg-slate-50 border-2 border-slate-200 text-xs rounded-xl font-bold focus:outline-none focus:border-amber-500"
+              >
+                <option value="">Todas as Formas</option>
+                <option value="In Loco">In Loco</option>
+                <option value="Videomonitoramento">Videomonitoramento</option>
+                <option value="Equipamento Eletrônico">Equipamento Eletrônico</option>
+              </select>
+            </div>
+
             {/* Clear filters trigger */}
-            <div className="sm:col-span-2 md:col-span-5 flex justify-end gap-2 pt-1">
+            <div className="sm:col-span-2 md:col-span-6 flex items-center justify-between pt-2 border-t border-slate-100">
+              <span className="text-xxs text-slate-500 font-mono">
+                {activeFilterCount > 0 ? `Filtros ativos: ${activeFilterCount}` : 'Nenhum filtro adicional aplicado'}
+              </span>
               <button
                 id="btn-clear-filters"
                 onClick={() => {
@@ -406,6 +504,7 @@ export default function TicketListView({ user, tickets, infractions, onReloadNee
                   setFilterAgent('');
                   setFilterVehicleType('');
                   setFilterNature('');
+                  setFilterDetectionType('');
                   setSearchTerm('');
                 }}
                 className="text-xxs font-black text-amber-600 hover:text-amber-700 underline uppercase cursor-pointer"
@@ -415,6 +514,41 @@ export default function TicketListView({ user, tickets, infractions, onReloadNee
             </div>
           </div>
         )}
+      </div>
+
+      {/* SUMMARY STATS FOR FILTERED RESULTS */}
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+        <div className="bg-white p-3.5 rounded-xl border border-slate-200 shadow-2xs flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-amber-500/10 text-amber-700 flex items-center justify-center font-bold">
+            <Layers size={18} />
+          </div>
+          <div>
+            <span className="text-xxs font-black text-slate-400 uppercase tracking-wider block">Registros Encontrados</span>
+            <span className="text-base font-black text-slate-900 font-mono">{filteredStats.count}</span>
+          </div>
+        </div>
+
+        <div className="bg-white p-3.5 rounded-xl border border-slate-200 shadow-2xs flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-700 flex items-center justify-center font-bold">
+            <FileText size={18} />
+          </div>
+          <div>
+            <span className="text-xxs font-black text-slate-400 uppercase tracking-wider block">Valor Total das Multas</span>
+            <span className="text-base font-black text-emerald-700 font-mono">
+              R$ {filteredStats.totalValue.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            </span>
+          </div>
+        </div>
+
+        <div className="bg-white p-3.5 rounded-xl border border-slate-200 shadow-2xs flex items-center gap-3 col-span-2 md:col-span-1">
+          <div className="w-10 h-10 rounded-xl bg-rose-50 text-rose-700 flex items-center justify-center font-bold">
+            <AlertTriangle size={18} />
+          </div>
+          <div>
+            <span className="text-xxs font-black text-slate-400 uppercase tracking-wider block">Pontuação Total CNH</span>
+            <span className="text-base font-black text-rose-700 font-mono">{filteredStats.totalScore} pts</span>
+          </div>
+        </div>
       </div>
 
       {/* TICKETS RESPONSIVE TABLE / MOBILE CARDS GRID */}
@@ -442,7 +576,7 @@ export default function TicketListView({ user, tickets, infractions, onReloadNee
                           {ticket.aitNumber}
                         </span>
                         <span className="text-xxs font-mono text-slate-400">
-                          {new Date(ticket.infractionDate + 'T00:00:00').toLocaleDateString('pt-BR')} às {ticket.infractionTime}
+                          {formatDateBR(ticket.infractionDate)} às {ticket.infractionTime}
                         </span>
                       </div>
                       <span className={`text-[10px] font-black uppercase px-2 py-0.5 rounded-full ${
@@ -565,7 +699,7 @@ export default function TicketListView({ user, tickets, infractions, onReloadNee
                         {/* Date / Time */}
                         <td className="py-4 px-5 whitespace-nowrap">
                           <div className="font-semibold text-slate-700">
-                            {new Date(ticket.infractionDate + 'T00:00:00').toLocaleDateString('pt-BR')}
+                            {formatDateBR(ticket.infractionDate)}
                           </div>
                           <div className="text-xxs text-slate-400 font-mono mt-0.5">{ticket.infractionTime}</div>
                         </td>
@@ -692,7 +826,7 @@ export default function TicketListView({ user, tickets, infractions, onReloadNee
                 <div>
                   <span className="text-xxs font-bold text-slate-400 uppercase tracking-wider block">Data</span>
                   <span className="font-bold text-slate-700 block mt-0.5">
-                    {new Date(selectedTicket.infractionDate + 'T00:00:00').toLocaleDateString('pt-BR')}
+                    {formatDateBR(selectedTicket.infractionDate)}
                   </span>
                 </div>
                 <div>

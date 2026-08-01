@@ -908,6 +908,71 @@ export const dbService = {
   // TRAFFIC TICKETS (AUTOS DE INFRAÇÃO)
   // ==========================================
   
+  // Helper for background auto-synchronization of tickets to Supabase
+  autoSyncTicketsToSupabase: async (tickets: TrafficTicket[]) => {
+    if (!isSupabaseActive() || !Array.isArray(tickets) || tickets.length === 0) return;
+    for (const t of tickets) {
+      if (!t || !t.aitNumber) continue;
+      try {
+        let cleanDate = t.infractionDate || '';
+        if (cleanDate.includes('T')) cleanDate = cleanDate.split('T')[0];
+        if (!cleanDate || !cleanDate.match(/^\d{4}-\d{2}-\d{2}$/)) {
+          cleanDate = new Date().toISOString().split('T')[0];
+        }
+
+        let cleanTime = t.infractionTime || '00:00';
+        if (cleanTime.includes('T')) cleanTime = cleanTime.split('T')[1].substring(0, 5);
+        if (cleanTime.length > 8) cleanTime = cleanTime.substring(0, 5);
+        if (!cleanTime || !cleanTime.includes(':')) cleanTime = '00:00';
+
+        let cleanNature = 'Média';
+        const rawNature = String(t.nature || '').toLowerCase();
+        if (rawNature.includes('gravissim') || rawNature.includes('gravíssim')) cleanNature = 'Gravíssima';
+        else if (rawNature.includes('grave')) cleanNature = 'Grave';
+        else if (rawNature.includes('media') || rawNature.includes('méd')) cleanNature = 'Média';
+        else if (rawNature.includes('leve')) cleanNature = 'Leve';
+
+        const addInfList = Array.isArray(t.additionalInfractions) ? t.additionalInfractions : (Array.isArray(t.infractions) ? t.infractions : []);
+
+        const dbPayload: any = {
+          ait_number: String(t.aitNumber).trim().toUpperCase(),
+          infraction_date: cleanDate,
+          infraction_time: cleanTime,
+          location: t.location || '',
+          plate: String(t.plate || '').trim().toUpperCase(),
+          vehicle_type: t.vehicleType || 'Passeio',
+          infraction_code: t.infractionCode ? String(t.infractionCode).trim() : null,
+          infraction_description: t.infractionDescription || '',
+          framing: t.framing || '',
+          article: t.article || '',
+          nature: cleanNature,
+          fine_value: Number(t.fineValue) || 0,
+          score: Number(t.score) || 0,
+          admin_measure: t.adminMeasure || 'Nenhuma',
+          observations: t.observations || '',
+          photos: Array.isArray(t.photos) ? t.photos : [],
+          agent_id: String(t.agentId || 'agent-0'),
+          agent_name: t.agentName || 'Agente',
+          additional_infractions: addInfList,
+          infractions: addInfList,
+          detection_type: t.detectionType || 'In Loco',
+          educational_action_number: t.educationalActionNumber || null
+        };
+
+        let { error } = await supabaseClient.from('sgait_autos').upsert(dbPayload, { onConflict: 'ait_number' });
+        if (error && (error.code === '42703' || error.code === 'PGRST204' || (error.message && error.message.toLowerCase().includes('column')))) {
+          delete dbPayload.additional_infractions;
+          delete dbPayload.infractions;
+          delete dbPayload.detection_type;
+          delete dbPayload.educational_action_number;
+          await supabaseClient.from('sgait_autos').upsert(dbPayload, { onConflict: 'ait_number' });
+        }
+      } catch (e) {
+        // silent background catch
+      }
+    }
+  },
+
   async getTickets(): Promise<TrafficTicket[]> {
     let serverTickets: TrafficTicket[] = [];
     
@@ -996,6 +1061,10 @@ export const dbService = {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ tickets: mergedList })
       }).catch(() => {});
+
+      if (isSupabaseActive()) {
+        dbService.autoSyncTicketsToSupabase(mergedList).catch(() => {});
+      }
     }
 
     return mergedList;
