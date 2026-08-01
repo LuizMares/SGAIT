@@ -163,12 +163,32 @@ export default function App() {
         cleanUrlAuthParams();
       }
 
-      // Check cached local profile fallback
-      const cachedUser = await dbService.getCurrentUser();
-      if (isMounted && cachedUser) {
-        authHandled = true;
-        setCurrentUser(cachedUser);
-        await loadData(cachedUser);
+      // Check if there is an active Supabase session before calling dbService.getCurrentUser()
+      let hasActiveSession = false;
+      let sessionUser: any = null;
+
+      if (isSupabaseConfigured() && supabaseClient) {
+        try {
+          const { data } = await supabaseClient.auth.getSession();
+          if (data?.session?.user) {
+            hasActiveSession = true;
+            sessionUser = data.session.user;
+          }
+        } catch (e) {
+          console.warn('Erro ao verificar sessão ativa em finalizeUnauthenticatedState:', e);
+        }
+      } else {
+        // If Supabase is not configured, local mode is allowed
+        hasActiveSession = true;
+      }
+
+      if (hasActiveSession) {
+        const cachedUser = await dbService.getCurrentUser(sessionUser);
+        if (isMounted && cachedUser) {
+          authHandled = true;
+          setCurrentUser(cachedUser);
+          await loadData(cachedUser);
+        }
       }
 
       if (isMounted) {
