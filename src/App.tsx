@@ -33,7 +33,7 @@ import ProjectionsView from './components/ProjectionsView';
 import SettingsView from './components/SettingsView';
 import LoginView from './components/LoginView';
 
-import { dbService, isSupabaseConfigured, supabaseClient, safeStorage, STORAGE_KEYS, addDeletedTicketKeys, ensureSessionInitialized, invalidateTicketsCache } from './lib/supabase';
+import { dbService, isSupabaseConfigured, supabaseClient, safeStorage, STORAGE_KEYS, addDeletedTicketKeys, ensureSessionInitialized } from './lib/supabase';
 import { UserProfile, TrafficTicket, InfractionType, AuthorizedEmail, UserRole } from './types';
 
 export default function App() {
@@ -375,29 +375,24 @@ export default function App() {
     // Re-sync when tab becomes visible or receives window focus (e.g. mobile unlock or returning to notebook tab)
     const handleVisibilityChange = () => {
       if (document.visibilityState === 'visible') {
-        invalidateTicketsCache();
         loadData(currentUser);
       }
     };
     const handleFocus = () => {
-      invalidateTicketsCache();
       loadData(currentUser);
     };
 
     window.addEventListener('visibilitychange', handleVisibilityChange);
     window.addEventListener('focus', handleFocus);
 
-    // Light fallback polling interval every 30 seconds (only when tab is visible) to protect Supabase Nano / Free tier
+    // Polling interval every 3.5 seconds to guarantee multi-device updates appear automatically
     const interval = setInterval(() => {
-      if (document.visibilityState === 'visible') {
-        loadData(currentUser);
-      }
-    }, 30000);
+      loadData(currentUser);
+    }, 3500);
 
     // Subscribe to multi-table updates (Supabase Realtime + SSE + CustomEvents)
     const unsubscribe = dbService.subscribeTickets((message) => {
       console.log('Realtime update captured:', message);
-      invalidateTicketsCache();
 
       if (message.table === 'tickets') {
         const payload = message.data;

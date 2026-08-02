@@ -545,14 +545,6 @@ export function mapRowToTicket(row: any): TrafficTicket {
   };
 }
 
-// Lightweight in-memory cache to prevent spamming Supabase Nano / Free tier on rapid reads
-let ticketsCache: { data: TrafficTicket[]; timestamp: number } | null = null;
-const TICKETS_CACHE_TTL_MS = 10000; // 10 seconds cache TTL
-
-export function invalidateTicketsCache(): void {
-  ticketsCache = null;
-}
-
 // APP ACTIONS LAYER - Handles both Supabase and simulated localStorage modes
 export const dbService = {
   /**
@@ -983,10 +975,6 @@ export const dbService = {
   },
 
   async getTickets(): Promise<TrafficTicket[]> {
-    if (ticketsCache && (Date.now() - ticketsCache.timestamp) < TICKETS_CACHE_TTL_MS) {
-      return ticketsCache.data;
-    }
-
     let serverTickets: TrafficTicket[] = [];
     
     // 1. Fetch from central backend server API
@@ -1002,9 +990,9 @@ export const dbService = {
       console.warn('Backend server /api/tickets error:', e);
     }
 
-    // 2. Fetch from Supabase client if configured and server returned empty or fallback
+    // 2. Fetch from Supabase client if configured
     let supabaseTickets: TrafficTicket[] = [];
-    if (serverTickets.length === 0 && isSupabaseActive()) {
+    if (isSupabaseActive()) {
       try {
         const { data, error } = await supabaseClient
           .from('sgait_autos')
@@ -1067,22 +1055,23 @@ export const dbService = {
     // Save clean unified tickets to local cache
     safeStorage.setItem(STORAGE_KEYS.TICKETS, JSON.stringify(mergedList));
 
-    // Ensure any tickets created locally or missing in Supabase get pushed automatically
-    if (mergedList.length > 0 && isSupabaseActive()) {
-      dbService.autoSyncTicketsToSupabase(mergedList).catch(() => {});
-    }
+    // Send unpushed local tickets to server if needed
+    if (mergedList.length > 0) {
+      fetch('/api/tickets/bulk-sync', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ tickets: mergedList })
+      }).catch(() => {});
 
-    // Update in-memory cache
-    ticketsCache = {
-      data: mergedList,
-      timestamp: Date.now()
-    };
+      if (isSupabaseActive()) {
+        dbService.autoSyncTicketsToSupabase(mergedList).catch(() => {});
+      }
+    }
 
     return mergedList;
   },
 
   async insertTicket(ticket: Omit<TrafficTicket, 'id' | 'createdAt' | 'updatedAt'>): Promise<{ data: TrafficTicket | null; error: string | null }> {
-    invalidateTicketsCache();
     const id = `ticket-${Math.random().toString(36).substring(2, 9)}`;
     const now = new Date().toISOString();
     const newTicket: TrafficTicket = {
@@ -1231,15 +1220,11 @@ export const dbService = {
       }
     }
 
-    // Trigger explicit background auto sync to Supabase for the newly created auto
-    dbService.autoSyncTicketsToSupabase([newTicket]).catch(() => {});
-
     dispatchRealtimeMessage('INSERT', 'tickets', newTicket);
     return { data: newTicket, error: null };
   },
 
   async updateTicket(id: string, ticket: Partial<TrafficTicket>): Promise<{ data: TrafficTicket | null; error: string | null }> {
-    invalidateTicketsCache();
     const now = new Date().toISOString();
 
     // 1. Update local storage
@@ -1327,7 +1312,6 @@ export const dbService = {
   },
 
   async deleteTicket(id: string): Promise<{ success: boolean; error: string | null }> {
-    invalidateTicketsCache();
     // 1. Find ticket in local storage to get AIT number
     const current: TrafficTicket[] = JSON.parse(safeStorage.getItem(STORAGE_KEYS.TICKETS) || '[]');
     const ticketToDelete = current.find(
