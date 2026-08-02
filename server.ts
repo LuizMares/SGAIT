@@ -659,23 +659,18 @@ setInterval(async () => {
   }
 }, 600000);
 
-app.get('/api/config/supabase', async (req, res) => {
-  const isConfigured = Boolean(supabase && store.supabaseUrl);
-  let tablesExist = false;
-  if (supabase) {
-    try {
-      const { error } = await supabase.from('sgait_autos').select('count', { count: 'exact', head: true });
-      if (!error || error.code === 'PGRST116') {
-        tablesExist = true;
-      }
-    } catch (e) {}
-  }
-  res.json({
+app.get('/api/config/supabase', (_req, res) => {
+  res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+  const isConfigured = Boolean(supabase && (store.supabaseUrl || process.env.VITE_SUPABASE_URL));
+  const hasKey = Boolean(store.supabaseKey || process.env.VITE_SUPABASE_ANON_KEY);
+
+  res.status(200).json({
+    status: 'ok',
     configured: isConfigured,
     url: store.supabaseUrl || process.env.VITE_SUPABASE_URL || 'https://rsxxddutkfctmyrsutsr.supabase.co',
-    hasKey: Boolean(store.supabaseKey || process.env.VITE_SUPABASE_ANON_KEY),
+    hasKey,
     active: Boolean(supabase),
-    tablesExist,
+    tablesExist: Boolean(supabase),
     totalTickets: store.tickets.filter(t => !isTicketDeleted(t)).length,
     totalInfractions: store.infractions.length,
     totalAuthorized: store.authorizedEmails.length
