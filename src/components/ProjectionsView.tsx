@@ -34,6 +34,7 @@ import {
   ReferenceLine
 } from 'recharts';
 import { TrafficTicket, UserProfile, InfractionType } from '../types';
+import { normalizeAgentName } from '../lib/agentUtils';
 
 interface ProjectionsViewProps {
   tickets: TrafficTicket[];
@@ -53,8 +54,14 @@ export default function ProjectionsView({ tickets, infractions }: ProjectionsVie
   // 2. EXTRACT UNIQUE AGENTS & INFRACTIONS FOR FILTER SELECTORS
   const uniqueAgents = useMemo(() => {
     const m = new Map<string, string>();
-    tickets.forEach(t => m.set(t.agentId, t.agentName));
-    return Array.from(m.entries()).map(([id, name]) => ({ id, name }));
+    tickets.forEach(t => {
+      const displayName = normalizeAgentName(t.agentName, t.agentId);
+      const key = displayName.toLowerCase();
+      if (!m.has(key)) {
+        m.set(key, displayName);
+      }
+    });
+    return Array.from(m.entries()).map(([key, name]) => ({ id: key, name }));
   }, [tickets]);
 
   const uniqueVehicleTypes = [
@@ -91,7 +98,12 @@ export default function ProjectionsView({ tickets, infractions }: ProjectionsVie
 
     // Filter by Agent
     if (filterAgent !== '') {
-      result = result.filter(t => t.agentId === filterAgent);
+      result = result.filter(t => {
+        const rawName = (t.agentName || '').trim();
+        const rawId = (t.agentId || '').trim();
+        const key = (rawName || rawId).toLowerCase();
+        return key === filterAgent.toLowerCase() || t.agentId === filterAgent || t.agentName === filterAgent;
+      });
     }
 
     // Filter by Code
@@ -220,12 +232,15 @@ export default function ProjectionsView({ tickets, infractions }: ProjectionsVie
     const breakdownMap: Record<string, { name: string, count: number, gross: number, net: number }> = {};
     
     filteredTickets.forEach(t => {
-      if (!breakdownMap[t.agentId]) {
-        breakdownMap[t.agentId] = { name: t.agentName, count: 0, gross: 0, net: 0 };
+      const displayName = normalizeAgentName(t.agentName, t.agentId);
+      const key = displayName.toLowerCase();
+
+      if (!breakdownMap[key]) {
+        breakdownMap[key] = { name: displayName, count: 0, gross: 0, net: 0 };
       }
-      breakdownMap[t.agentId].count++;
-      breakdownMap[t.agentId].gross += t.fineValue;
-      breakdownMap[t.agentId].net += t.fineValue * (netCollectionRate / 100);
+      breakdownMap[key].count++;
+      breakdownMap[key].gross += Number(t.fineValue || 0);
+      breakdownMap[key].net += Number(t.fineValue || 0) * (netCollectionRate / 100);
     });
 
     return Object.values(breakdownMap).sort((a, b) => b.gross - a.gross);

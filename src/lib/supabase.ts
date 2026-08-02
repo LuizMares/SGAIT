@@ -6,6 +6,7 @@
 import { createClient } from '@supabase/supabase-js';
 import { TrafficTicket, InfractionType, UserProfile, UserRole, AuthorizedEmail } from '../types';
 import { DEFAULT_INFRACTIONS } from './infractionsData';
+import { normalizeAgentName } from './agentUtils';
 
 // Safe storage wrapper helper to prevent page crash on strict browsers/iframes without localStorage access
 export const safeStorage = {
@@ -538,7 +539,7 @@ export function mapRowToTicket(row: any): TrafficTicket {
     observations: row.observations || '',
     photos: row.photos || [],
     agentId: row.agent_id || row.agentId || '',
-    agentName: row.agent_name || row.agentName || 'Agente de Trânsito',
+    agentName: normalizeAgentName(row.agent_name || row.agentName, row.agent_id || row.agentId),
     createdAt: row.created_at || row.createdAt || new Date().toISOString(),
     updatedAt: row.updated_at || row.updatedAt || new Date().toISOString()
   };

@@ -27,6 +27,7 @@ import {
 } from 'lucide-react';
 import { TrafficTicket, UserProfile, UserRole, InfractionType } from '../types';
 import { dbService } from '../lib/supabase';
+import { normalizeAgentName } from '../lib/agentUtils';
 
 interface TicketListViewProps {
   user: UserProfile;
@@ -77,9 +78,11 @@ export default function TicketListView({ user, tickets, infractions, onReloadNee
   const uniqueAgents = useMemo(() => {
     const agentsMap = new Map<string, string>();
     tickets.forEach(t => {
-      const key = t.agentId || t.agentName;
-      const label = t.agentName || t.agentId || 'Agente';
-      if (key) agentsMap.set(key, label);
+      const displayName = normalizeAgentName(t.agentName, t.agentId);
+      const key = displayName.toLowerCase();
+      if (!agentsMap.has(key)) {
+        agentsMap.set(key, displayName);
+      }
     });
     return Array.from(agentsMap.entries()).map(([id, name]) => ({ id, name }));
   }, [tickets]);
@@ -162,9 +165,14 @@ export default function TicketListView({ user, tickets, infractions, onReloadNee
       result = result.filter(t => (t.infractionDate || '').substring(0, 10) === filterDate);
     }
 
-    // Filter by Agent (match agentId or agentName)
+    // Filter by Agent (match agentId, agentName, or normalized key)
     if (filterAgent !== '') {
-      result = result.filter(t => t.agentId === filterAgent || t.agentName === filterAgent);
+      result = result.filter(t => {
+        const rawName = (t.agentName || '').trim();
+        const rawId = (t.agentId || '').trim();
+        const key = (rawName || rawId).toLowerCase();
+        return key === filterAgent.toLowerCase() || t.agentId === filterAgent || t.agentName === filterAgent;
+      });
     }
 
     // Filter by Vehicle Type
@@ -625,7 +633,7 @@ export default function TicketListView({ user, tickets, infractions, onReloadNee
                     {/* Action buttons bar */}
                     <div className="flex items-center justify-between pt-2 border-t border-slate-100">
                       <span className="text-[10px] text-slate-400 font-mono">
-                        Agente: <b className="text-slate-600">{ticket.agentName}</b>
+                        Agente: <b className="text-slate-600">{normalizeAgentName(ticket.agentName, ticket.agentId)}</b>
                       </span>
 
                       <div className="flex items-center gap-2">
@@ -999,7 +1007,7 @@ export default function TicketListView({ user, tickets, infractions, onReloadNee
 
               {/* Agent Audit Footer */}
               <div className="border-t border-slate-100 pt-4 flex items-center justify-between text-xxs text-slate-400 font-mono">
-                <span>Registrado por: <b>{selectedTicket.agentName}</b> (ID: {selectedTicket.agentId})</span>
+                <span>Registrado por: <b>{normalizeAgentName(selectedTicket.agentName, selectedTicket.agentId)}</b> (ID: {selectedTicket.agentId})</span>
                 <span>Inserção: {new Date(selectedTicket.createdAt).toLocaleString('pt-BR')}</span>
               </div>
             </div>

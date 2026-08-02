@@ -117,6 +117,23 @@ function broadcastRealtimeEvent(table: string, type: 'INSERT' | 'UPDATE' | 'DELE
 
 const FAKE_TICKET_KEYS: string[] = [];
 
+function normalizeAgentName(rawName?: string, rawId?: string): string {
+  let name = (rawName || '').trim();
+  if (!name && rawId) {
+    name = rawId.trim();
+  }
+  if (!name) return 'Agente de Trânsito';
+
+  const lower = name.toLowerCase();
+
+  // Alias mapping: "Leandro Souza" and "Leandro Santos Souza" are the same person
+  if (lower === 'leandro souza' || lower === 'leandro santos souza') {
+    return 'Leandro Santos Souza';
+  }
+
+  return name;
+}
+
 const INITIAL_SAMPLE_TICKETS = [
   {
     id: 'ticket-sample-101',
@@ -219,7 +236,10 @@ try {
     const raw = fs.readFileSync(DATA_FILE, 'utf-8');
     const parsed = JSON.parse(raw);
     if (parsed.tickets && Array.isArray(parsed.tickets) && parsed.tickets.length > 0) {
-      store.tickets = parsed.tickets;
+      store.tickets = parsed.tickets.map((t: any) => ({
+        ...t,
+        agentName: normalizeAgentName(t.agentName, t.agentId)
+      }));
     } else {
       store.tickets = [...INITIAL_SAMPLE_TICKETS];
     }
@@ -569,7 +589,7 @@ async function syncFromSupabase() {
         observations: row.observations,
         photos: row.photos || [],
         agentId: row.agent_id,
-        agentName: row.agent_name,
+        agentName: normalizeAgentName(row.agent_name || row.agentName, row.agent_id || row.agentId),
         createdAt: row.created_at || new Date().toISOString(),
         updatedAt: row.updated_at || new Date().toISOString()
       }));

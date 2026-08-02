@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import { 
   FileText, 
   Calendar, 
@@ -13,7 +13,8 @@ import {
   TrendingUp, 
   Award, 
   Car,
-  Users
+  Users,
+  Sparkles
 } from 'lucide-react';
 import { 
   ResponsiveContainer, 
@@ -31,12 +32,16 @@ import {
   Legend
 } from 'recharts';
 import { TrafficTicket } from '../types';
+import ExecutiveReportModal from './ExecutiveReportModal';
+import { normalizeAgentName } from '../lib/agentUtils';
 
 interface DashboardViewProps {
   tickets: TrafficTicket[];
 }
 
 export default function DashboardView({ tickets }: DashboardViewProps) {
+  const [isReportModalOpen, setIsReportModalOpen] = useState(false);
+
   // 1. Calculate time-based and general statistics
   const stats = useMemo(() => {
     const now = new Date();
@@ -153,19 +158,22 @@ export default function DashboardView({ tickets }: DashboardViewProps) {
       .slice(0, 5);
   }, [tickets]);
 
-  // 5. Data for: Agent Rankings
+  // 5. Data for: Agent Rankings (Consolidated by Agent Name / Identity)
   const agentRankings = useMemo(() => {
     const counts: Record<string, { name: string, count: number, fineSum: number }> = {};
     tickets.forEach(t => {
-      if (!counts[t.agentId]) {
-        counts[t.agentId] = { name: t.agentName, count: 0, fineSum: 0 };
+      const displayName = normalizeAgentName(t.agentName, t.agentId);
+      const key = displayName.toLowerCase();
+
+      if (!counts[key]) {
+        counts[key] = { name: displayName, count: 0, fineSum: 0 };
       }
-      counts[t.agentId].count++;
-      counts[t.agentId].fineSum += t.fineValue;
+      counts[key].count++;
+      counts[key].fineSum += Number(t.fineValue || 0);
     });
 
     return Object.values(counts)
-      .sort((a, b) => b.count - a.count)
+      .sort((a, b) => b.count - a.count || b.fineSum - a.fineSum)
       .slice(0, 5);
   }, [tickets]);
 
@@ -194,12 +202,23 @@ export default function DashboardView({ tickets }: DashboardViewProps) {
           <h1 className="text-2xl font-black text-slate-100 tracking-tight">Painel de Monitoramento</h1>
           <p className="text-sm font-semibold text-slate-400">Acompanhamento operacional em tempo real de infrações registradas em campo.</p>
         </div>
-        <div className="flex items-center gap-2 bg-slate-950 text-amber-400 text-xs font-black px-3.5 py-2 rounded-xl border border-slate-800 self-start md:self-auto shadow-md">
-          <span className="relative flex h-2.5 w-2.5">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
-            <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-amber-500"></span>
-          </span>
-          Sincronização Ativa (Realtime)
+        <div className="flex items-center gap-3 self-start md:self-auto flex-wrap">
+          <button 
+            id="btn-open-executive-report"
+            onClick={() => setIsReportModalOpen(true)}
+            className="flex items-center gap-2 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 text-xs font-black px-4 py-2 rounded-xl shadow-md transition-all cursor-pointer active:scale-95"
+          >
+            <Sparkles size={16} className="text-slate-950 fill-slate-950" />
+            <span>Relatório Diário</span>
+          </button>
+
+          <div className="flex items-center gap-2 bg-slate-950 text-amber-400 text-xs font-black px-3.5 py-2 rounded-xl border border-slate-800 shadow-md">
+            <span className="relative flex h-2.5 w-2.5">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-amber-500"></span>
+            </span>
+            Sincronização Ativa (Realtime)
+          </div>
         </div>
       </div>
 
@@ -476,6 +495,13 @@ export default function DashboardView({ tickets }: DashboardViewProps) {
           )}
         </div>
       </div>
+
+      {/* Modal de Relatório Executivo HTML/PDF */}
+      <ExecutiveReportModal
+        tickets={tickets}
+        isOpen={isReportModalOpen}
+        onClose={() => setIsReportModalOpen(false)}
+      />
     </div>
   );
 }
