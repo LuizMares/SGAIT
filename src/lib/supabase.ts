@@ -437,6 +437,9 @@ const initializeLocalStorage = () => {
       const parsed = JSON.parse(existingTickets);
       if (!Array.isArray(parsed)) {
         safeStorage.setItem(STORAGE_KEYS.TICKETS, JSON.stringify([]));
+      } else {
+        const clean = parsed.filter((t: any) => !isEmersonTicket(t));
+        safeStorage.setItem(STORAGE_KEYS.TICKETS, JSON.stringify(clean));
       }
     } catch (e) {
       safeStorage.setItem(STORAGE_KEYS.TICKETS, JSON.stringify([]));
@@ -543,6 +546,13 @@ export function mapRowToTicket(row: any): TrafficTicket {
     createdAt: row.created_at || row.createdAt || new Date().toISOString(),
     updatedAt: row.updated_at || row.updatedAt || new Date().toISOString()
   };
+}
+
+export function isEmersonTicket(t: any): boolean {
+  if (!t) return false;
+  const name = String(t.agentName || t.agent_name || '').toLowerCase();
+  const id = String(t.agentId || t.agent_id || '').toLowerCase();
+  return name.includes('emerson') || id.includes('emerson') || id === 'agent-emerson-17';
 }
 
 // Lightweight in-memory cache to prevent spamming Supabase Nano / Free tier on rapid reads
@@ -1028,10 +1038,21 @@ export const dbService = {
 
     const isDeleted = (t: TrafficTicket) => {
       if (!t) return true;
+      if (isEmersonTicket(t)) return true;
       if (t.id && isKeyDeleted(t.id, deletedKeys)) return true;
       if (t.aitNumber && isKeyDeleted(t.aitNumber, deletedKeys)) return true;
       return false;
     };
+
+    // Purge Emerson tickets from Supabase if connected
+    if (isSupabaseActive()) {
+      supabaseClient
+        .from('sgait_autos')
+        .delete()
+        .or('agent_name.ilike.%Emerson%,agent_id.eq.agent-emerson-17,agent_id.ilike.%emerson%')
+        .then(() => {})
+        .catch(() => {});
+    }
 
     // Merge all sources into one unified collection
     const mergedMap = new Map<string, TrafficTicket>();

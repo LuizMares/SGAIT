@@ -134,6 +134,13 @@ function normalizeAgentName(rawName?: string, rawId?: string): string {
   return name;
 }
 
+function isEmersonTicket(t: any): boolean {
+  if (!t) return false;
+  const name = String(t.agentName || t.agent_name || '').toLowerCase();
+  const id = String(t.agentId || t.agent_id || '').toLowerCase();
+  return name.includes('emerson') || id.includes('emerson') || id === 'agent-emerson-17';
+}
+
 const INITIAL_SAMPLE_TICKETS = [
   {
     id: 'ticket-sample-101',
@@ -154,8 +161,8 @@ const INITIAL_SAMPLE_TICKETS = [
     detectionType: 'In Loco',
     observations: 'Condutor trafegava sem utilizar o cinto de segurança.',
     photos: [],
-    agentId: 'agent-emerson-17',
-    agentName: 'Emerson Mares',
+    agentId: 'agent-stt-01',
+    agentName: 'Agente STT Pojuca',
     createdAt: '2026-07-20T14:35:00.000Z',
     updatedAt: '2026-07-20T14:35:00.000Z'
   },
@@ -178,8 +185,8 @@ const INITIAL_SAMPLE_TICKETS = [
     detectionType: 'In Loco',
     observations: 'Condutor abordado em fiscalização de rotina sem habilitação.',
     photos: [],
-    agentId: 'agent-emerson-17',
-    agentName: 'Emerson Mares',
+    agentId: 'agent-stt-01',
+    agentName: 'Agente STT Pojuca',
     createdAt: '2026-07-22T09:15:00.000Z',
     updatedAt: '2026-07-22T09:15:00.000Z'
   },
@@ -202,8 +209,8 @@ const INITIAL_SAMPLE_TICKETS = [
     detectionType: 'In Loco',
     observations: 'Veículo estacionado sobre o passeio impedindo trânsito de pedestres.',
     photos: [],
-    agentId: 'agent-emerson-17',
-    agentName: 'Emerson Mares',
+    agentId: 'agent-stt-01',
+    agentName: 'Agente STT Pojuca',
     createdAt: '2026-07-23T16:50:00.000Z',
     updatedAt: '2026-07-23T16:50:00.000Z'
   }
@@ -263,7 +270,7 @@ try {
     if (store.supabaseUrl && store.supabaseKey) {
       initSupabaseClient(store.supabaseUrl, store.supabaseKey);
     }
-    store.tickets = store.tickets.filter((t: any) => !isTicketDeleted(t));
+    store.tickets = store.tickets.filter((t: any) => !isTicketDeleted(t) && !isEmersonTicket(t));
     console.log(`Server: Loaded ${store.tickets.length} tickets and ${store.infractions.length} cataloged infractions.`);
   }
 
@@ -532,7 +539,7 @@ async function syncAllToSupabase() {
   }
 
   // 3. Sync Active Tickets
-  const activeTickets = store.tickets.filter(t => !isTicketDeleted(t));
+  const activeTickets = store.tickets.filter(t => !isTicketDeleted(t) && !isEmersonTicket(t));
   for (const ticket of activeTickets) {
     const res = await pushTicketToSupabase(ticket);
     if (res.success) syncedTickets++;
@@ -551,6 +558,9 @@ async function syncAllToSupabase() {
 async function syncFromSupabase() {
   if (!supabase) return;
   try {
+    // Delete any Emerson tickets from Supabase if present
+    supabase.from('sgait_autos').delete().or('agent_name.ilike.%Emerson%,agent_id.eq.agent-emerson-17,agent_id.ilike.%emerson%').then(() => {}).catch(() => {});
+
     const { data: remoteTickets, error } = await supabase
       .from('sgait_autos')
       .select('*')
@@ -592,19 +602,19 @@ async function syncFromSupabase() {
         agentName: normalizeAgentName(row.agent_name || row.agentName, row.agent_id || row.agentId),
         createdAt: row.created_at || new Date().toISOString(),
         updatedAt: row.updated_at || new Date().toISOString()
-      }));
+      })).filter((t: any) => !isEmersonTicket(t));
 
       // Merge remote tickets into local store keyed by AIT number, filtering deleted ones
       const localMap = new Map();
       for (const t of store.tickets) {
-        if (t && t.aitNumber && !isTicketDeleted(t)) localMap.set(t.aitNumber.toUpperCase(), t);
+        if (t && t.aitNumber && !isTicketDeleted(t) && !isEmersonTicket(t)) localMap.set(t.aitNumber.toUpperCase(), t);
       }
       for (const rTicket of mapped) {
-        if (rTicket && rTicket.aitNumber && !isTicketDeleted(rTicket)) {
+        if (rTicket && rTicket.aitNumber && !isTicketDeleted(rTicket) && !isEmersonTicket(rTicket)) {
           localMap.set(rTicket.aitNumber.toUpperCase(), rTicket);
         }
       }
-      store.tickets = Array.from(localMap.values()).filter(t => !isTicketDeleted(t)).sort(
+      store.tickets = Array.from(localMap.values()).filter(t => !isTicketDeleted(t) && !isEmersonTicket(t)).sort(
         (a: any, b: any) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime()
       );
       saveStore();
@@ -753,7 +763,7 @@ app.post('/api/config/supabase/sync', async (req, res) => {
 });
 
 app.get('/api/health', (req, res) => {
-  const activeTickets = store.tickets.filter(t => !isTicketDeleted(t));
+  const activeTickets = store.tickets.filter(t => !isTicketDeleted(t) && !isEmersonTicket(t));
   res.json({ status: 'ok', ticketCount: activeTickets.length, timestamp: new Date().toISOString() });
 });
 
@@ -761,7 +771,7 @@ app.get('/api/health', (req, res) => {
 app.get('/api/tickets', async (req, res) => {
   // Sync from Supabase in background if possible
   syncFromSupabase().catch(() => {});
-  const activeTickets = store.tickets.filter(t => !isTicketDeleted(t));
+  const activeTickets = store.tickets.filter(t => !isTicketDeleted(t) && !isEmersonTicket(t));
   res.json(activeTickets);
 });
 
