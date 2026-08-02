@@ -637,8 +637,8 @@ app.get('/api/events', (req, res) => {
   });
 });
 
-// Periodic SSE keep-alive ping and 100% automatic background bidirectional sync (every 10 seconds)
-setInterval(async () => {
+// Periodic SSE keep-alive ping (every 30 seconds - lightweight without DB calls)
+setInterval(() => {
   sseClients.forEach(client => {
     try {
       client.write(': ping\n\n');
@@ -646,16 +646,18 @@ setInterval(async () => {
       // client disconnected
     }
   });
+}, 30000);
 
+// Relaxed background Supabase sync (every 10 minutes) to conserve Supabase Nano / Free quota
+setInterval(async () => {
   if (supabase) {
     try {
       await syncFromSupabase();
-      await syncAllToSupabase();
     } catch (e) {
       // fail silent in background
     }
   }
-}, 10000);
+}, 600000);
 
 app.get('/api/config/supabase', async (req, res) => {
   const isConfigured = Boolean(supabase && store.supabaseUrl);
