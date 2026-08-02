@@ -8,7 +8,7 @@ import { DEFAULT_INFRACTIONS } from './src/lib/infractionsData';
 
 dotenv.config();
 
-const PORT = Number(process.env.PORT) || 3000;
+const PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 3000;
 const app = express();
 
 app.use(express.json({ limit: '10mb' }));
@@ -637,8 +637,8 @@ app.get('/api/events', (req, res) => {
   });
 });
 
-// Periodic SSE keep-alive ping and 100% automatic background bidirectional sync (every 10 seconds)
-setInterval(async () => {
+// Periodic SSE keep-alive ping (every 30 seconds - lightweight without DB calls)
+setInterval(() => {
   sseClients.forEach(client => {
     try {
       client.write(': ping\n\n');
@@ -646,16 +646,18 @@ setInterval(async () => {
       // client disconnected
     }
   });
+}, 30000);
 
+// Relaxed background Supabase sync (every 10 minutes) to conserve Supabase Nano / Free quota
+setInterval(async () => {
   if (supabase) {
     try {
       await syncFromSupabase();
-      await syncAllToSupabase();
     } catch (e) {
       // fail silent in background
     }
   }
-}, 10000);
+}, 600000);
 
 app.get('/api/config/supabase', async (req, res) => {
   const isConfigured = Boolean(supabase && store.supabaseUrl);
@@ -1137,13 +1139,19 @@ app.put('/api/infractions/bulk-sync', (req, res) => {
 // VITE & STATIC FILES MIDDLEWARE
 // =========================================================
 
-// Health & Version Endpoint for Deployment Verification
-app.get('/api/health', (_req, res) => {
+// Health & Version Endpoints for Deployment Verification (Railway / Cloud Run)
+const handleHealthCheck = (_req: express.Request, res: express.Response) => {
   res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
-  res.json({ status: 'ok', updated: new Date().toISOString(), app: 'SGAIT' });
-});
+  const port = process.env.PORT ? parseInt(process.env.PORT, 10) : 3000;
+  res.status(200).json({ status: 'ok', updated: new Date().toISOString(), app: 'SGAIT', port });
+};
+
+app.get('/health', handleHealthCheck);
+app.get('/api/health', handleHealthCheck);
 
 async function startServer() {
+  const listenPort = process.env.PORT ? parseInt(process.env.PORT, 10) : (PORT || 3000);
+
   if (process.env.NODE_ENV !== 'production') {
     const vite = await createViteServer({
       server: { middlewareMode: true },
@@ -1181,8 +1189,8 @@ async function startServer() {
     });
   }
 
-  app.listen(PORT, '0.0.0.0', () => {
-    console.log(`SGAIT Full-Stack Server running on http://0.0.0.0:${PORT}`);
+  app.listen(listenPort, '0.0.0.0', () => {
+    console.log(`SGAIT Full-Stack Server running on http://0.0.0.0:${listenPort}`);
   });
 }
 
