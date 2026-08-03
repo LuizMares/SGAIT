@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { useState, useMemo } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import { 
   Search, 
   Filter, 
@@ -23,7 +23,9 @@ import {
   AlertTriangle,
   Clock,
   Car,
-  Layers
+  Layers,
+  RefreshCw,
+  ChevronDown
 } from 'lucide-react';
 import { TrafficTicket, UserProfile, UserRole, InfractionType } from '../types';
 import { dbService } from '../lib/supabase';
@@ -36,6 +38,225 @@ interface TicketListViewProps {
   onReloadNeeded: () => void;
 }
 
+// Safe BR date formatting (DD/MM/YYYY)
+const formatDateBR = (dateStr?: string) => {
+  if (!dateStr) return '---';
+  const cleanDate = String(dateStr).substring(0, 10);
+  const parts = cleanDate.split('-');
+  if (parts.length === 3 && parts[0].length === 4) {
+    return `${parts[2]}/${parts[1]}/${parts[0]}`;
+  }
+  return cleanDate;
+};
+
+// ==========================================
+// MEMOIZED ITEM COMPONENTS FOR UI PERFORMANCE
+// ==========================================
+
+interface TicketCardProps {
+  ticket: TrafficTicket;
+  user: UserProfile;
+  onView: (t: TrafficTicket) => void;
+  onEdit: (t: TrafficTicket) => void;
+  onDelete: (id: string) => void;
+}
+
+const MobileTicketCard = React.memo(({ ticket, user, onView, onEdit, onDelete }: TicketCardProps) => {
+  const isAuthoredByMe = ticket.agentId === user.id;
+  const canEdit = user.role === UserRole.ADMIN || isAuthoredByMe;
+
+  return (
+    <div className="p-4 hover:bg-slate-50/60 transition-colors space-y-3 text-slate-800">
+      {/* Header line: AIT number & Nature Badge */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <span className="font-mono font-extrabold text-sm text-slate-900 bg-slate-100 px-2 py-0.5 rounded-md border border-slate-200">
+            {ticket.aitNumber}
+          </span>
+          <span className="text-xxs font-mono text-slate-400">
+            {formatDateBR(ticket.infractionDate)} às {ticket.infractionTime}
+          </span>
+        </div>
+        <span className={`text-[10px] font-black uppercase px-2 py-0.5 rounded-full ${
+          ticket.nature === 'Gravíssima' ? 'bg-rose-50 text-rose-700 border border-rose-200' :
+          ticket.nature === 'Grave' ? 'bg-amber-50 text-amber-700 border border-amber-200' :
+          ticket.nature === 'Média' ? 'bg-amber-50 text-amber-600 border border-amber-100' :
+          'bg-slate-50 text-slate-600 border border-slate-200'
+        }`}>
+          {ticket.nature}
+        </span>
+      </div>
+
+      {/* Middle info: Plate, Vehicle, Location */}
+      <div className="grid grid-cols-2 gap-2 bg-slate-50 p-2.5 rounded-xl border border-slate-100 text-xs">
+        <div>
+          <span className="text-[9px] font-black uppercase text-slate-400 block">Placa / Veículo</span>
+          <div className="font-mono font-extrabold text-slate-900 tracking-wider uppercase mt-0.5">
+            {ticket.plate} <span className="text-[10px] font-sans font-semibold text-slate-500 lowercase">({ticket.vehicleType})</span>
+          </div>
+        </div>
+        <div>
+          <span className="text-[9px] font-black uppercase text-slate-400 block">Valor Multa</span>
+          <div className="font-mono font-black text-amber-600 mt-0.5">
+            R$ {ticket.fineValue.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+          </div>
+        </div>
+        <div className="col-span-2 border-t border-slate-200/60 pt-1.5 mt-0.5">
+          <span className="text-[9px] font-black uppercase text-slate-400 block">Local</span>
+          <p className="text-xs font-semibold text-slate-700 truncate">{ticket.location}</p>
+        </div>
+      </div>
+
+      {/* Description & Code */}
+      <div className="text-xs space-y-0.5">
+        <div className="flex items-center gap-1.5">
+          <span className="font-mono bg-amber-500/10 text-amber-700 px-1.5 py-0.5 rounded text-xxs font-black">
+            {ticket.infractionCode}
+          </span>
+          <span className="text-xxs font-bold text-slate-500 font-mono">Art. {ticket.article}</span>
+        </div>
+        <p className="text-xs text-slate-600 font-medium line-clamp-2 leading-tight">
+          {ticket.infractionDescription}
+        </p>
+      </div>
+
+      {/* Action buttons bar */}
+      <div className="flex items-center justify-between pt-2 border-t border-slate-100">
+        <span className="text-[10px] text-slate-400 font-mono">
+          Agente: <b className="text-slate-600">{normalizeAgentName(ticket.agentName, ticket.agentId)}</b>
+        </span>
+
+        <div className="flex items-center gap-2">
+          <button
+            id={`btn-view-mob-${ticket.id}`}
+            onClick={() => onView(ticket)}
+            className="flex items-center gap-1 px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-lg transition-colors cursor-pointer"
+          >
+            <Eye size={14} />
+            <span>Ver</span>
+          </button>
+
+          <button
+            id={`btn-edit-mob-${ticket.id}`}
+            onClick={() => onEdit(ticket)}
+            disabled={!canEdit}
+            className={`p-2 rounded-lg transition-colors cursor-pointer ${
+              canEdit 
+                ? 'bg-amber-500/10 text-amber-700 hover:bg-amber-500/20' 
+                : 'bg-slate-50 text-slate-300 cursor-not-allowed'
+            }`}
+            title="Editar Auto"
+          >
+            <Edit2 size={14} />
+          </button>
+
+          {user.role === UserRole.ADMIN && (
+            <button
+              id={`btn-delete-mob-${ticket.id}`}
+              onClick={() => onDelete(ticket.id)}
+              className="p-2 bg-rose-50 text-rose-600 hover:bg-rose-100 rounded-lg transition-colors cursor-pointer"
+              title="Excluir Auto"
+            >
+              <Trash2 size={14} />
+            </button>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+});
+
+const DesktopTicketRow = React.memo(({ ticket, user, onView, onEdit, onDelete }: TicketCardProps) => {
+  const isAuthoredByMe = ticket.agentId === user.id;
+  const canEdit = user.role === UserRole.ADMIN || isAuthoredByMe;
+
+  return (
+    <tr className="hover:bg-slate-50/40 transition-colors">
+      <td className="py-4 px-5 font-mono font-bold text-slate-800">
+        {ticket.aitNumber}
+      </td>
+      <td className="py-4 px-5 whitespace-nowrap">
+        <div className="font-semibold text-slate-700">
+          {formatDateBR(ticket.infractionDate)}
+        </div>
+        <div className="text-xxs text-slate-400 font-mono mt-0.5">{ticket.infractionTime}</div>
+      </td>
+      <td className="py-4 px-5 whitespace-nowrap font-mono font-bold tracking-wider text-slate-700 uppercase">
+        {ticket.plate}
+      </td>
+      <td className="py-4 px-5 max-w-xs truncate text-slate-500" title={ticket.location}>
+        {ticket.location}
+      </td>
+      <td className="py-4 px-5">
+        <div className="flex items-center gap-1 flex-wrap">
+          <span className="font-mono bg-slate-100 text-slate-600 px-1 py-0.5 rounded text-xxs font-bold">{ticket.infractionCode}</span>
+          {((ticket.additionalInfractions && ticket.additionalInfractions.length > 0) || (ticket.infractions && ticket.infractions.length > 1)) && (
+            <span className="bg-amber-500/10 text-amber-700 font-bold text-[9px] px-1.5 py-0.5 rounded font-mono border border-amber-500/20">
+              +{ticket.additionalInfractions?.length || ((ticket.infractions?.length || 1) - 1)}
+            </span>
+          )}
+        </div>
+        <span className="text-slate-500 text-xxs truncate inline-block max-w-[140px] align-middle mt-0.5" title={ticket.infractionDescription}>
+          {ticket.infractionDescription}
+        </span>
+      </td>
+      <td className="py-4 px-5 whitespace-nowrap">
+        <span className={`inline-block text-xxs font-black uppercase px-2 py-0.5 rounded-full ${
+          ticket.nature === 'Gravíssima' ? 'bg-rose-50 text-rose-700 border border-rose-200' :
+          ticket.nature === 'Grave' ? 'bg-amber-50 text-amber-700 border border-amber-200' :
+          ticket.nature === 'Média' ? 'bg-amber-50 text-amber-600 border border-amber-100' :
+          'bg-slate-50 text-slate-600 border border-slate-200'
+        }`}>
+          {ticket.nature}
+        </span>
+      </td>
+      <td className="py-4 px-5 font-mono font-extrabold text-slate-800">
+        R$ {ticket.fineValue.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+      </td>
+      <td className="py-4 px-5 text-center whitespace-nowrap">
+        <div className="flex items-center justify-center gap-1.5">
+          <button
+            id={`btn-view-${ticket.id}`}
+            onClick={() => onView(ticket)}
+            className="p-1.5 text-slate-400 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-colors cursor-pointer"
+            title="Visualizar Auto de Infração"
+          >
+            <Eye size={15} />
+          </button>
+
+          <button
+            id={`btn-edit-${ticket.id}`}
+            onClick={() => onEdit(ticket)}
+            disabled={!canEdit}
+            className={`p-1.5 rounded-lg transition-colors cursor-pointer ${
+              canEdit 
+                ? 'text-slate-400 hover:text-amber-600 hover:bg-amber-50' 
+                : 'text-slate-200 cursor-not-allowed'
+            }`}
+            title={canEdit ? "Editar Auto" : "Sem permissão para editar"}
+          >
+            <Edit2 size={15} />
+          </button>
+
+          <button
+            id={`btn-delete-${ticket.id}`}
+            onClick={() => onDelete(ticket.id)}
+            disabled={user.role !== UserRole.ADMIN}
+            className={`p-1.5 rounded-lg transition-colors cursor-pointer ${
+              user.role === UserRole.ADMIN 
+                ? 'text-slate-400 hover:text-red-600 hover:bg-red-50' 
+                : 'text-slate-200 cursor-not-allowed'
+            }`}
+            title={user.role === UserRole.ADMIN ? "Excluir Auto" : "Apenas administradores podem excluir"}
+          >
+            <Trash2 size={15} />
+          </button>
+        </div>
+      </td>
+    </tr>
+  );
+});
+
 export default function TicketListView({ user, tickets, infractions, onReloadNeeded }: TicketListViewProps) {
   // 1. Search & Filter State
   const [searchTerm, setSearchTerm] = useState('');
@@ -45,13 +266,18 @@ export default function TicketListView({ user, tickets, infractions, onReloadNee
   const [filterVehicleType, setFilterVehicleType] = useState('');
   const [filterNature, setFilterNature] = useState('');
   const [filterDetectionType, setFilterDetectionType] = useState('');
+  const [dateRangeFilter, setDateRangeFilter] = useState<'all' | '24h'>('all');
   const [sortBy, setSortBy] = useState('newest'); // newest, oldest, value-desc, value-asc, score-desc
   const [showFilters, setShowFilters] = useState(false);
 
-  // 2. Active Selected Ticket Detail Modal State
+  // 2. Pagination & Refresh State
+  const [displayLimit, setDisplayLimit] = useState(20);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  // 3. Active Selected Ticket Detail Modal State
   const [selectedTicket, setSelectedTicket] = useState<TrafficTicket | null>(null);
   
-  // 3. Edit Ticket Modal State
+  // 4. Edit Ticket Modal State
   const [editingTicket, setEditingTicket] = useState<TrafficTicket | null>(null);
   const [editLocation, setEditLocation] = useState('');
   const [editPlate, setEditPlate] = useState('');
@@ -62,6 +288,16 @@ export default function TicketListView({ user, tickets, infractions, onReloadNee
   // UI states
   const [actionLoading, setActionLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  // Manual refresh handler
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
+    try {
+      await onReloadNeeded();
+    } finally {
+      setTimeout(() => setIsRefreshing(false), 500);
+    }
+  };
 
   // Helper for safe BR date formatting (DD/MM/YYYY)
   const formatDateBR = (dateStr?: string) => {
@@ -112,13 +348,23 @@ export default function TicketListView({ user, tickets, infractions, onReloadNee
       filterAgent,
       filterVehicleType,
       filterNature,
-      filterDetectionType
+      filterDetectionType,
+      dateRangeFilter !== 'all' ? '24h' : ''
     ].filter(val => Boolean(val && val.trim() !== '')).length;
-  }, [searchTerm, filterPlate, filterDate, filterAgent, filterVehicleType, filterNature, filterDetectionType]);
+  }, [searchTerm, filterPlate, filterDate, filterAgent, filterVehicleType, filterNature, filterDetectionType, dateRangeFilter]);
 
   // 4. Apply Filters & Sorting
   const filteredTickets = useMemo(() => {
     let result = [...tickets];
+
+    // Filter by Last 24 Hours if selected
+    if (dateRangeFilter === '24h') {
+      const twentyFourHoursAgo = Date.now() - 24 * 60 * 60 * 1000;
+      result = result.filter(t => {
+        const time = new Date(t.createdAt || t.infractionDate || 0).getTime();
+        return time >= twentyFourHoursAgo;
+      });
+    }
 
     // Search by AIT number, plate, description, location, agent, infraction code, framing, article, or observations
     if (searchTerm.trim() !== '') {
@@ -215,7 +461,12 @@ export default function TicketListView({ user, tickets, infractions, onReloadNee
     });
 
     return result;
-  }, [tickets, searchTerm, filterPlate, filterDate, filterAgent, filterVehicleType, filterNature, filterDetectionType, sortBy]);
+  }, [tickets, dateRangeFilter, searchTerm, filterPlate, filterDate, filterAgent, filterVehicleType, filterNature, filterDetectionType, sortBy]);
+
+  // Paginated visible slice for DOM performance on mobile & desktop
+  const visibleTickets = useMemo(() => {
+    return filteredTickets.slice(0, displayLimit);
+  }, [filteredTickets, displayLimit]);
 
   // Statistics of current filtered view
   const filteredStats = useMemo(() => {
@@ -224,6 +475,11 @@ export default function TicketListView({ user, tickets, infractions, onReloadNee
     const totalScore = filteredTickets.reduce((acc, t) => acc + (t.score || 0), 0);
     return { count, totalValue, totalScore };
   }, [filteredTickets]);
+
+  // Action Callbacks
+  const handleView = useCallback((ticket: TrafficTicket) => {
+    setSelectedTicket(ticket);
+  }, []);
 
   // 5. Delete Action Handler
   const handleDelete = async (id: string) => {
@@ -343,6 +599,18 @@ export default function TicketListView({ user, tickets, infractions, onReloadNee
           <p className="text-sm text-slate-500">Consulte, pesquise, edite e exporte os Autos de Infração de Trânsito cadastrados.</p>
         </div>
         <div className="flex items-center gap-2">
+          {/* Pull to Refresh Button */}
+          <button
+            id="btn-pull-refresh"
+            onClick={handleRefresh}
+            disabled={isRefreshing}
+            className="flex items-center gap-2 px-3 py-2 text-xs font-bold bg-amber-500 text-slate-950 rounded-xl hover:bg-amber-600 shadow-xs transition-all cursor-pointer disabled:opacity-50"
+            title="Recarregar dados do servidor e Supabase"
+          >
+            <RefreshCw size={14} className={isRefreshing ? 'animate-spin' : ''} />
+            <span>{isRefreshing ? 'Atualizando...' : 'Atualizar'}</span>
+          </button>
+
           <button
             id="btn-print"
             onClick={handlePrint}
@@ -356,6 +624,38 @@ export default function TicketListView({ user, tickets, infractions, onReloadNee
 
       {/* SEARCH AND FILTERS TOOLBAR */}
       <div className="bg-white p-4 rounded-2xl border-2 border-slate-200 shadow-xs space-y-4">
+        {/* Time Range Quick Filter Tabs */}
+        <div className="flex items-center justify-between gap-3 pb-2 border-b border-slate-100">
+          <div className="flex items-center p-1 bg-slate-100 rounded-xl border border-slate-200">
+            <button
+              id="tab-period-all"
+              onClick={() => setDateRangeFilter('all')}
+              className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer ${
+                dateRangeFilter === 'all' 
+                  ? 'bg-white text-slate-900 shadow-xs' 
+                  : 'text-slate-500 hover:text-slate-700'
+              }`}
+            >
+              Todos os Registros
+            </button>
+            <button
+              id="tab-period-24h"
+              onClick={() => setDateRangeFilter('24h')}
+              className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer flex items-center gap-1.5 ${
+                dateRangeFilter === '24h' 
+                  ? 'bg-amber-500 text-slate-950 shadow-xs' 
+                  : 'text-slate-500 hover:text-slate-700'
+              }`}
+            >
+              <Clock size={13} />
+              <span>Últimas 24h</span>
+            </button>
+          </div>
+
+          <span className="text-xxs font-mono text-slate-400 hidden sm:inline">
+            Modo otimizado ativado
+          </span>
+        </div>
         <div className="flex flex-col md:flex-row gap-3">
           {/* Main Search input */}
           <div className="relative flex-1">
@@ -571,110 +871,16 @@ export default function TicketListView({ user, tickets, infractions, onReloadNee
           <div>
             {/* MOBILE CARDS VIEW (md:hidden) */}
             <div className="block md:hidden divide-y divide-slate-100">
-              {filteredTickets.map((ticket, idx) => {
-                const isAuthoredByMe = ticket.agentId === user.id;
-                const canEdit = user.role === UserRole.ADMIN || isAuthoredByMe;
-
-                return (
-                  <div key={`ticket-card-${ticket.id || idx}-${idx}`} className="p-4 hover:bg-slate-50/60 transition-colors space-y-3 text-slate-800">
-                    {/* Header line: AIT number & Nature Badge */}
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <span className="font-mono font-extrabold text-sm text-slate-900 bg-slate-100 px-2 py-0.5 rounded-md border border-slate-200">
-                          {ticket.aitNumber}
-                        </span>
-                        <span className="text-xxs font-mono text-slate-400">
-                          {formatDateBR(ticket.infractionDate)} às {ticket.infractionTime}
-                        </span>
-                      </div>
-                      <span className={`text-[10px] font-black uppercase px-2 py-0.5 rounded-full ${
-                        ticket.nature === 'Gravíssima' ? 'bg-rose-50 text-rose-700 border border-rose-200' :
-                        ticket.nature === 'Grave' ? 'bg-amber-50 text-amber-700 border border-amber-200' :
-                        ticket.nature === 'Média' ? 'bg-amber-50 text-amber-600 border border-amber-100' :
-                        'bg-slate-50 text-slate-600 border border-slate-200'
-                      }`}>
-                        {ticket.nature}
-                      </span>
-                    </div>
-
-                    {/* Middle info: Plate, Vehicle, Location */}
-                    <div className="grid grid-cols-2 gap-2 bg-slate-50 p-2.5 rounded-xl border border-slate-100 text-xs">
-                      <div>
-                        <span className="text-[9px] font-black uppercase text-slate-400 block">Placa / Veículo</span>
-                        <div className="font-mono font-extrabold text-slate-900 tracking-wider uppercase mt-0.5">
-                          {ticket.plate} <span className="text-[10px] font-sans font-semibold text-slate-500 lowercase">({ticket.vehicleType})</span>
-                        </div>
-                      </div>
-                      <div>
-                        <span className="text-[9px] font-black uppercase text-slate-400 block">Valor Multa</span>
-                        <div className="font-mono font-black text-amber-600 mt-0.5">
-                          R$ {ticket.fineValue.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                        </div>
-                      </div>
-                      <div className="col-span-2 border-t border-slate-200/60 pt-1.5 mt-0.5">
-                        <span className="text-[9px] font-black uppercase text-slate-400 block">Local</span>
-                        <p className="text-xs font-semibold text-slate-700 truncate">{ticket.location}</p>
-                      </div>
-                    </div>
-
-                    {/* Description & Code */}
-                    <div className="text-xs space-y-0.5">
-                      <div className="flex items-center gap-1.5">
-                        <span className="font-mono bg-amber-500/10 text-amber-700 px-1.5 py-0.5 rounded text-xxs font-black">
-                          {ticket.infractionCode}
-                        </span>
-                        <span className="text-xxs font-bold text-slate-500 font-mono">Art. {ticket.article}</span>
-                      </div>
-                      <p className="text-xs text-slate-600 font-medium line-clamp-2 leading-tight">
-                        {ticket.infractionDescription}
-                      </p>
-                    </div>
-
-                    {/* Action buttons bar */}
-                    <div className="flex items-center justify-between pt-2 border-t border-slate-100">
-                      <span className="text-[10px] text-slate-400 font-mono">
-                        Agente: <b className="text-slate-600">{normalizeAgentName(ticket.agentName, ticket.agentId)}</b>
-                      </span>
-
-                      <div className="flex items-center gap-2">
-                        <button
-                          id={`btn-view-mob-${ticket.id}`}
-                          onClick={() => setSelectedTicket(ticket)}
-                          className="flex items-center gap-1 px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-lg transition-colors cursor-pointer"
-                        >
-                          <Eye size={14} />
-                          <span>Ver</span>
-                        </button>
-
-                        <button
-                          id={`btn-edit-mob-${ticket.id}`}
-                          onClick={() => handleStartEdit(ticket)}
-                          disabled={!canEdit}
-                          className={`p-2 rounded-lg transition-colors cursor-pointer ${
-                            canEdit 
-                              ? 'bg-amber-500/10 text-amber-700 hover:bg-amber-500/20' 
-                              : 'bg-slate-50 text-slate-300 cursor-not-allowed'
-                          }`}
-                          title="Editar Auto"
-                        >
-                          <Edit2 size={14} />
-                        </button>
-
-                        {user.role === UserRole.ADMIN && (
-                          <button
-                            id={`btn-delete-mob-${ticket.id}`}
-                            onClick={() => handleDelete(ticket.id)}
-                            className="p-2 bg-rose-50 text-rose-600 hover:bg-rose-100 rounded-lg transition-colors cursor-pointer"
-                            title="Excluir Auto"
-                          >
-                            <Trash2 size={14} />
-                          </button>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
+              {visibleTickets.map((ticket) => (
+                <MobileTicketCard
+                  key={ticket.id || ticket.aitNumber}
+                  ticket={ticket}
+                  user={user}
+                  onView={handleView}
+                  onEdit={handleStartEdit}
+                  onDelete={handleDelete}
+                />
+              ))}
             </div>
 
             {/* DESKTOP TABLE VIEW (hidden md:block) */}
@@ -693,116 +899,36 @@ export default function TicketListView({ user, tickets, infractions, onReloadNee
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 text-xs">
-                  {filteredTickets.map((ticket, idx) => {
-                    const isAuthoredByMe = ticket.agentId === user.id;
-                    const canEdit = user.role === UserRole.ADMIN || isAuthoredByMe;
-
-                    return (
-                      <tr key={`ticket-row-${ticket.id || idx}-${idx}`} className="hover:bg-slate-50/40 transition-colors">
-                        {/* AIT Number */}
-                        <td className="py-4 px-5 font-mono font-bold text-slate-800">
-                          {ticket.aitNumber}
-                        </td>
-
-                        {/* Date / Time */}
-                        <td className="py-4 px-5 whitespace-nowrap">
-                          <div className="font-semibold text-slate-700">
-                            {formatDateBR(ticket.infractionDate)}
-                          </div>
-                          <div className="text-xxs text-slate-400 font-mono mt-0.5">{ticket.infractionTime}</div>
-                        </td>
-
-                        {/* Plate */}
-                        <td className="py-4 px-5 whitespace-nowrap font-mono font-bold tracking-wider text-slate-700 uppercase">
-                          {ticket.plate}
-                        </td>
-
-                        {/* Location */}
-                        <td className="py-4 px-5 max-w-xs truncate text-slate-500" title={ticket.location}>
-                          {ticket.location}
-                        </td>
-
-                        {/* Code / Description */}
-                        <td className="py-4 px-5">
-                          <div className="flex items-center gap-1 flex-wrap">
-                            <span className="font-mono bg-slate-100 text-slate-600 px-1 py-0.5 rounded text-xxs font-bold">{ticket.infractionCode}</span>
-                            {((ticket.additionalInfractions && ticket.additionalInfractions.length > 0) || (ticket.infractions && ticket.infractions.length > 1)) && (
-                              <span className="bg-amber-500/10 text-amber-700 font-bold text-[9px] px-1.5 py-0.5 rounded font-mono border border-amber-500/20">
-                                +{ticket.additionalInfractions?.length || ((ticket.infractions?.length || 1) - 1)}
-                              </span>
-                            )}
-                          </div>
-                          <span className="text-slate-500 text-xxs truncate inline-block max-w-[140px] align-middle mt-0.5" title={ticket.infractionDescription}>
-                            {ticket.infractionDescription}
-                          </span>
-                        </td>
-
-                        {/* Nature / Points */}
-                        <td className="py-4 px-5 whitespace-nowrap">
-                          <span className={`inline-block text-xxs font-black uppercase px-2 py-0.5 rounded-full ${
-                            ticket.nature === 'Gravíssima' ? 'bg-rose-50 text-rose-700 border border-rose-200' :
-                            ticket.nature === 'Grave' ? 'bg-amber-50 text-amber-700 border border-amber-200' :
-                            ticket.nature === 'Média' ? 'bg-amber-50 text-amber-600 border border-amber-100' :
-                            'bg-slate-50 text-slate-600 border border-slate-200'
-                          }`}>
-                            {ticket.nature}
-                          </span>
-                        </td>
-
-                        {/* Fine Value */}
-                        <td className="py-4 px-5 font-mono font-extrabold text-slate-800">
-                          R$ {ticket.fineValue.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                        </td>
-
-                        {/* Actions */}
-                        <td className="py-4 px-5 text-center whitespace-nowrap">
-                          <div className="flex items-center justify-center gap-1.5">
-                            {/* Inspect button */}
-                            <button
-                              id={`btn-view-${ticket.id}`}
-                              onClick={() => setSelectedTicket(ticket)}
-                              className="p-1.5 text-slate-400 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-colors cursor-pointer"
-                              title="Visualizar Auto de Infração"
-                            >
-                              <Eye size={15} />
-                            </button>
-
-                            {/* Edit button */}
-                            <button
-                              id={`btn-edit-${ticket.id}`}
-                              onClick={() => handleStartEdit(ticket)}
-                              disabled={!canEdit}
-                              className={`p-1.5 rounded-lg transition-colors cursor-pointer ${
-                                canEdit 
-                                  ? 'text-slate-400 hover:text-amber-600 hover:bg-amber-50' 
-                                  : 'text-slate-200 cursor-not-allowed'
-                              }`}
-                              title={canEdit ? "Editar Auto" : "Sem permissão para editar"}
-                            >
-                              <Edit2 size={15} />
-                            </button>
-
-                            {/* Delete button (Only Admin) */}
-                            <button
-                              id={`btn-delete-${ticket.id}`}
-                              onClick={() => handleDelete(ticket.id)}
-                              disabled={user.role !== UserRole.ADMIN}
-                              className={`p-1.5 rounded-lg transition-colors cursor-pointer ${
-                                user.role === UserRole.ADMIN 
-                                  ? 'text-slate-400 hover:text-red-600 hover:bg-red-50' 
-                                  : 'text-slate-200 cursor-not-allowed'
-                              }`}
-                              title={user.role === UserRole.ADMIN ? "Excluir Auto" : "Apenas administradores podem excluir"}
-                            >
-                              <Trash2 size={15} />
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    );
-                  })}
+                  {visibleTickets.map((ticket) => (
+                    <DesktopTicketRow
+                      key={ticket.id || ticket.aitNumber}
+                      ticket={ticket}
+                      user={user}
+                      onView={handleView}
+                      onEdit={handleStartEdit}
+                      onDelete={handleDelete}
+                    />
+                  ))}
                 </tbody>
               </table>
+            </div>
+
+            {/* PAGINATION / LOAD MORE FOOTER */}
+            <div className="p-4 bg-slate-50 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
+              <span className="text-slate-500 font-mono text-xxs">
+                Exibindo <b className="text-slate-800">{visibleTickets.length}</b> de <b className="text-slate-800">{filteredTickets.length}</b> autos de infração
+              </span>
+
+              {displayLimit < filteredTickets.length && (
+                <button
+                  id="btn-load-more"
+                  onClick={() => setDisplayLimit(prev => prev + 20)}
+                  className="flex items-center gap-2 px-4 py-2 bg-amber-500 hover:bg-amber-600 text-slate-950 font-black text-xs rounded-xl shadow-xs transition-all cursor-pointer"
+                >
+                  <ChevronDown size={14} />
+                  <span>Carregar mais 20 registros</span>
+                </button>
+              )}
             </div>
           </div>
         )}

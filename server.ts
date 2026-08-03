@@ -767,11 +767,61 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', ticketCount: activeTickets.length, timestamp: new Date().toISOString() });
 });
 
-// GET all tickets
+// GET all tickets (with support for pagination, limit, last24h, search)
 app.get('/api/tickets', async (req, res) => {
   // Sync from Supabase in background if possible
   syncFromSupabase().catch(() => {});
-  const activeTickets = store.tickets.filter(t => !isTicketDeleted(t) && !isEmersonTicket(t));
+
+  let activeTickets = store.tickets.filter(t => !isTicketDeleted(t) && !isEmersonTicket(t));
+
+  const { page, limit, last24h, search } = req.query;
+
+  // Filter by last 24h
+  if (last24h === 'true' || last24h === '1') {
+    const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).getTime();
+    activeTickets = activeTickets.filter(t => {
+      const time = new Date(t.createdAt || t.infractionDate || 0).getTime();
+      return time >= twentyFourHoursAgo;
+    });
+  }
+
+  // Filter by search query if provided
+  if (typeof search === 'string' && search.trim()) {
+    const s = search.trim().toLowerCase();
+    activeTickets = activeTickets.filter(t => {
+      return (
+        (t.aitNumber && t.aitNumber.toLowerCase().includes(s)) ||
+        (t.plate && t.plate.toLowerCase().includes(s)) ||
+        (t.infractionDescription && t.infractionDescription.toLowerCase().includes(s)) ||
+        (t.location && t.location.toLowerCase().includes(s)) ||
+        (t.agentName && t.agentName.toLowerCase().includes(s))
+      );
+    });
+  }
+
+  // Pagination support
+  if (page || limit) {
+    const p = Math.max(1, parseInt(String(page || '1'), 10));
+    const l = Math.max(1, Math.min(100, parseInt(String(limit || '20'), 10)));
+    const totalCount = activeTickets.length;
+    const totalPages = Math.ceil(totalCount / l) || 1;
+    const startIndex = (p - 1) * l;
+    const paginatedTickets = activeTickets.slice(startIndex, startIndex + l);
+
+    res.setHeader('X-Total-Count', String(totalCount));
+    res.setHeader('X-Page', String(p));
+    res.setHeader('X-Total-Pages', String(totalPages));
+
+    return res.json({
+      tickets: paginatedTickets,
+      totalCount,
+      page: p,
+      totalPages,
+      hasMore: p < totalPages
+    });
+  }
+
+  res.setHeader('X-Total-Count', String(activeTickets.length));
   res.json(activeTickets);
 });
 

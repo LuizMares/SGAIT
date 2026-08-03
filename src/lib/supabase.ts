@@ -992,18 +992,26 @@ export const dbService = {
     }
   },
 
-  async getTickets(): Promise<TrafficTicket[]> {
-    if (ticketsCache && (Date.now() - ticketsCache.timestamp) < TICKETS_CACHE_TTL_MS) {
+  async getTickets(options?: { page?: number; limit?: number; last24h?: boolean; search?: string }): Promise<TrafficTicket[]> {
+    if (!options && ticketsCache && (Date.now() - ticketsCache.timestamp) < TICKETS_CACHE_TTL_MS) {
       return ticketsCache.data;
     }
 
     let serverTickets: TrafficTicket[] = [];
     
-    // 1. Fetch from central backend server API
+    // 1. Fetch from central backend server API with optional pagination & filter options
     try {
-      const res = await fetch('/api/tickets');
+      const queryParams = new URLSearchParams();
+      if (options?.page) queryParams.set('page', String(options.page));
+      if (options?.limit) queryParams.set('limit', String(options.limit));
+      if (options?.last24h) queryParams.set('last24h', 'true');
+      if (options?.search) queryParams.set('search', options.search);
+
+      const url = `/api/tickets${queryParams.toString() ? '?' + queryParams.toString() : ''}`;
+      const res = await fetch(url);
       if (res.ok) {
-        const rawList = await res.json();
+        const rawData = await res.json();
+        const rawList = Array.isArray(rawData) ? rawData : (rawData.tickets || []);
         if (Array.isArray(rawList)) {
           serverTickets = rawList.map(mapRowToTicket);
         }
@@ -1016,10 +1024,24 @@ export const dbService = {
     let supabaseTickets: TrafficTicket[] = [];
     if (serverTickets.length === 0 && isSupabaseActive()) {
       try {
-        const { data, error } = await supabaseClient
+        let query = supabaseClient
           .from('sgait_autos')
           .select('*')
           .order('created_at', { ascending: false });
+
+        if (options?.last24h) {
+          const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+          query = query.gte('created_at', yesterday);
+        }
+
+        if (options?.limit) {
+          const page = options.page || 1;
+          const from = (page - 1) * options.limit;
+          const to = page * options.limit - 1;
+          query = query.range(from, to);
+        }
+
+        const { data, error } = await query;
 
         if (error) {
           markSupabaseKeyInvalid(error);
@@ -1963,17 +1985,26 @@ export const dbService = {
   // ==========================================
   
   subscribeTickets(callback: (message: RealtimeMessage) => void): () => void {
-    const unsubscribes: (() => void)[] = [];
+    let supabaseChannel: any = null;
+    let eventSource: EventSource | null = null;
+    let active = true;
 
-    // 1. Supabase Postgres Realtime subscription for ALL tables
-    if (isSupabaseActive()) {
+    const setupSupabaseRealtime = () => {
+      if (!isSupabaseActive() || !active) return;
       try {
-        const channel = supabaseClient
-          .channel('sgait-all-tables-changes')
+        if (supabaseChannel) {
+          supabaseClient.removeChannel(supabaseChannel);
+          supabaseChannel = null;
+        }
+
+        // Create clean channel with exact event listeners
+        supabaseChannel = supabaseClient
+          .channel(`sgait-realtime-${Math.random().toString(36).substring(2, 7)}`)
           .on(
             'postgres_changes',
             { event: '*', schema: 'public', table: 'sgait_autos' },
             (payload) => {
+              if (!active) return;
               let mappedType: 'INSERT' | 'UPDATE' | 'DELETE' = 'INSERT';
               if (payload.eventType === 'UPDATE') mappedType = 'UPDATE';
               if (payload.eventType === 'DELETE') mappedType = 'DELETE';
@@ -1994,6 +2025,7 @@ export const dbService = {
             'postgres_changes',
             { event: '*', schema: 'public', table: 'sgait_authorized_emails' },
             (payload) => {
+              if (!active) return;
               let mappedType: 'INSERT' | 'UPDATE' | 'DELETE' = 'INSERT';
               if (payload.eventType === 'UPDATE') mappedType = 'UPDATE';
               if (payload.eventType === 'DELETE') mappedType = 'DELETE';
@@ -2010,6 +2042,7 @@ export const dbService = {
             'postgres_changes',
             { event: '*', schema: 'public', table: 'sgait_infractions_table' },
             (payload) => {
+              if (!active) return;
               let mappedType: 'INSERT' | 'UPDATE' | 'DELETE' = 'INSERT';
               if (payload.eventType === 'UPDATE') mappedType = 'UPDATE';
               if (payload.eventType === 'DELETE') mappedType = 'DELETE';
@@ -2023,32 +2056,32 @@ export const dbService = {
             }
           )
           .subscribe();
-
-        unsubscribes.push(() => {
-          supabaseClient.removeChannel(channel);
-        });
       } catch (err) {
         console.warn('Supabase Realtime subscription error:', err);
       }
-    }
+    };
 
-    // 2. Local window CustomEvents
-    const handleSync = (e: Event) => {
-      const customEvent = e as CustomEvent<RealtimeMessage>;
-      if (customEvent.detail) {
-        callback(customEvent.detail);
+    const teardownSupabaseRealtime = () => {
+      if (supabaseChannel) {
+        try {
+          supabaseClient.removeChannel(supabaseChannel);
+        } catch (e) {
+          // silent cleanup catch
+        }
+        supabaseChannel = null;
       }
     };
-    window.addEventListener(REALTIME_EVENT_NAME, handleSync);
-    unsubscribes.push(() => {
-      window.removeEventListener(REALTIME_EVENT_NAME, handleSync);
-    });
 
-    // 3. Express Backend SSE (Server-Sent Events) stream for real-time multi-device sync
-    if (typeof window !== 'undefined' && typeof EventSource !== 'undefined') {
+    const setupSSE = () => {
+      if (typeof window === 'undefined' || typeof EventSource === 'undefined' || !active) return;
       try {
-        const es = new EventSource('/api/events');
-        es.onmessage = (event) => {
+        if (eventSource) {
+          eventSource.close();
+          eventSource = null;
+        }
+        eventSource = new EventSource('/api/events');
+        eventSource.onmessage = (event) => {
+          if (!active) return;
           try {
             const parsed = JSON.parse(event.data);
             if (parsed && parsed.table && parsed.type) {
@@ -2066,16 +2099,73 @@ export const dbService = {
             // silent parse error
           }
         };
-        unsubscribes.push(() => {
-          es.close();
-        });
       } catch (e) {
         console.warn('SSE EventSource setup warning:', e);
       }
+    };
+
+    const teardownSSE = () => {
+      if (eventSource) {
+        try {
+          eventSource.close();
+        } catch (e) {
+          // silent cleanup catch
+        }
+        eventSource = null;
+      }
+    };
+
+    // Initial setup if page is currently visible
+    if (typeof document === 'undefined' || document.visibilityState === 'visible') {
+      setupSupabaseRealtime();
+      setupSSE();
+    }
+
+    // Tab visibility & page unload listener: disconnect idle sockets on hide/close
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'hidden') {
+        teardownSupabaseRealtime();
+        teardownSSE();
+      } else if (document.visibilityState === 'visible' && active) {
+        setupSupabaseRealtime();
+        setupSSE();
+      }
+    };
+
+    const handleUnload = () => {
+      active = false;
+      teardownSupabaseRealtime();
+      teardownSSE();
+    };
+
+    if (typeof window !== 'undefined') {
+      window.addEventListener('visibilitychange', handleVisibilityChange);
+      window.addEventListener('pagehide', handleUnload);
+      window.addEventListener('beforeunload', handleUnload);
+    }
+
+    // Local window CustomEvents
+    const handleSync = (e: Event) => {
+      if (!active) return;
+      const customEvent = e as CustomEvent<RealtimeMessage>;
+      if (customEvent.detail) {
+        callback(customEvent.detail);
+      }
+    };
+    if (typeof window !== 'undefined') {
+      window.addEventListener(REALTIME_EVENT_NAME, handleSync);
     }
 
     return () => {
-      unsubscribes.forEach(fn => fn());
+      active = false;
+      teardownSupabaseRealtime();
+      teardownSSE();
+      if (typeof window !== 'undefined') {
+        window.removeEventListener('visibilitychange', handleVisibilityChange);
+        window.removeEventListener('pagehide', handleUnload);
+        window.removeEventListener('beforeunload', handleUnload);
+        window.removeEventListener(REALTIME_EVENT_NAME, handleSync);
+      }
     };
   }
 };
