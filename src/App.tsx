@@ -356,93 +356,22 @@ export default function App() {
   const handleManualSync = async () => {
     setIsSyncingData(true);
     try {
+      invalidateTicketsCache();
       await loadData();
-      addNotification('Sincronização com o Supabase concluída!');
+      addNotification('Registros de autos atualizados com sucesso via .select() do Supabase!');
     } catch (e) {
-      console.warn('Erro na sincronização manual:', e);
+      console.warn('Erro ao atualizar dados manualmente:', e);
     } finally {
       setTimeout(() => setIsSyncingData(false), 500);
     }
   };
 
-  // Realtime synchronization pipeline, tab visibility triggers & periodic background sync
+  // Standard manual data loader effect (Realtime/subscriptions removed by user request)
   useEffect(() => {
     if (!currentUser) return;
 
-    // Fetch fresh data immediately on mount
+    // Fetch fresh data on mount / user change
     loadData(currentUser);
-
-    // Re-sync when tab becomes visible or receives window focus (e.g. mobile unlock or returning to notebook tab)
-    const handleVisibilityChange = () => {
-      if (document.visibilityState === 'visible') {
-        invalidateTicketsCache();
-        loadData(currentUser);
-      }
-    };
-    const handleFocus = () => {
-      invalidateTicketsCache();
-      loadData(currentUser);
-    };
-
-    window.addEventListener('visibilitychange', handleVisibilityChange);
-    window.addEventListener('focus', handleFocus);
-
-    // Light fallback polling interval every 30 seconds (only when tab is visible) to protect Supabase Nano / Free tier
-    const interval = setInterval(() => {
-      if (document.visibilityState === 'visible') {
-        loadData(currentUser);
-      }
-    }, 30000);
-
-    // Subscribe to multi-table updates (Supabase Realtime + SSE + CustomEvents)
-    const unsubscribe = dbService.subscribeTickets((message) => {
-      console.log('Realtime update captured:', message);
-      invalidateTicketsCache();
-
-      if (message.table === 'tickets') {
-        const payload = message.data;
-        if (!payload) return;
-
-        if (message.type === 'INSERT') {
-          setTickets(prev => {
-            const matchIdx = prev.findIndex(t => t.id === payload.id || (t.aitNumber && payload.aitNumber && t.aitNumber.toUpperCase() === payload.aitNumber.toUpperCase()));
-            if (matchIdx >= 0) {
-              const copy = [...prev];
-              copy[matchIdx] = payload;
-              return copy;
-            }
-            return [payload, ...prev];
-          });
-          addNotification(`Novo Auto de Infração ${payload.aitNumber || ''} registrado em tempo real.`);
-        } 
-        else if (message.type === 'UPDATE') {
-          setTickets(prev => prev.map(t => (t.id === payload.id || (t.aitNumber && payload.aitNumber && t.aitNumber.toUpperCase() === payload.aitNumber.toUpperCase())) ? { ...t, ...payload } : t));
-          addNotification(`Auto de Infração ${payload.aitNumber || ''} foi atualizado.`);
-        } 
-        else if (message.type === 'DELETE') {
-          const keys = [payload.id, payload.aitNumber].filter(Boolean);
-          addDeletedTicketKeys(keys);
-          setTickets(prev => prev.filter(t => t.id !== payload.id && (!payload.aitNumber || t.aitNumber !== payload.aitNumber)));
-          addNotification(`Auto de Infração removido.`);
-        }
-      } else if (message.table === 'authorized_emails') {
-        loadData(currentUser);
-      } else if (message.table === 'infractions') {
-        if (message.type === 'DELETE' && message.data?.code) {
-          const codeToDelete = String(message.data.code).trim().toLowerCase();
-          setInfractions(prev => prev.filter(i => i.code.trim().toLowerCase() !== codeToDelete));
-        } else {
-          loadData(currentUser);
-        }
-      }
-    });
-
-    return () => {
-      window.removeEventListener('visibilitychange', handleVisibilityChange);
-      window.removeEventListener('focus', handleFocus);
-      clearInterval(interval);
-      unsubscribe();
-    };
   }, [currentUser]);
 
   // Handle successful login
@@ -679,16 +608,16 @@ export default function App() {
               </span>
             )}
 
-            {/* Manual Sync / Refresh Button */}
+            {/* Manual Refresh Button (.select()) */}
             <button
               id="btn-manual-sync"
               onClick={handleManualSync}
               disabled={isSyncingData}
-              className="flex items-center gap-1.5 text-slate-300 hover:text-amber-400 bg-slate-900/80 hover:bg-slate-900 border border-slate-800 px-2.5 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer disabled:opacity-50"
-              title="Sincronizar dados em tempo real com o banco Supabase"
+              className="flex items-center gap-1.5 text-slate-300 hover:text-amber-400 bg-slate-900/80 hover:bg-slate-900 border border-slate-800 px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer disabled:opacity-50"
+              title="Atualizar registros de autos consultando o banco Supabase (.select())"
             >
-              <RefreshCw size={14} className={isSyncingData ? "animate-spin text-amber-400" : "text-slate-400"} />
-              <span className="hidden md:inline">{isSyncingData ? 'Atualizando...' : 'Sincronizar'}</span>
+              <RefreshCw size={14} className={isSyncingData ? "animate-spin text-amber-400" : "text-amber-400"} />
+              <span>{isSyncingData ? 'Atualizando...' : 'Atualizar'}</span>
             </button>
 
             {/* Notification bell and dropdown */}

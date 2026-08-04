@@ -997,32 +997,10 @@ export const dbService = {
       return ticketsCache.data;
     }
 
-    let serverTickets: TrafficTicket[] = [];
-    
-    // 1. Fetch from central backend server API with optional pagination & filter options
-    try {
-      const queryParams = new URLSearchParams();
-      if (options?.page) queryParams.set('page', String(options.page));
-      if (options?.limit) queryParams.set('limit', String(options.limit));
-      if (options?.last24h) queryParams.set('last24h', 'true');
-      if (options?.search) queryParams.set('search', options.search);
-
-      const url = `/api/tickets${queryParams.toString() ? '?' + queryParams.toString() : ''}`;
-      const res = await fetch(url);
-      if (res.ok) {
-        const rawData = await res.json();
-        const rawList = Array.isArray(rawData) ? rawData : (rawData.tickets || []);
-        if (Array.isArray(rawList)) {
-          serverTickets = rawList.map(mapRowToTicket);
-        }
-      }
-    } catch (e) {
-      console.warn('Backend server /api/tickets error:', e);
-    }
-
-    // 2. Fetch from Supabase client if configured and server returned empty or fallback
     let supabaseTickets: TrafficTicket[] = [];
-    if (serverTickets.length === 0 && isSupabaseActive()) {
+
+    // 1. Fetch from Supabase using standard .select() query
+    if (isSupabaseActive()) {
       try {
         let query = supabaseClient
           .from('sgait_autos')
@@ -1050,6 +1028,30 @@ export const dbService = {
         }
       } catch (err) {
         markSupabaseKeyInvalid(err);
+      }
+    }
+
+    // 2. Fetch from central backend server API if Supabase returned empty
+    let serverTickets: TrafficTicket[] = [];
+    if (supabaseTickets.length === 0) {
+      try {
+        const queryParams = new URLSearchParams();
+        if (options?.page) queryParams.set('page', String(options.page));
+        if (options?.limit) queryParams.set('limit', String(options.limit));
+        if (options?.last24h) queryParams.set('last24h', 'true');
+        if (options?.search) queryParams.set('search', options.search);
+
+        const url = `/api/tickets${queryParams.toString() ? '?' + queryParams.toString() : ''}`;
+        const res = await fetch(url);
+        if (res.ok) {
+          const rawData = await res.json();
+          const rawList = Array.isArray(rawData) ? rawData : (rawData.tickets || []);
+          if (Array.isArray(rawList)) {
+            serverTickets = rawList.map(mapRowToTicket);
+          }
+        }
+      } catch (e) {
+        console.warn('Backend server /api/tickets error:', e);
       }
     }
 
@@ -1110,11 +1112,6 @@ export const dbService = {
     // Save clean unified tickets to local cache
     safeStorage.setItem(STORAGE_KEYS.TICKETS, JSON.stringify(mergedList));
 
-    // Ensure any tickets created locally or missing in Supabase get pushed automatically
-    if (mergedList.length > 0 && isSupabaseActive()) {
-      dbService.autoSyncTicketsToSupabase(mergedList).catch(() => {});
-    }
-
     // Update in-memory cache
     ticketsCache = {
       data: mergedList,
@@ -1156,7 +1153,7 @@ export const dbService = {
       console.warn('Could not post ticket to backend API:', e);
     }
 
-    // 3. Post/Upsert to Supabase if active
+    // 3. Direct .insert() into Supabase table if active
     if (isSupabaseActive()) {
       try {
         if (newTicket.infractionCode) {
@@ -1220,9 +1217,10 @@ export const dbService = {
           educational_action_number: newTicket.educationalActionNumber || null
         };
 
+        // Standard Supabase .insert()
         let { error } = await supabaseClient
           .from('sgait_autos')
-          .upsert(dbPayload, { onConflict: 'ait_number' });
+          .insert(dbPayload);
 
         const isColumnMissingError = (err: any) => {
           if (!err) return false;
@@ -1238,44 +1236,25 @@ export const dbService = {
           delete dbPayload.educational_action_number;
           const retryCol = await supabaseClient
             .from('sgait_autos')
-            .upsert(dbPayload, { onConflict: 'ait_number' });
+            .insert(dbPayload);
           error = retryCol.error;
         }
 
-        if (error && (error.code === '23503' || (error.message && error.message.toLowerCase().includes('foreign key')))) {
-          dbPayload.infraction_code = null;
-          const retryFk = await supabaseClient
+        if (error && (error.code === '23505' || error.code === '42P10' || (error.message && error.message.toLowerCase().includes('conflict')))) {
+          const updateRes = await supabaseClient
             .from('sgait_autos')
-            .upsert(dbPayload, { onConflict: 'ait_number' });
-          error = retryFk.error;
-        }
-
-        if (error && (error.code === '42P10' || (error.message && error.message.toLowerCase().includes('conflict')))) {
-          const { data: existingRow } = await supabaseClient
-            .from('sgait_autos')
-            .select('id')
-            .eq('ait_number', dbPayload.ait_number)
-            .maybeSingle();
-
-          if (existingRow && existingRow.id) {
-            const updateRes = await supabaseClient.from('sgait_autos').update(dbPayload).eq('ait_number', dbPayload.ait_number);
-            error = updateRes.error;
-          } else {
-            const insertRes = await supabaseClient.from('sgait_autos').insert(dbPayload);
-            error = insertRes.error;
-          }
+            .update(dbPayload)
+            .eq('ait_number', dbPayload.ait_number);
+          error = updateRes.error;
         }
 
         if (error) {
-          console.warn('Supabase upsert warning in insertTicket:', error);
+          console.warn('Supabase insert warning in insertTicket:', error);
         }
       } catch (err: any) {
         console.warn('Supabase insertTicket exception:', err);
       }
     }
-
-    // Trigger explicit background auto sync to Supabase for the newly created auto
-    dbService.autoSyncTicketsToSupabase([newTicket]).catch(() => {});
 
     dispatchRealtimeMessage('INSERT', 'tickets', newTicket);
     return { data: newTicket, error: null };
@@ -1981,192 +1960,13 @@ export const dbService = {
   },
 
   // ==========================================
-  // REALTIME SYNCHRONIZATION
+  // MANUAL FETCH & DATA REFRESH (Realtime/Subscriptions Disabled)
   // ==========================================
   
-  subscribeTickets(callback: (message: RealtimeMessage) => void): () => void {
-    let supabaseChannel: any = null;
-    let eventSource: EventSource | null = null;
-    let active = true;
-
-    const setupSupabaseRealtime = () => {
-      if (!isSupabaseActive() || !active) return;
-      try {
-        if (supabaseChannel) {
-          supabaseClient.removeChannel(supabaseChannel);
-          supabaseChannel = null;
-        }
-
-        // Create clean channel with exact event listeners
-        supabaseChannel = supabaseClient
-          .channel(`sgait-realtime-${Math.random().toString(36).substring(2, 7)}`)
-          .on(
-            'postgres_changes',
-            { event: '*', schema: 'public', table: 'sgait_autos' },
-            (payload) => {
-              if (!active) return;
-              let mappedType: 'INSERT' | 'UPDATE' | 'DELETE' = 'INSERT';
-              if (payload.eventType === 'UPDATE') mappedType = 'UPDATE';
-              if (payload.eventType === 'DELETE') mappedType = 'DELETE';
-
-              let rawData = payload.new;
-              if (payload.eventType === 'DELETE') rawData = payload.old;
-
-              const mappedData = mapRowToTicket(rawData);
-
-              callback({
-                type: mappedType,
-                table: 'tickets',
-                data: mappedData
-              });
-            }
-          )
-          .on(
-            'postgres_changes',
-            { event: '*', schema: 'public', table: 'sgait_authorized_emails' },
-            (payload) => {
-              if (!active) return;
-              let mappedType: 'INSERT' | 'UPDATE' | 'DELETE' = 'INSERT';
-              if (payload.eventType === 'UPDATE') mappedType = 'UPDATE';
-              if (payload.eventType === 'DELETE') mappedType = 'DELETE';
-
-              const rawData = payload.new || payload.old;
-              callback({
-                type: mappedType,
-                table: 'authorized_emails',
-                data: rawData
-              });
-            }
-          )
-          .on(
-            'postgres_changes',
-            { event: '*', schema: 'public', table: 'sgait_infractions_table' },
-            (payload) => {
-              if (!active) return;
-              let mappedType: 'INSERT' | 'UPDATE' | 'DELETE' = 'INSERT';
-              if (payload.eventType === 'UPDATE') mappedType = 'UPDATE';
-              if (payload.eventType === 'DELETE') mappedType = 'DELETE';
-
-              const rawData = payload.new || payload.old;
-              callback({
-                type: mappedType,
-                table: 'infractions',
-                data: rawData
-              });
-            }
-          )
-          .subscribe();
-      } catch (err) {
-        console.warn('Supabase Realtime subscription error:', err);
-      }
-    };
-
-    const teardownSupabaseRealtime = () => {
-      if (supabaseChannel) {
-        try {
-          supabaseClient.removeChannel(supabaseChannel);
-        } catch (e) {
-          // silent cleanup catch
-        }
-        supabaseChannel = null;
-      }
-    };
-
-    const setupSSE = () => {
-      if (typeof window === 'undefined' || typeof EventSource === 'undefined' || !active) return;
-      try {
-        if (eventSource) {
-          eventSource.close();
-          eventSource = null;
-        }
-        eventSource = new EventSource('/api/events');
-        eventSource.onmessage = (event) => {
-          if (!active) return;
-          try {
-            const parsed = JSON.parse(event.data);
-            if (parsed && parsed.table && parsed.type) {
-              let data = parsed.data;
-              if (parsed.table === 'tickets' && data) {
-                data = mapRowToTicket(data);
-              }
-              callback({
-                type: parsed.type,
-                table: parsed.table,
-                data
-              });
-            }
-          } catch (err) {
-            // silent parse error
-          }
-        };
-      } catch (e) {
-        console.warn('SSE EventSource setup warning:', e);
-      }
-    };
-
-    const teardownSSE = () => {
-      if (eventSource) {
-        try {
-          eventSource.close();
-        } catch (e) {
-          // silent cleanup catch
-        }
-        eventSource = null;
-      }
-    };
-
-    // Initial setup if page is currently visible
-    if (typeof document === 'undefined' || document.visibilityState === 'visible') {
-      setupSupabaseRealtime();
-      setupSSE();
-    }
-
-    // Tab visibility & page unload listener: disconnect idle sockets on hide/close
-    const handleVisibilityChange = () => {
-      if (document.visibilityState === 'hidden') {
-        teardownSupabaseRealtime();
-        teardownSSE();
-      } else if (document.visibilityState === 'visible' && active) {
-        setupSupabaseRealtime();
-        setupSSE();
-      }
-    };
-
-    const handleUnload = () => {
-      active = false;
-      teardownSupabaseRealtime();
-      teardownSSE();
-    };
-
-    if (typeof window !== 'undefined') {
-      window.addEventListener('visibilitychange', handleVisibilityChange);
-      window.addEventListener('pagehide', handleUnload);
-      window.addEventListener('beforeunload', handleUnload);
-    }
-
-    // Local window CustomEvents
-    const handleSync = (e: Event) => {
-      if (!active) return;
-      const customEvent = e as CustomEvent<RealtimeMessage>;
-      if (customEvent.detail) {
-        callback(customEvent.detail);
-      }
-    };
-    if (typeof window !== 'undefined') {
-      window.addEventListener(REALTIME_EVENT_NAME, handleSync);
-    }
-
-    return () => {
-      active = false;
-      teardownSupabaseRealtime();
-      teardownSSE();
-      if (typeof window !== 'undefined') {
-        window.removeEventListener('visibilitychange', handleVisibilityChange);
-        window.removeEventListener('pagehide', handleUnload);
-        window.removeEventListener('beforeunload', handleUnload);
-        window.removeEventListener(REALTIME_EVENT_NAME, handleSync);
-      }
-    };
+  subscribeTickets(_callback?: (message: RealtimeMessage) => void): () => void {
+    // Realtime subscriptions and background channels are disabled.
+    // The application uses manual fetches (.select()) via the "Atualizar" button.
+    return () => {};
   }
 };
 
