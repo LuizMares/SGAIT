@@ -25,7 +25,9 @@ import {
   Car,
   Layers,
   RefreshCw,
-  ChevronDown
+  ChevronDown,
+  Navigation,
+  Loader2
 } from 'lucide-react';
 import { TrafficTicket, UserProfile, UserRole, InfractionType } from '../types';
 import { dbService } from '../lib/supabase';
@@ -284,6 +286,86 @@ export default function TicketListView({ user, tickets, infractions, onReloadNee
   const [editVehicleType, setEditVehicleType] = useState('');
   const [editObservations, setEditObservations] = useState('');
   const [editInfractionCode, setEditInfractionCode] = useState('');
+  const [isGettingEditGps, setIsGettingEditGps] = useState(false);
+
+  // GPS handler for edit modal
+  const handleGetEditGpsLocation = () => {
+    if (!navigator.geolocation) {
+      setErrorMessage('Geolocalização (GPS) não é suportada neste navegador.');
+      return;
+    }
+    setIsGettingEditGps(true);
+    setErrorMessage(null);
+
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        const { latitude, longitude, accuracy } = position.coords;
+        const latFixed = latitude.toFixed(6);
+        const lonFixed = longitude.toFixed(6);
+        const accuracyText = accuracy && accuracy > 0 ? ` [±${Math.round(accuracy)}m]` : '';
+
+        try {
+          let road = '';
+          let houseNumber = '';
+          let neighbourhood = '';
+          let city = 'Pojuca';
+          let state = 'BA';
+
+          try {
+            const bdcRes = await fetch(
+              `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${latitude}&longitude=${longitude}&localityLanguage=pt`
+            );
+            if (bdcRes.ok) {
+              const bdcData = await bdcRes.json();
+              if (bdcData) {
+                if (bdcData.street) road = bdcData.street;
+                if (bdcData.houseNumber) houseNumber = bdcData.houseNumber;
+                if (bdcData.city) city = bdcData.city;
+                if (bdcData.principalSubdivisionCode) state = bdcData.principalSubdivisionCode.replace('BR-', '').toUpperCase();
+              }
+            }
+          } catch (e) {
+            console.warn('Geocode BDC failed:', e);
+          }
+
+          if (!road) {
+            try {
+              const osmRes = await fetch(
+                `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${latitude}&lon=${longitude}&zoom=18&addressdetails=1&accept-language=pt-br`
+              );
+              if (osmRes.ok) {
+                const osmData = await osmRes.json();
+                const addr = osmData.address || {};
+                road = addr.road || addr.pedestrian || addr.avenue || addr.street || '';
+                houseNumber = addr.house_number || '';
+                neighbourhood = addr.suburb || addr.neighbourhood || '';
+                city = addr.city || addr.town || 'Pojuca';
+              }
+            } catch (e) {
+              console.warn('Geocode OSM failed:', e);
+            }
+          }
+
+          const parts: string[] = [];
+          if (road) parts.push(houseNumber ? `${road}, nº ${houseNumber}` : road);
+          if (neighbourhood) parts.push(`Bairro ${neighbourhood}`);
+          parts.push(`${city} - ${state}`);
+
+          const baseAddr = parts.length > 0 ? parts.join(', ') : `${city} - ${state}`;
+          setEditLocation(`${baseAddr} (GPS: ${latFixed}, ${lonFixed}${accuracyText})`);
+        } catch (e) {
+          setEditLocation(`Pojuca - BA (GPS: ${latFixed}, ${lonFixed}${accuracyText})`);
+        } finally {
+          setIsGettingEditGps(false);
+        }
+      },
+      (err) => {
+        setIsGettingEditGps(false);
+        setErrorMessage('Não foi possível obter sinal de GPS com precisão.');
+      },
+      { enableHighAccuracy: true, timeout: 20000, maximumAge: 0 }
+    );
+  };
   
   // UI states
   const [actionLoading, setActionLoading] = useState(false);
@@ -991,9 +1073,29 @@ export default function TicketListView({ user, tickets, infractions, onReloadNee
               {/* Physical Location */}
               <div className="space-y-1">
                 <span className="text-xxs font-bold text-slate-400 uppercase tracking-wider block">Local do Fato</span>
-                <div className="flex items-center gap-2 bg-slate-50 p-3 rounded-lg border border-slate-100">
-                  <MapPin size={16} className="text-amber-500 shrink-0" />
-                  <span className="text-slate-700 font-medium">{selectedTicket.location}</span>
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 bg-slate-50 p-3 rounded-xl border border-slate-200/80">
+                  <div className="flex items-start gap-2">
+                    <MapPin size={16} className="text-amber-500 shrink-0 mt-0.5" />
+                    <span className="text-slate-800 font-medium text-xs leading-relaxed">{selectedTicket.location}</span>
+                  </div>
+                  {(() => {
+                    const match = selectedTicket.location?.match(/GPS:\s*(-?\d+\.\d+),\s*(-?\d+\.\d+)/i);
+                    if (match) {
+                      const lat = match[1];
+                      const lon = match[2];
+                      return (
+                        <a
+                          href={`https://www.google.com/maps?q=${lat},${lon}`}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-slate-900 bg-amber-400 hover:bg-amber-300 rounded-lg transition-colors shrink-0 shadow-2xs self-start sm:self-auto cursor-pointer"
+                        >
+                          <span>Ver no Mapa 🗺️</span>
+                        </a>
+                      );
+                    }
+                    return null;
+                  })()}
                 </div>
               </div>
 
@@ -1216,7 +1318,28 @@ export default function TicketListView({ user, tickets, infractions, onReloadNee
 
               {/* Edit: Location */}
               <div className="space-y-1">
-                <label className="text-xs font-bold text-slate-700 block uppercase tracking-wide">Local da Infração</label>
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-bold text-slate-700 block uppercase tracking-wide">Local da Infração</label>
+                  <button
+                    type="button"
+                    onClick={handleGetEditGpsLocation}
+                    disabled={isGettingEditGps}
+                    className="text-xxs font-bold text-amber-700 hover:text-amber-800 bg-amber-50 hover:bg-amber-100 px-2.5 py-1 rounded-lg border border-amber-200/80 transition-all flex items-center gap-1 cursor-pointer"
+                    title="Obter localização atual do GPS"
+                  >
+                    {isGettingEditGps ? (
+                      <>
+                        <Loader2 size={12} className="animate-spin text-amber-600" />
+                        <span>Obtendo...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Navigation size={12} className="text-amber-600" />
+                        <span>Obter GPS</span>
+                      </>
+                    )}
+                  </button>
+                </div>
                 <input
                   id="edit-location"
                   type="text"

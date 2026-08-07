@@ -304,6 +304,125 @@ export default function TicketFormView({ user, infractions, onSuccessSubmit }: T
     setPhotoUrls(prev => prev.filter((_, idx) => idx !== indexToRemove));
   };
 
+  // High-precision Reverse Geocoding Helper
+  const getExactGpsAddress = async (latitude: number, longitude: number, accuracy?: number): Promise<string> => {
+    const latFixed = latitude.toFixed(6);
+    const lonFixed = longitude.toFixed(6);
+    const accuracyText = accuracy && accuracy > 0 ? ` [±${Math.round(accuracy)}m]` : '';
+
+    let road = '';
+    let houseNumber = '';
+    let neighbourhood = '';
+    let city = '';
+    let state = 'BA';
+    let postcode = '';
+
+    // Primary: BigDataCloud Client API (fast, free client-side API, no CORS or User-Agent blockage in browsers)
+    try {
+      const bdcRes = await fetch(
+        `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${latitude}&longitude=${longitude}&localityLanguage=pt`
+      );
+      if (bdcRes.ok) {
+        const bdcData = await bdcRes.json();
+        if (bdcData) {
+          if (bdcData.street) road = bdcData.street;
+          if (bdcData.houseNumber) houseNumber = bdcData.houseNumber;
+          if (bdcData.city) city = bdcData.city;
+          if (!city && bdcData.locality) city = bdcData.locality;
+          if (bdcData.principalSubdivisionCode) {
+            state = bdcData.principalSubdivisionCode.replace('BR-', '').toUpperCase();
+          } else if (bdcData.principalSubdivision) {
+            state = bdcData.principalSubdivision;
+          }
+          if (bdcData.postcode) postcode = bdcData.postcode;
+
+          if (bdcData.localityInfo && Array.isArray(bdcData.localityInfo.informative)) {
+            const sub = bdcData.localityInfo.informative.find((i: any) =>
+              i.description?.toLowerCase().includes('bairro') ||
+              (i.name && i.name.toLowerCase().startsWith('bairro')) ||
+              i.order === 4 || i.order === 5
+            );
+            if (sub && sub.name) {
+              neighbourhood = sub.name;
+            }
+          }
+        }
+      }
+    } catch (err) {
+      console.warn('BigDataCloud geocode warning:', err);
+    }
+
+    // Secondary: OpenStreetMap Nominatim jsonv2 API (detailed fallback)
+    if (!road || !houseNumber || !neighbourhood || !city) {
+      try {
+        const osmRes = await fetch(
+          `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${latitude}&lon=${longitude}&zoom=18&addressdetails=1&accept-language=pt-br`
+        );
+        if (osmRes.ok) {
+          const osmData = await osmRes.json();
+          const addr = osmData.address || {};
+
+          if (!road) {
+            road = addr.road || addr.pedestrian || addr.footway || addr.avenue || addr.street || addr.highway || addr.path || addr.square || '';
+          }
+          if (!houseNumber) {
+            houseNumber = addr.house_number || addr.building || '';
+          }
+          if (!neighbourhood) {
+            neighbourhood = addr.suburb || addr.neighbourhood || addr.residential || addr.quarter || addr.district || addr.city_district || '';
+          }
+          if (!city) {
+            city = addr.city || addr.town || addr.municipality || addr.village || addr.county || 'Pojuca';
+          }
+          if (addr.state) {
+            state = addr.state.length === 2 ? addr.state.toUpperCase() : 'BA';
+          }
+          if (!postcode && addr.postcode) {
+            postcode = addr.postcode;
+          }
+        }
+      } catch (err) {
+        console.warn('Nominatim geocode warning:', err);
+      }
+    }
+
+    if (!city) city = 'Pojuca';
+    if (!state) state = 'BA';
+
+    const parts: string[] = [];
+
+    if (road) {
+      if (houseNumber) {
+        parts.push(`${road}, nº ${houseNumber}`);
+      } else {
+        parts.push(road);
+      }
+    }
+
+    if (neighbourhood && neighbourhood.toLowerCase() !== road.toLowerCase()) {
+      parts.push(neighbourhood.toLowerCase().startsWith('bairro') ? neighbourhood : `Bairro ${neighbourhood}`);
+    }
+
+    parts.push(`${city} - ${state}`);
+
+    if (postcode) {
+      parts.push(`CEP ${postcode}`);
+    }
+
+    const formattedAddress = parts.length > 0 ? parts.join(', ') : `${city} - ${state}`;
+    return `${formattedAddress} (GPS: ${latFixed}, ${lonFixed}${accuracyText})`;
+  };
+
+  // Helper to extract lat/lon from location string
+  const parsedCoords = useMemo(() => {
+    if (!location) return null;
+    const match = location.match(/GPS:\s*(-?\d+\.\d+),\s*(-?\d+\.\d+)/i);
+    if (match) {
+      return { lat: match[1], lon: match[2] };
+    }
+    return null;
+  }, [location]);
+
   // GPS Handler
   const handleGetGpsLocation = () => {
     if (!navigator.geolocation) {
@@ -316,35 +435,17 @@ export default function TicketFormView({ user, infractions, onSuccessSubmit }: T
 
     navigator.geolocation.getCurrentPosition(
       async (position) => {
-        const { latitude, longitude } = position.coords;
-        const latFixed = latitude.toFixed(6);
-        const lonFixed = longitude.toFixed(6);
+        const { latitude, longitude, accuracy } = position.coords;
 
         try {
-          const res = await fetch(
-            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=18&addressdetails=1`,
-            { headers: { 'Accept-Language': 'pt-BR' } }
-          );
-          if (res.ok) {
-            const data = await res.json();
-            const addr = data.address || {};
-            const road = addr.road || addr.pedestrian || addr.suburb || addr.neighbourhood || addr.city_district || '';
-            const city = addr.city || addr.town || addr.municipality || 'Pojuca';
-            
-            let formattedAddr = '';
-            if (road) {
-              formattedAddr = `${road}, ${city} - BA (GPS: ${latFixed}, ${lonFixed})`;
-            } else if (data.display_name) {
-              formattedAddr = `${data.display_name.split(',').slice(0, 3).join(',')} (GPS: ${latFixed}, ${lonFixed})`;
-            } else {
-              formattedAddr = `Coordenadas GPS: ${latFixed}, ${lonFixed}`;
-            }
-            setLocation(formattedAddr);
-          } else {
-            setLocation(`Coordenadas GPS: ${latFixed}, ${lonFixed}`);
-          }
+          const exactLocationStr = await getExactGpsAddress(latitude, longitude, accuracy);
+          setLocation(exactLocationStr);
+          setSuccessMsg(`Localização GPS obtida com alta precisão (${Math.round(accuracy || 0)}m).`);
+          setTimeout(() => setSuccessMsg(null), 4000);
         } catch (e) {
-          setLocation(`Coordenadas GPS: ${latFixed}, ${lonFixed}`);
+          const latFixed = latitude.toFixed(6);
+          const lonFixed = longitude.toFixed(6);
+          setLocation(`Pojuca - BA (GPS: ${latFixed}, ${lonFixed} [±${Math.round(accuracy || 0)}m])`);
         } finally {
           setIsGettingGps(false);
         }
@@ -355,15 +456,15 @@ export default function TicketFormView({ user, infractions, onSuccessSubmit }: T
         if (err.code === err.PERMISSION_DENIED) {
           msg = 'Permissão de GPS negada. Por favor, permita o acesso à localização no seu navegador.';
         } else if (err.code === err.POSITION_UNAVAILABLE) {
-          msg = 'Sinal de GPS indisponível no momento.';
+          msg = 'Sinal de GPS indisponível no momento. Verifique se o GPS/Localização do seu dispositivo está ativado.';
         } else if (err.code === err.TIMEOUT) {
-          msg = 'Tempo limite esgotado ao buscar sinal GPS.';
+          msg = 'Tempo limite esgotado ao buscar sinal GPS de alta precisão. Tente novamente.';
         }
         setErrorMsg(msg);
       },
       {
         enableHighAccuracy: true,
-        timeout: 10000,
+        timeout: 20000,
         maximumAge: 0
       }
     );
@@ -683,6 +784,23 @@ export default function TicketFormView({ user, infractions, onSuccessSubmit }: T
                 className="w-full px-4 py-3 bg-white border-2 border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-4 focus:ring-amber-500/10 focus:border-amber-500 text-slate-800 font-semibold shadow-xs min-h-[48px]"
                 required
               />
+
+              {parsedCoords && (
+                <div className="flex flex-wrap items-center justify-between text-xs font-mono text-emerald-900 bg-emerald-50 border border-emerald-200/90 p-2.5 rounded-xl gap-2 mt-1.5 animate-fade-in">
+                  <div className="flex items-center gap-2">
+                    <MapPin size={15} className="text-emerald-600 shrink-0" />
+                    <span>GPS Fixado: <b>{parsedCoords.lat}, {parsedCoords.lon}</b></span>
+                  </div>
+                  <a
+                    href={`https://www.google.com/maps?q=${parsedCoords.lat},${parsedCoords.lon}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-900 hover:text-black bg-amber-400 hover:bg-amber-300 px-3 py-1 rounded-lg transition-colors shadow-2xs shrink-0 cursor-pointer"
+                  >
+                    <span>Ver no Google Maps 🗺️</span>
+                  </a>
+                </div>
+              )}
             </div>
           </div>
         </div>
