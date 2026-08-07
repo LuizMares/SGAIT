@@ -32,6 +32,7 @@ import {
 import { TrafficTicket, UserProfile, UserRole, InfractionType } from '../types';
 import { dbService } from '../lib/supabase';
 import { normalizeAgentName } from '../lib/agentUtils';
+import { reverseGeocodeGps, sanitizeFullAddress } from '../lib/geoUtils';
 
 interface TicketListViewProps {
   user: UserProfile;
@@ -105,7 +106,7 @@ const MobileTicketCard = React.memo(({ ticket, user, onView, onEdit, onDelete }:
         </div>
         <div className="col-span-2 border-t border-slate-200/60 pt-1.5 mt-0.5">
           <span className="text-[9px] font-black uppercase text-slate-400 block">Local</span>
-          <p className="text-xs font-semibold text-slate-700 truncate">{ticket.location}</p>
+          <p className="text-xs font-semibold text-slate-700 truncate">{sanitizeFullAddress(ticket.location)}</p>
         </div>
       </div>
 
@@ -186,8 +187,8 @@ const DesktopTicketRow = React.memo(({ ticket, user, onView, onEdit, onDelete }:
       <td className="py-4 px-5 whitespace-nowrap font-mono font-bold tracking-wider text-slate-700 uppercase">
         {ticket.plate}
       </td>
-      <td className="py-4 px-5 max-w-xs truncate text-slate-500" title={ticket.location}>
-        {ticket.location}
+      <td className="py-4 px-5 max-w-xs truncate text-slate-500" title={sanitizeFullAddress(ticket.location)}>
+        {sanitizeFullAddress(ticket.location)}
       </td>
       <td className="py-4 px-5">
         <div className="flex items-center gap-1 flex-wrap">
@@ -300,61 +301,14 @@ export default function TicketListView({ user, tickets, infractions, onReloadNee
     navigator.geolocation.getCurrentPosition(
       async (position) => {
         const { latitude, longitude, accuracy } = position.coords;
-        const latFixed = latitude.toFixed(6);
-        const lonFixed = longitude.toFixed(6);
-        const accuracyText = accuracy && accuracy > 0 ? ` [±${Math.round(accuracy)}m]` : '';
 
         try {
-          let road = '';
-          let houseNumber = '';
-          let neighbourhood = '';
-          let city = 'Pojuca';
-          let state = 'BA';
-
-          try {
-            const bdcRes = await fetch(
-              `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${latitude}&longitude=${longitude}&localityLanguage=pt`
-            );
-            if (bdcRes.ok) {
-              const bdcData = await bdcRes.json();
-              if (bdcData) {
-                if (bdcData.street) road = bdcData.street;
-                if (bdcData.houseNumber) houseNumber = bdcData.houseNumber;
-                if (bdcData.city) city = bdcData.city;
-                if (bdcData.principalSubdivisionCode) state = bdcData.principalSubdivisionCode.replace('BR-', '').toUpperCase();
-              }
-            }
-          } catch (e) {
-            console.warn('Geocode BDC failed:', e);
-          }
-
-          if (!road) {
-            try {
-              const osmRes = await fetch(
-                `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${latitude}&lon=${longitude}&zoom=18&addressdetails=1&accept-language=pt-br`
-              );
-              if (osmRes.ok) {
-                const osmData = await osmRes.json();
-                const addr = osmData.address || {};
-                road = addr.road || addr.pedestrian || addr.avenue || addr.street || '';
-                houseNumber = addr.house_number || '';
-                neighbourhood = addr.suburb || addr.neighbourhood || '';
-                city = addr.city || addr.town || 'Pojuca';
-              }
-            } catch (e) {
-              console.warn('Geocode OSM failed:', e);
-            }
-          }
-
-          const parts: string[] = [];
-          if (road) parts.push(houseNumber ? `${road}, nº ${houseNumber}` : road);
-          if (neighbourhood) parts.push(`Bairro ${neighbourhood}`);
-          parts.push(`${city} - ${state}`);
-
-          const baseAddr = parts.length > 0 ? parts.join(', ') : `${city} - ${state}`;
-          setEditLocation(`${baseAddr} (GPS: ${latFixed}, ${lonFixed}${accuracyText})`);
+          const locStr = await reverseGeocodeGps(latitude, longitude, accuracy);
+          setEditLocation(locStr);
         } catch (e) {
-          setEditLocation(`Pojuca - BA (GPS: ${latFixed}, ${lonFixed}${accuracyText})`);
+          const latFixed = latitude.toFixed(6);
+          const lonFixed = longitude.toFixed(6);
+          setEditLocation(`Pojuca - BA (GPS: ${latFixed}, ${lonFixed})`);
         } finally {
           setIsGettingEditGps(false);
         }
@@ -1076,7 +1030,7 @@ export default function TicketListView({ user, tickets, infractions, onReloadNee
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 bg-slate-50 p-3 rounded-xl border border-slate-200/80">
                   <div className="flex items-start gap-2">
                     <MapPin size={16} className="text-amber-500 shrink-0 mt-0.5" />
-                    <span className="text-slate-800 font-medium text-xs leading-relaxed">{selectedTicket.location}</span>
+                    <span className="text-slate-800 font-medium text-xs leading-relaxed">{sanitizeFullAddress(selectedTicket.location)}</span>
                   </div>
                   {(() => {
                     const match = selectedTicket.location?.match(/GPS:\s*(-?\d+\.\d+),\s*(-?\d+\.\d+)/i);

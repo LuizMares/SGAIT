@@ -28,6 +28,7 @@ import {
 } from 'lucide-react';
 import { TrafficTicket, InfractionType, UserProfile } from '../types';
 import { dbService, safeStorage } from '../lib/supabase';
+import { reverseGeocodeGps } from '../lib/geoUtils';
 
 interface TicketFormViewProps {
   user: UserProfile;
@@ -304,115 +305,6 @@ export default function TicketFormView({ user, infractions, onSuccessSubmit }: T
     setPhotoUrls(prev => prev.filter((_, idx) => idx !== indexToRemove));
   };
 
-  // High-precision Reverse Geocoding Helper
-  const getExactGpsAddress = async (latitude: number, longitude: number, accuracy?: number): Promise<string> => {
-    const latFixed = latitude.toFixed(6);
-    const lonFixed = longitude.toFixed(6);
-    const accuracyText = accuracy && accuracy > 0 ? ` [±${Math.round(accuracy)}m]` : '';
-
-    let road = '';
-    let houseNumber = '';
-    let neighbourhood = '';
-    let city = '';
-    let state = 'BA';
-    let postcode = '';
-
-    // Primary: BigDataCloud Client API (fast, free client-side API, no CORS or User-Agent blockage in browsers)
-    try {
-      const bdcRes = await fetch(
-        `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${latitude}&longitude=${longitude}&localityLanguage=pt`
-      );
-      if (bdcRes.ok) {
-        const bdcData = await bdcRes.json();
-        if (bdcData) {
-          if (bdcData.street) road = bdcData.street;
-          if (bdcData.houseNumber) houseNumber = bdcData.houseNumber;
-          if (bdcData.city) city = bdcData.city;
-          if (!city && bdcData.locality) city = bdcData.locality;
-          if (bdcData.principalSubdivisionCode) {
-            state = bdcData.principalSubdivisionCode.replace('BR-', '').toUpperCase();
-          } else if (bdcData.principalSubdivision) {
-            state = bdcData.principalSubdivision;
-          }
-          if (bdcData.postcode) postcode = bdcData.postcode;
-
-          if (bdcData.localityInfo && Array.isArray(bdcData.localityInfo.informative)) {
-            const sub = bdcData.localityInfo.informative.find((i: any) =>
-              i.description?.toLowerCase().includes('bairro') ||
-              (i.name && i.name.toLowerCase().startsWith('bairro')) ||
-              i.order === 4 || i.order === 5
-            );
-            if (sub && sub.name) {
-              neighbourhood = sub.name;
-            }
-          }
-        }
-      }
-    } catch (err) {
-      console.warn('BigDataCloud geocode warning:', err);
-    }
-
-    // Secondary: OpenStreetMap Nominatim jsonv2 API (detailed fallback)
-    if (!road || !houseNumber || !neighbourhood || !city) {
-      try {
-        const osmRes = await fetch(
-          `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${latitude}&lon=${longitude}&zoom=18&addressdetails=1&accept-language=pt-br`
-        );
-        if (osmRes.ok) {
-          const osmData = await osmRes.json();
-          const addr = osmData.address || {};
-
-          if (!road) {
-            road = addr.road || addr.pedestrian || addr.footway || addr.avenue || addr.street || addr.highway || addr.path || addr.square || '';
-          }
-          if (!houseNumber) {
-            houseNumber = addr.house_number || addr.building || '';
-          }
-          if (!neighbourhood) {
-            neighbourhood = addr.suburb || addr.neighbourhood || addr.residential || addr.quarter || addr.district || addr.city_district || '';
-          }
-          if (!city) {
-            city = addr.city || addr.town || addr.municipality || addr.village || addr.county || 'Pojuca';
-          }
-          if (addr.state) {
-            state = addr.state.length === 2 ? addr.state.toUpperCase() : 'BA';
-          }
-          if (!postcode && addr.postcode) {
-            postcode = addr.postcode;
-          }
-        }
-      } catch (err) {
-        console.warn('Nominatim geocode warning:', err);
-      }
-    }
-
-    if (!city) city = 'Pojuca';
-    if (!state) state = 'BA';
-
-    const parts: string[] = [];
-
-    if (road) {
-      if (houseNumber) {
-        parts.push(`${road}, nº ${houseNumber}`);
-      } else {
-        parts.push(road);
-      }
-    }
-
-    if (neighbourhood && neighbourhood.toLowerCase() !== road.toLowerCase()) {
-      parts.push(neighbourhood.toLowerCase().startsWith('bairro') ? neighbourhood : `Bairro ${neighbourhood}`);
-    }
-
-    parts.push(`${city} - ${state}`);
-
-    if (postcode) {
-      parts.push(`CEP ${postcode}`);
-    }
-
-    const formattedAddress = parts.length > 0 ? parts.join(', ') : `${city} - ${state}`;
-    return `${formattedAddress} (GPS: ${latFixed}, ${lonFixed}${accuracyText})`;
-  };
-
   // Helper to extract lat/lon from location string
   const parsedCoords = useMemo(() => {
     if (!location) return null;
@@ -438,9 +330,9 @@ export default function TicketFormView({ user, infractions, onSuccessSubmit }: T
         const { latitude, longitude, accuracy } = position.coords;
 
         try {
-          const exactLocationStr = await getExactGpsAddress(latitude, longitude, accuracy);
+          const exactLocationStr = await reverseGeocodeGps(latitude, longitude, accuracy);
           setLocation(exactLocationStr);
-          setSuccessMsg(`Localização GPS obtida com alta precisão (${Math.round(accuracy || 0)}m).`);
+          setSuccessMsg(`Localização GPS obtida com sucesso e endereço/bairro higienizado (${Math.round(accuracy || 0)}m).`);
           setTimeout(() => setSuccessMsg(null), 4000);
         } catch (e) {
           const latFixed = latitude.toFixed(6);
